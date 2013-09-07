@@ -8,8 +8,11 @@ dependencies{
     emma "emma:emma_ant:2.1.5320"
 }
 
-def emmaConvention = new EmmaPluginConvention(project)
-project.convention.plugins.emma = emmaConvention
+project.ext {
+	emmaConvention = new EmmaPluginConvention(project)
+}
+
+project.convention.plugins.emma = project.emmaConvention
 
 class EmmaPluginConvention{
     def verbosityLevel = "info"
@@ -25,7 +28,7 @@ class EmmaPluginConvention{
     }
 
     EmmaPluginConvention(Project project){
-        reportPath          = "${project.reportsDir.absolutePath}/emma"
+        reportPath          = "${project.reporting.baseDir}/emma"
         coverageFileName    = "coverage"
         tmpDir              = "${project.buildDir}/tmp/emma"
         instrDir            = "${tmpDir}/instr"

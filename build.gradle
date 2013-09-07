@@ -5,7 +5,7 @@ apply from:'emma.gradle'
 
 version = '1.0-SNAPSHOT'
 group = 'com.nurun.nudroid.persistence'
-artifactId = 'annotations';
+archivesBaseName = 'annotations';
 
 configurations { provided }
 
@@ -19,11 +19,11 @@ repositories {
 
 dependencies {
     compile 'org.apache.velocity:velocity:1.7'
-    providedCompile 'javax.servlet:servlet-api:2.5'
+    provided 'javax.servlet:servlet-api:2.5'
     testCompile 'org.testng:testng:6.8.5'
     testCompile 'org.mockito:mockito-all:1.9.5'
 }
 
 test { useTestNG() }
 
-sourceSets { compileClasspath += configurations.provided }
+sourceSets.main.compileClasspath += configurations.provided
