@@ -14,9 +14,12 @@ public class ContentUriRegistry {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
+#set( $uriId = 0 )
+        
 #foreach( $authority in $authoritiesAndUris.keySet() )
 #foreach( $uri in $authoritiesAndUris.get($authority) )
-        URI_MATCHER.addURI("$authority", "$uri", $velocityCount);
+#set( $uriId = $uriId + 1 )
+        URI_MATCHER.addURI("$authority", "$uri", $uriId);
 #end
 #end
     }

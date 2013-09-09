@@ -19,14 +19,12 @@ import com.nurun.persistence.annotation.Authority;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  * 
  */
-public class Metadata {
+class Metadata {
 
     private Map<TypeElement, Set<ExecutableElement>> classesAndMethods = new HashMap<TypeElement, Set<ExecutableElement>>();
     private Map<String, Set<ExecutableElement>> urisAndMethods = new HashMap<String, Set<ExecutableElement>>();
     private Map<String, Set<String>> authoritiesAndUris = new HashMap<String, Set<String>>();
     private Map<String, TypeElement> authorityToClass = new HashMap<String, TypeElement>();
-    private Map<TypeElement, String> classToAuthority = new HashMap<TypeElement, String>();
-    private HashSet<String> indexedTypeElements = new HashSet<String>();
 
     /**
      * @param enclosingElement
@@ -121,19 +119,6 @@ public class Metadata {
     public void setClassForAuthority(String value, TypeElement typeElement) {
 
         authorityToClass.put(value, typeElement);
-    }
-    
-    public void indexedType(Element element) {
-        
-        indexedTypeElements.add(element.toString());
-    }
-
-    /**
-     * @return
-     */
-    public Set<String> getIndexedTypeNames() {
-
-        return Collections.unmodifiableSet(indexedTypeElements);
     }
 
     public String parseAuthorityFromClass(Element classRoot) {

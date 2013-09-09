@@ -21,7 +21,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
@@ -53,20 +52,20 @@ import com.nurun.persistence.annotation.Query;
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
-    static final String NUDROID_PERSISTENCE_BASE_PACKAGE = "com.nudroid.persistence";
+    static final String GENERATED_CODE_BASE_PACKAGE = "com.nudroid.persistence";
+    static final String CONTENT_URI_REGISTRY_CLASS_NAME = "ContentUriRegistry";
+
+    private static final String CONTENT_URI_REGISTRY_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/ContentUriRegistryTemplate.vm";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private Elements elementUtils;
-    private Types typeUtils;
     private Filer filer;
     private boolean initialized = false;
     private int iterationRun = 0;
 
     private ProcessorContinuation continuation;
     private Metadata metadata;
-
-    private Exception exception;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -76,7 +75,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         logger.info("Initializing nudroid persistence annotation processor.");
 
         elementUtils = env.getElementUtils();
-        typeUtils = env.getTypeUtils();
         filer = env.getFiler();
 
         continuation = new ProcessorContinuation(filer);
@@ -87,7 +85,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             initialized = true;
             logger.info("Initialization complete.");
         } catch (Exception e) {
-            exception = e;
             logger.error("Unable to load continuation index file. Aborting annotation processor.", e);
         }
     }
@@ -103,13 +100,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
         iterationRun++;
-
-        if (exception != null) {
-
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    "Error not initialized " + exception.getMessage(),
-                    (Element) roundEnv.getRootElements().toArray()[0]);
-        }
 
         if (!initialized) {
 
@@ -132,145 +122,14 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
             generateCompanionSourceCode(metadata);
             generateContinuationFile();
-
-            logger.info("TEST");
         }
-
-        //
-        // Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(Query.class);
-        //
-        // for (Element elem : elements) {
-        // processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "[DEBUG***] - ", elem);
-        // }
-
-        // try {
-        //
-        // FileObject resource = filer.getResource(StandardLocation.SOURCE_OUTPUT, "com.nudroid.annotation.processor",
-        // "index.index");
-        // File file = new File(
-        // URI.create("file:///Users/daniel.freitas/dev/workspace/testpersistence/generated/com/nudroid/annotation/processor/index.index"));
-        //
-        // Scanner s = new Scanner(file);
-        //
-        // Writer writer = resource.openWriter();
-        // PrintWriter printWriter = new PrintWriter(writer);
-        // printWriter.println("Replaced");
-        // printWriter.close();
-        // writer.close();
-        //
-        // s.close();
-        // } catch (Exception e1) {
-        // e1.printStackTrace();
-        // }
-        //
-        // if (firstRun) {
-        //
-        // indexedTypes = createIndexedTypeSet(metadata.getIndexedTypes());
-        // }
-        //
-        // for (Element element : roundEnv.getRootElements()) {
-        //
-        // if (element instanceof TypeElement) {
-        //
-        // indexedTypes.add((TypeElement) element);
-        // }
-        // }
-        //
-        // try {
-        // FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT,
-        // "com.nudroid.annotation.processor", "index.index");
-        // Writer writer = indexFile.openWriter();
-        // PrintWriter printWriter = new PrintWriter(writer);
-        //
-        // for (TypeElement element : indexedTypes) {
-        // printWriter.println(element.toString());
-        // }
-        //
-        // printWriter.close();
-        // writer.close();
-        // } catch (IOException e) {
-        // debug("Error " + e);
-        // }
-        //
-        // for (Element elem : roundEnv.getElementsAnnotatedWith(Query.class)) {
-        //
-        // Element enclosingElement = elem.getEnclosingElement();
-        // Element parentEnclosingElement = enclosingElement.getEnclosingElement();
-        // Set<Modifier> modifiers = enclosingElement.getModifiers();
-        //
-        // if (!validateClassIsTopLevelOrStatic(elem, enclosingElement, parentEnclosingElement, modifiers)) {
-        // continue;
-        // }
-        //
-        // if (!validateClassHasDefaultConstructor(enclosingElement)) {
-        // continue;
-        // }
-        //
-        // Authority authority = enclosingElement.getAnnotation(Authority.class);
-        // String authorityString = authority != null ? authority.value() : enclosingElement.toString();
-        //
-        // try {
-        // TypeElement annotatedType = metadata.getClassForAuthority(authorityString);
-        //
-        // if (annotatedType == null || annotatedType.equals(enclosingElement)) {
-        //
-        // metadata.addClassAuthority(authorityString, (TypeElement) enclosingElement);
-        // } else {
-        //
-        // processingEnv.getMessager().printMessage(
-        // Diagnostic.Kind.WARNING,
-        // String.format("Class %s already defines an authority named '%s'.", annotatedType,
-        // authority.value()), enclosingElement);
-        // }
-        //
-        // metadata.addUri(authorityString, elem.getAnnotation(Query.class).value());
-        //
-        // } catch (DuplicateUriParameterException e) {
-        //
-        // processingEnv.getMessager().printMessage(
-        // Diagnostic.Kind.ERROR,
-        // String.format("Duplicated parameter. Parameter '%s', appearing at position '%d' "
-        // + "is already present at position '%d'.", e.getParamName(), e.getDuplicatePosition(),
-        // e.getExistingPosition()), elem);
-        // }
-        //
-        // metadata.addTargetMethod((TypeElement) enclosingElement, (ExecutableElement) elem);
-        // }
-        //
-        // if (firstRun) {
-        //
-        // // try {
-        // // generateCompanionSourceCode(metadata);
-        // generateCompanionSourceCode2(metadata);
-        // // } catch (IOException e) {
-        // // e.printStackTrace();
-        // // processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-        // // "Unable to create companion class source code. Exception below.");
-        // // }
-        // }
 
         return true;
     }
 
-    private void generateContinuationFile() {
+    private boolean isFirstRun() {
 
-        Set<String> indexedTypes = metadata.getIndexedTypeNames();
-
-        try {
-            FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT,
-                    NUDROID_PERSISTENCE_BASE_PACKAGE, ProcessorContinuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
-            Writer writer = indexFile.openWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-
-            for (String indexedTypeName : indexedTypes) {
-                printWriter.println(indexedTypeName);
-            }
-
-            printWriter.close();
-            writer.close();
-        } catch (IOException e) {
-            debug("Error " + e);
-        }
+        return iterationRun == 1;
     }
 
     private Set<Element> getElementsToProcess(RoundEnvironment roundEnv) {
@@ -296,7 +155,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         if (authority != null) {
 
-            metadata.indexedType(rootClass);
+            continuation.addContentProviderDelegate(rootClass);
 
             if (isAbstract(rootClass)) {
 
@@ -339,7 +198,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         if (query == null) return;
 
-        metadata.indexedType(rootClass);
+        continuation.addContentProviderDelegate(rootClass);
 
         if (isInterface(rootClass)) {
 
@@ -357,7 +216,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             return;
         }
 
-        if (isInvalidQueryElement(rootClass, method)) return;
+        if (!validateQueryElement(rootClass, method)) return;
 
         logger.info("[{}] Processing Query annotation on {}", iterationRun, rootClass + "." + method);
 
@@ -377,25 +236,25 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         metadata.addTargetMethod((TypeElement) rootClass, (ExecutableElement) method);
     }
 
-    private boolean isInvalidQueryElement(Element rootClass, Element method) {
+    private boolean validateQueryElement(Element rootClass, Element method) {
 
-        boolean hasError = false;
+        boolean isValid = true;
         Element enclosingElement = method.getEnclosingElement();
         Element parentEnclosingElement = enclosingElement.getEnclosingElement();
 
         if (!validateClassIsAnnotatedWithAuthority(method, rootClass)) {
-            hasError = true;
+            isValid = false;
         }
 
         if (!validateClassIsTopLevelOrStatic(method, enclosingElement, parentEnclosingElement)) {
-            hasError = true;
+            isValid = false;
         }
 
         if (isClass(enclosingElement) && !validateClassHasDefaultConstructor(enclosingElement)) {
-            hasError = true;
+            isValid = false;
         }
 
-        return hasError;
+        return isValid;
     }
 
     private boolean validateClassIsAnnotatedWithAuthority(Element method, Element methodEnclosingClass) {
@@ -439,26 +298,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return isValid;
     }
 
-    private boolean isInterface(Element element) {
-
-        return element.getKind().equals(ElementKind.INTERFACE);
-    }
-
-    private boolean isAbstract(Element element) {
-
-        return element.getModifiers().contains(Modifier.ABSTRACT);
-    }
-
-    private boolean isClass(Element element) {
-
-        return element.getKind().equals(ElementKind.CLASS);
-    }
-
-    private boolean isClassOrInterface(Element element) {
-
-        return element.getKind().equals(ElementKind.CLASS) || element.getKind().equals(ElementKind.INTERFACE);
-    }
-
     private boolean validateClassHasDefaultConstructor(Element rootClass) {
 
         List<? extends Element> enclosedElements = rootClass.getEnclosedElements();
@@ -479,33 +318,9 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    private boolean isFirstRun() {
-
-        return iterationRun == 1;
-    }
-
-    private Set<TypeElement> createIndexedTypeSet(Set<String> indexedTypes) {
-
-        HashSet<TypeElement> elements = new HashSet<TypeElement>();
-
-        for (String className : indexedTypes) {
-
-            TypeElement typeElement = elementUtils.getTypeElement(className);
-
-            if (typeElement != null) {
-                elements.add(typeElement);
-            }
-        }
-
-        return elements;
-    }
-
     private void generateCompanionSourceCode(Metadata metadata) {
 
-        Properties p = new Properties();
-        p.put("resource.loader", "classpath");
-        p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
-        p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);
         VelocityContext context = new VelocityContext();
         context.put("contentProviders", metadata.getTargetClasses());
@@ -514,9 +329,9 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         Template template = null;
 
         try {
-            template = Velocity.getTemplate("com/nudroid/persistence/annotation/processor/ContentUriRegistry.vm");
-            JavaFileObject jfoContentUriRegistry = filer.createSourceFile(NUDROID_PERSISTENCE_BASE_PACKAGE
-                    + ".ContentUriRegistry");
+            template = Velocity.getTemplate(CONTENT_URI_REGISTRY_TEMPLATE_LOCATION);
+            JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
+                    GENERATED_CODE_BASE_PACKAGE, CONTENT_URI_REGISTRY_CLASS_NAME));
             Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
 
             template.merge(context, writerContentUriRegistry);
@@ -535,6 +350,35 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             e.printStackTrace();
         }
 
+    }
+
+    private Properties generateVelocityConfigurationProperties() {
+        Properties p = new Properties();
+        p.put("resource.loader", "classpath");
+        p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
+        p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        return p;
+    }
+
+    private void generateContinuationFile() {
+
+        Set<String> indexedTypes = continuation.getContentProviderDelegateNames();
+
+        try {
+            FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT, GENERATED_CODE_BASE_PACKAGE,
+                    ProcessorContinuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
+            Writer writer = indexFile.openWriter();
+            PrintWriter printWriter = new PrintWriter(writer);
+
+            for (String indexedTypeName : indexedTypes) {
+                printWriter.println(indexedTypeName);
+            }
+
+            printWriter.close();
+            writer.close();
+        } catch (IOException e) {
+            debug("Error " + e);
+        }
     }
 
     // private void generateCompanionSourceCode(Metadata metadata) throws IOException {
@@ -673,6 +517,26 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     // javaWriterContentUriRegistry.close();
     // writerContentUriRegistry.close();
     // }
+
+    private boolean isAbstract(Element element) {
+
+        return element.getModifiers().contains(Modifier.ABSTRACT);
+    }
+
+    private boolean isClassOrInterface(Element element) {
+
+        return element.getKind().equals(ElementKind.CLASS) || element.getKind().equals(ElementKind.INTERFACE);
+    }
+
+    private boolean isInterface(Element element) {
+
+        return element.getKind().equals(ElementKind.INTERFACE);
+    }
+
+    private boolean isClass(Element element) {
+
+        return element.getKind().equals(ElementKind.CLASS);
+    }
 
     /**
      * @param string
