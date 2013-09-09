@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * 
  * @author daniel.freitas
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Delete {

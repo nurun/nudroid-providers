@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ProcessorContinuation {
 
-	private static final String CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME = "contentProviderDelegate.index";
+	public static final String CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME = "contentProviderDelegate.index";
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private Filer filer;
@@ -52,11 +52,11 @@ public class ProcessorContinuation {
 
 		if (!file.exists()) {
 
-			logger.info("Continuation file '{}' not found. First compilation interation.", file);
+			logger.info("Continuation file not found. First compilation interation.", file);
 			return;
 		}
 
-		logger.info("Continuation file '{}' found. Loading continuation information.", file);
+		logger.info("Continuation file found. Loading continuation information.", file);
 
 		Scanner fileScanner = null;
 

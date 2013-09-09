@@ -28,5 +28,5 @@ public @interface Authority {
     /**
      * The name of the authority for the annotated {@link InterceptableContentProvider}
      */
-    String value();
+    String value() default "";
 }

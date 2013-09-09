@@ -1,9 +1,10 @@
-package com.nurun.persistence.temp.vision;
+package com.nudroid.persistence;
 
 #foreach( $contentProvider in $contentProviders )
 import $contentProvider.toString();
 #end
 
+import com.nurun.persistence.temp.vision.ContentUriRouter;
 import android.content.UriMatcher;
 
 public class ContentUriRegistry {

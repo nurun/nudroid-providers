@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-@Target({ ElementType.TYPE, ElementType.PARAMETER })
+@Target({ ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface QueryParam {
