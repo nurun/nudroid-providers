@@ -1,4 +1,4 @@
-package com.nurun.persistence.temp.vision;
+package com.nurun.persistence.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Defines the configuration for a {@link InterceptableContentProvider} content URI. This annotation must be used inside a
- * {@link ContentUriSet}.
+ * Defines the configuration for a {@link InterceptableContentProvider} content URI. This annotation must be used inside
+ * a {@link ContentUriSet}.
  * <p/>
  * Example usage:
  * 
@@ -35,11 +35,11 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Insert {
+public @interface Query {
     /**
-     * The content path relative to the annotated {@link InterceptableContentProvider}. The path can have a leading slash. The
-     * framework will properly concatenate the authority with the content path if it is not present so the leading slash
-     * is not mandatory.
+     * The content path relative to the annotated {@link InterceptableContentProvider}. The path can have a leading
+     * slash. The framework will properly concatenate the authority with the content path if it is not present so the
+     * leading slash is not mandatory.
      */
     String value();
 }

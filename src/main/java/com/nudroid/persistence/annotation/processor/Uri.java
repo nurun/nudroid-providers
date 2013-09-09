@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.nudroid.annotation.processor;
+package com.nudroid.persistence.annotation.processor;
 
 import java.net.URI;
 import java.util.ArrayList;

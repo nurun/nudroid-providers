@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.nudroid.annotation.processor;
+package com.nudroid.persistence.annotation.processor;
 
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>

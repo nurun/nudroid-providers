@@ -1,4 +1,4 @@
-package com.nurun.persistence.temp.vision;
+package com.nurun.persistence.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

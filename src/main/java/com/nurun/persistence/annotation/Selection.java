@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.nurun.persistence.temp.vision;
+package com.nurun.persistence.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -11,11 +11,11 @@ import java.lang.annotation.Target;
 
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
- *
+ * 
  */
 @Target({ ElementType.TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface SortOrder {
+public @interface Selection {
 
 }

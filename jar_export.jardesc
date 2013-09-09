@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="US-ASCII" standalone="no"?>
 <jardesc>
-    <jar path="Nurun Persistence/libs/nap.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/Nudroid Annotation Processor/jar_export.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <jar path="test_annotation_processor/lib/nap.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/mtl-nudroid-annotations/jar_export.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -11,6 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=Nudroid Annotation Processor/src"/>
+        <javaElement handleIdentifier="=mtl-nudroid-annotations/src\/main\/resources"/>
+        <javaElement handleIdentifier="=mtl-nudroid-annotations/src\/main\/java"/>
     </selectedElements>
 </jardesc>
