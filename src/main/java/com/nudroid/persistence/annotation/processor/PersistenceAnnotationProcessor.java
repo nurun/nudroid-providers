@@ -3,6 +3,7 @@ package com.nudroid.persistence.annotation.processor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -20,7 +21,10 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
@@ -36,7 +40,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.nurun.persistence.annotation.Authority;
+import com.nurun.persistence.annotation.ContentUri;
+import com.nurun.persistence.annotation.ContentValues;
+import com.nurun.persistence.annotation.PathParam;
+import com.nurun.persistence.annotation.Projection;
 import com.nurun.persistence.annotation.Query;
+import com.nurun.persistence.annotation.QueryParam;
+import com.nurun.persistence.annotation.Selection;
+import com.nurun.persistence.annotation.SelectionArgs;
+import com.nurun.persistence.annotation.SortOrder;
 
 /**
  * Annotation processor creating the bindings necessary for Android content provider delegates. TODO Finish
@@ -56,16 +68,24 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     static final String CONTENT_URI_REGISTRY_CLASS_NAME = "ContentUriRegistry";
 
     private static final String CONTENT_URI_REGISTRY_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/ContentUriRegistryTemplate.vm";
+    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/RouterTemplate.vm";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private Elements elementUtils;
+    private Types typeUtils;
     private Filer filer;
     private boolean initialized = false;
     private int iterationRun = 0;
 
     private ProcessorContinuation continuation;
+    private UriRegistry uriRegistry = new UriRegistry();
     private Metadata metadata;
+
+    private TypeMirror stringType;
+    private TypeMirror arrayOfStringsType;
+    private TypeMirror contentValuesType;
+    private TypeMirror uriType;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -75,10 +95,15 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         logger.info("Initializing nudroid persistence annotation processor.");
 
         elementUtils = env.getElementUtils();
+        typeUtils = env.getTypeUtils();
         filer = env.getFiler();
+        stringType = elementUtils.getTypeElement("java.lang.String").asType();
+        arrayOfStringsType = typeUtils.getArrayType(stringType);
+        contentValuesType = elementUtils.getTypeElement("android.content.ContentValues").asType();
+        uriType = elementUtils.getTypeElement("android.net.Uri").asType();
 
         continuation = new ProcessorContinuation(filer);
-        metadata = new Metadata();
+        metadata = new Metadata(uriRegistry, elementUtils, typeUtils);
 
         try {
             continuation.loadContinuation();
@@ -200,6 +225,8 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         continuation.addContentProviderDelegate(rootClass);
 
+        boolean isValid = true;
+
         if (isInterface(rootClass)) {
 
             processingEnv.getMessager().printMessage(
@@ -208,7 +235,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
                             + "The @Query annotation in this method won't be inherited by implementing classes.",
                     method);
 
-            return;
+            isValid = false;
         }
 
         if (isAbstract(rootClass)) {
@@ -216,13 +243,16 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             return;
         }
 
-        if (!validateQueryElement(rootClass, method)) return;
+        if (!validateQueryElement(rootClass, method)) isValid = false;
+        if (!validateParameters(query, (ExecutableElement) method)) isValid = false;
+        if (!isValid) return;
 
         logger.info("[{}] Processing Query annotation on {}", iterationRun, rootClass + "." + method);
 
         try {
 
             metadata.addUri(metadata.parseAuthorityFromClass(rootClass), query.value());
+            metadata.mapUri(rootClass, (ExecutableElement) method, metadata.parseAuthorityFromClass(rootClass), query);
 
         } catch (DuplicateUriParameterException e) {
 
@@ -252,6 +282,167 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         if (isClass(enclosingElement) && !validateClassHasDefaultConstructor(enclosingElement)) {
             isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private boolean validateParameters(Query query, ExecutableElement method) {
+
+        boolean isValid = true;
+
+        List<? extends VariableElement> parameters = method.getParameters();
+
+        for (VariableElement var : parameters) {
+
+            List<Class<?>> accumulatedAnnotations = new ArrayList<Class<?>>();
+
+            final TypeMirror parameterType = var.asType();
+
+            isValid = validateParameterAnnotation(var, Projection.class, parameterType, arrayOfStringsType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(var, Selection.class, parameterType, stringType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(var, SelectionArgs.class, parameterType, arrayOfStringsType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(var, SortOrder.class, parameterType, stringType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(var, ContentValues.class, parameterType, contentValuesType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(var, ContentUri.class, parameterType, uriType, accumulatedAnnotations);
+
+            isValid = validatePathParamAnnotation(var, query, accumulatedAnnotations);
+            isValid = validateQueryParamAnnotation(var, query, accumulatedAnnotations);
+        }
+
+        return isValid;
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private boolean validateParameterAnnotation(VariableElement var, Class annotationClass, TypeMirror parameterType,
+            TypeMirror requiredType, List<Class<?>> accumulatedAnnotations) {
+
+        boolean isValid = true;
+
+        if (var.getAnnotation(annotationClass) != null) {
+
+            accumulatedAnnotations.add(annotationClass);
+
+            if (accumulatedAnnotations.size() > 1) {
+
+                isValid = false;
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Parameters %s can only be annotated with one of %s.", var,
+                                accumulatedAnnotations), var);
+            }
+
+            if (!typeUtils.isSameType(parameterType, requiredType)) {
+
+                isValid = false;
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Parameters %s annotated with %s must be of type %s.", var, annotationClass,
+                                requiredType), var);
+            }
+        }
+
+        return isValid;
+    }
+
+    private boolean validatePathParamAnnotation(VariableElement var, Query query, List<Class<?>> accumulatedAnnotations) {
+
+        boolean isValid = true;
+
+        final PathParam annotation = var.getAnnotation(PathParam.class);
+
+        if (annotation != null) {
+
+            String paramName = annotation.value();
+            final String queryPath = query.value();
+            Uri uri = null;
+
+            try {
+                uri = new Uri(queryPath);
+            } catch (IllegalUriPathException e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
+                        var);
+
+                return false;
+            }
+
+            accumulatedAnnotations.add(PathParam.class);
+
+            if (accumulatedAnnotations.size() > 1) {
+
+                isValid = false;
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Parameters %s can only be annotated with one of %s.", var,
+                                accumulatedAnnotations), var);
+            }
+
+            if (!uri.containsPathPlaceholder(paramName)) {
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Could not find placeholder named '%s' on the path element of '%s'.", paramName,
+                                queryPath), var);
+
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+
+    private boolean validateQueryParamAnnotation(VariableElement var, Query query, List<Class<?>> accumulatedAnnotations) {
+
+        boolean isValid = true;
+
+        final QueryParam annotation = var.getAnnotation(QueryParam.class);
+
+        if (annotation != null) {
+
+            String paramName = annotation.value();
+            final String queryPath = query.value();
+            Uri uri = null;
+
+            try {
+                uri = new Uri(queryPath);
+            } catch (IllegalUriPathException e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                        String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
+                        var);
+
+                return false;
+            }
+
+            accumulatedAnnotations.add(PathParam.class);
+
+            if (accumulatedAnnotations.size() > 1) {
+
+                isValid = false;
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Parameters %s can only be annotated with one of %s.", var,
+                                accumulatedAnnotations), var);
+            }
+
+            if (!uri.containsQueryPlaceholder(paramName)) {
+
+                processingEnv.getMessager().printMessage(
+                        Diagnostic.Kind.ERROR,
+                        String.format("Could not find placeholder named '%s' on the query string element of '%s'.",
+                                paramName, queryPath), var);
+
+                isValid = false;
+            }
         }
 
         return isValid;
@@ -320,11 +511,16 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
     private void generateCompanionSourceCode(Metadata metadata) {
 
+        generateContentUriRegistry(metadata);
+        generateContentProviderRouters(metadata);
+    }
+
+    private void generateContentUriRegistry(Metadata metadata) {
         Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);
         VelocityContext context = new VelocityContext();
-        context.put("contentProviders", metadata.getTargetClasses());
-        context.put("authoritiesAndUris", metadata.getAuthoritiesAndUris());
+        context.put("delegateClasses", metadata.getDelegateClasses().values());
+        context.put("contentProviderUris", uriRegistry.getUniqueUris());
 
         Template template = null;
 
@@ -349,7 +545,41 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             debug("Error Loading script..." + e.getCause());
             e.printStackTrace();
         }
-
+    }
+    private void generateContentProviderRouters(Metadata metadata) {
+        
+        for (DelegateClass delegateClass : metadata.getDelegateClasses().values()) {
+            Properties p = generateVelocityConfigurationProperties();
+            Velocity.init(p);
+            VelocityContext context = new VelocityContext();
+            context.put("delegateClass", delegateClass);
+            context.put("classUriIds", delegateClass.getUriIds());
+            context.put("delegateMethods", metadata.getDelegateMethods());
+            
+            Template template = null;
+            
+            try {
+                template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+                JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
+                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterName()));
+                Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
+                
+                template.merge(context, writerContentUriRegistry);
+                writerContentUriRegistry.close();
+            } catch (ResourceNotFoundException e) {
+                debug("Error Loading script..." + e);
+                e.printStackTrace();
+            } catch (ParseErrorException e) {
+                debug("Error Loading script..." + e);
+                e.printStackTrace();
+            } catch (MethodInvocationException e) {
+                debug("Error Loading script..." + e);
+                e.printStackTrace();
+            } catch (Exception e) {
+                debug("Error Loading script..." + e.getCause());
+                e.printStackTrace();
+            }
+        }
     }
 
     private Properties generateVelocityConfigurationProperties() {

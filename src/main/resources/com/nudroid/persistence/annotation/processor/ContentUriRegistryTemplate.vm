@@ -1,7 +1,7 @@
 package com.nudroid.persistence;
 
-#foreach( $contentProvider in $contentProviders )
-import $contentProvider.toString();
+#foreach( $delegateClass in $delegateClasses )
+import $delegateClass.getName();
 #end
 
 import com.nurun.persistence.temp.vision.ContentUriRouter;
@@ -14,13 +14,8 @@ public class ContentUriRegistry {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
-#set( $uriId = 0 )
-        
-#foreach( $authority in $authoritiesAndUris.keySet() )
-#foreach( $uri in $authoritiesAndUris.get($authority) )
-#set( $uriId = $uriId + 1 )
-        URI_MATCHER.addURI("$authority", "$uri", $uriId);
-#end
+#foreach( $uri in $contentProviderUris )
+        URI_MATCHER.addURI("$uri.getAuthority()", "$uri.getPath()", $uri.getId());
 #end
     }
 
@@ -28,9 +23,9 @@ public class ContentUriRegistry {
 
         Class<?> objectClass = object.getClass();
 
-#foreach( $contentProvider in $contentProviders )
-        if (objectClass == ${contentProvider.getSimpleName()}.class) {
-            // return new ${contentProvider.getSimpleName()}Router(($contentProvider.getSimpleName()) object)
+#foreach( $delegateClass in $delegateClasses )
+        if (objectClass == ${delegateClass.getSimpleName()}.class) {
+            return new ${delegateClass.getSimpleName()}Router(($delegateClass.getSimpleName()) object);
         }   
         
 #end
