@@ -39,8 +39,7 @@ public class DelegateMethod {
 
     @Override
     public String toString() {
-        return "DelegateMethod [placeholderCount=" + queryPlaceholderCount + ", methodName=" + name + ", parameters="
-                + parameters + "]";
+        return String.format("method('%s')", name);
     }
 
     public int getUriId() {

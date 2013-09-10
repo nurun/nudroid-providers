@@ -546,8 +546,9 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             e.printStackTrace();
         }
     }
+
     private void generateContentProviderRouters(Metadata metadata) {
-        
+
         for (DelegateClass delegateClass : metadata.getDelegateClasses().values()) {
             Properties p = generateVelocityConfigurationProperties();
             Velocity.init(p);
@@ -555,15 +556,15 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             context.put("delegateClass", delegateClass);
             context.put("classUriIds", delegateClass.getUriIds());
             context.put("delegateMethods", metadata.getDelegateMethods());
-            
+
             Template template = null;
-            
+
             try {
                 template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
                 JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
                         GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterName()));
                 Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
-                
+
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
             } catch (ResourceNotFoundException e) {

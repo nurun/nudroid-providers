@@ -96,6 +96,7 @@ import $delegateClass.getName();
                 return delegate.$delegateMethod.getName()(#generateParamsList($delegateMethod.getParameters()));
             }
 #else
+    
             if (parameterNames.size() == $placeholderCount && #generateQueryParameterNamesMatcher($delegateMethod.getQueryPlaceholderNames())) {
 
                 return delegate.$delegateMethod.getName()(#generateParamsList($delegateMethod.getParameters()));

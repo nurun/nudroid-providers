@@ -28,6 +28,7 @@ public class DelegateClass {
         
         methods.add(method);
         uriIds.add(method.getUriId());
+        System.out.println("&&&&&&&&&&&&&&&&Added uriid to class " + uriIds);
     }
 
     @Override

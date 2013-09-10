@@ -164,7 +164,7 @@ class Metadata {
 
     public void mapUri(Element classElement, ExecutableElement methodExecutableElement, String authority, Query query) {
 
-        DelegateClass delegateClass = delegateClasses.get(classElement);
+        DelegateClass delegateClass = delegateClasses.get(classElement.toString());
 
         if (delegateClass == null) {
             delegateClass = new DelegateClass(classElement.toString());
@@ -219,11 +219,10 @@ class Metadata {
     }
 
     private void addMethodDelegateToUriMapping(DelegateMethod delegateMethod) {
-        
-        Set<DelegateMethod> methodSet = delegateMethods.get(delegateMethod.getUriId());
-        
-        if (methodSet == null) {
 
+        Set<DelegateMethod> methodSet = delegateMethods.get(delegateMethod.getUriId());
+
+        if (methodSet == null) {
             methodSet = new HashSet<DelegateMethod>();
             methodSet.add(delegateMethod);
             delegateMethods.put(delegateMethod.getUriId(), methodSet);
