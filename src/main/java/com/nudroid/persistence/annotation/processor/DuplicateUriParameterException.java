@@ -7,11 +7,11 @@ package com.nudroid.persistence.annotation.processor;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  * 
  */
-public class DuplicateUriParameterException extends IllegalArgumentException {
+public class DuplicateUriParameterException extends RuntimeException {
 
     private static final long serialVersionUID = -3066482963147107085L;
-    private int duplicatePosition;
-    private int existingPosition;
+    private String duplicatePosition;
+    private String existingPosition;
     private String paramName;
 
     /**
@@ -19,19 +19,19 @@ public class DuplicateUriParameterException extends IllegalArgumentException {
      * @param existingPosition
      * @param duplicatePosition
      */
-    public DuplicateUriParameterException(String paramName, int existingPosition, int duplicatePosition) {
+    public DuplicateUriParameterException(String paramName, String existingPosition, String duplicatePosition) {
         
         this.paramName = paramName;
         this.existingPosition = existingPosition;
         this.duplicatePosition = duplicatePosition;
     }
 
-    public int getDuplicatePosition() {
+    public String getDuplicatePosition() {
 
         return duplicatePosition;
     }
 
-    public int getExistingPosition() {
+    public String getExistingPosition() {
         
         return existingPosition;
     }

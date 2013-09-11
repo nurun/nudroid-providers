@@ -21,8 +21,6 @@ repositories {
 
 dependencies {
     compile 'org.apache.velocity:velocity:1.7'
-    compile 'org.slf4j:slf4j-api:1.7.5'
-    compile 'org.slf4j:slf4j-simple:1.7.5'
     testCompile 'org.testng:testng:6.8.5'
     testCompile 'org.mockito:mockito-all:1.9.5'
 }

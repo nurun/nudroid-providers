@@ -7,22 +7,28 @@ package com.nudroid.persistence.annotation.processor;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  * 
  */
-public class PathParameter {
+public class UriPlaceholderParameter {
 
-    private int position;
+    private String position;
     private String name;
 
     /**
      * @param name
      * @param position
      */
-    public PathParameter(String name, int position) {
+    public UriPlaceholderParameter(String name, int position) {
         super();
-        this.position = position;
+        this.name = name;
+        this.position = Integer.toString(position);
+    }
+
+    public UriPlaceholderParameter(String name, String queryParameterName) {
+        super();
+        this.position = queryParameterName;
         this.name = name;
     }
 
-    public int getPosition() {
+    public String getPosition() {
         return position;
     }
 
@@ -43,10 +49,15 @@ public class PathParameter {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        PathParameter other = (PathParameter) obj;
+        UriPlaceholderParameter other = (UriPlaceholderParameter) obj;
         if (name == null) {
             if (other.name != null) return false;
         } else if (!name.equals(other.name)) return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "UriPlaceholderParameter [position=" + position + ", name=" + name + "]";
     }
 }

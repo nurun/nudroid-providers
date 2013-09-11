@@ -37,106 +37,120 @@ class Metadata {
     private UriRegistry uriRegistry;
     private Map<String, DelegateClass> delegateClasses = new HashMap<String, DelegateClass>();
     private Map<Integer, Set<DelegateMethod>> delegateMethods = new HashMap<Integer, Set<DelegateMethod>>();
-
-    private Map<TypeElement, Set<ExecutableElement>> classesAndMethods = new HashMap<TypeElement, Set<ExecutableElement>>();
-    private Map<String, Set<ExecutableElement>> urisAndMethods = new HashMap<String, Set<ExecutableElement>>();
-    private Map<String, Set<String>> authoritiesAndUris = new HashMap<String, Set<String>>();
     private Map<String, TypeElement> authorityToClass = new HashMap<String, TypeElement>();
+
     private Types typeUtils;
     private TypeElement stringType;
+    private LoggingUtils logger;
+
+    // private Map<TypeElement, Set<ExecutableElement>> classesAndMethods = new HashMap<TypeElement,
+    // Set<ExecutableElement>>();
+    // private Map<String, Set<ExecutableElement>> urisAndMethods = new HashMap<String, Set<ExecutableElement>>();
+    // private Map<String, Set<String>> authoritiesAndUris = new HashMap<String, Set<String>>();
 
     /**
-     * @param uriRegistry2
      * @param elementUtils
      * @param typeUtils
+     * @param uriRegistry2
      */
-    public Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils) {
+    public Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
 
+        this.logger = logger;
         this.typeUtils = typeUtils;
         this.uriRegistry = uriRegistry;
-        stringType = elementUtils.getTypeElement("java.lang.String");
+        this.stringType = elementUtils.getTypeElement("java.lang.String");
     }
 
-    /**
-     * @param enclosingElement
-     * @param elem
-     */
-    public void addTargetMethod(TypeElement enclosingElement, ExecutableElement elem) {
+    // /**
+    // * @param enclosingElement
+    // * @param elem
+    // */
+    // public void addTargetMethod(TypeElement enclosingElement, ExecutableElement elem) {
+    //
+    // Set<ExecutableElement> methodSet = classesAndMethods.get(enclosingElement);
+    //
+    // if (methodSet == null) {
+    //
+    // methodSet = new HashSet<ExecutableElement>();
+    // methodSet.add(elem);
+    // classesAndMethods.put(enclosingElement, methodSet);
+    // } else {
+    //
+    // methodSet.add(elem);
+    // }
+    // }
+    //
+    // /**
+    // * @return
+    // */
+    // public Set<TypeElement> getTargetClasses() {
+    //
+    // return classesAndMethods.keySet();
+    // }
+    //
+    // /**
+    // * @param targetElement
+    // * @return
+    // */
+    // public Set<ExecutableElement> getMethodsForClass(TypeElement targetElement) {
+    // return classesAndMethods.get(targetElement);
+    // }
+    //
+    // /**
+    // * @param value
+    // * @param element
+    // */
+    // public void addUri(String value, ExecutableElement element) {
+    //
+    // Set<ExecutableElement> methodSet = urisAndMethods.get(element);
+    //
+    // if (methodSet == null) {
+    //
+    // methodSet = new HashSet<ExecutableElement>();
+    // methodSet.add(element);
+    // urisAndMethods.put(value, methodSet);
+    // } else {
+    //
+    // methodSet.add(element);
+    // }
+    // }
+    //
+    // /**
+    // * @return
+    // */
+    // public Map<String, Set<String>> getAuthoritiesAndUris() {
+    //
+    // return Collections.unmodifiableMap(authoritiesAndUris);
+    // }
 
-        Set<ExecutableElement> methodSet = classesAndMethods.get(enclosingElement);
-
-        if (methodSet == null) {
-
-            methodSet = new HashSet<ExecutableElement>();
-            methodSet.add(elem);
-            classesAndMethods.put(enclosingElement, methodSet);
-        } else {
-
-            methodSet.add(elem);
-        }
-    }
-
-    /**
-     * @return
-     */
-    public Set<TypeElement> getTargetClasses() {
-
-        return classesAndMethods.keySet();
-    }
-
-    /**
-     * @param targetElement
-     * @return
-     */
-    public Set<ExecutableElement> getMethodsForClass(TypeElement targetElement) {
-        return classesAndMethods.get(targetElement);
-    }
-
-    /**
-     * @param value
-     * @param element
-     */
-    public void addUri(String value, ExecutableElement element) {
-
-        Set<ExecutableElement> methodSet = urisAndMethods.get(element);
-
-        if (methodSet == null) {
-
-            methodSet = new HashSet<ExecutableElement>();
-            methodSet.add(element);
-            urisAndMethods.put(value, methodSet);
-        } else {
-
-            methodSet.add(element);
-        }
-    }
-
-    /**
-     * @return
-     */
-    public Map<String, Set<String>> getAuthoritiesAndUris() {
-
-        return Collections.unmodifiableMap(authoritiesAndUris);
-    }
-
-    /**
-     * @param authority
-     * @param uri
-     */
-    public void addUri(String authority, String uri) {
-
-        Set<String> uris = authoritiesAndUris.get(authority);
-
-        if (uris == null) {
-
-            uris = new HashSet<String>();
-            uris.add(new Uri(uri).getPath());
-            authoritiesAndUris.put(authority, uris);
-        } else {
-
-            uris.add(new Uri(uri).getPath());
-        }
-    }
+    // /**
+    // * @param authority
+    // * @param uri
+    // */
+    // public void addUri(String authority, String uri) {
+    //
+    // Set<String> uris = authoritiesAndUris.get(authority);
+    //
+    // if (uris == null) {
+    //
+    // uris = new HashSet<String>();
+    //
+    // try {
+    // uris.add(new Uri(uri).getPath());
+    // } catch (IllegalArgumentException e) {
+    // throw new IllegalUriPathException(e);
+    // }
+    //
+    // authoritiesAndUris.put(authority, uris);
+    // } else {
+    //
+    // try {
+    // uris.add(new Uri(uri).getPath());
+    // } catch (IllegalArgumentException e) {
+    // throw new IllegalUriPathException(e);
+    // }
+    // }
+    // }
 
     public TypeElement getClassForAuthority(String string) {
 
@@ -172,7 +186,7 @@ class Metadata {
             delegateClasses.put(classElement.toString(), delegateClass);
         }
 
-        Uri uri = new Uri(authority, query.value());
+        Uri uri = new Uri(authority, query.value(), logger);
         int uriId = uriRegistry.addUri(uri);
         uri.setId(uriId + 1);
 
@@ -203,12 +217,13 @@ class Metadata {
                 delegateMethod.addPathPlaceholder(pathParamAnnotation.value());
             }
 
-            final QueryParam queryParam = var.getAnnotation(QueryParam.class);
+            final QueryParam queryParamAnnotation = var.getAnnotation(QueryParam.class);
 
-            if (queryParam != null) {
+            if (queryParamAnnotation != null) {
+                
                 parameter.setQueryParameter(true);
-                parameter.setQueryParameterName(queryParam.value());
-                delegateMethod.addQueryPlaceholder(queryParam.value());
+                parameter.setQueryParameterName(uri.getQueryParameterName(queryParamAnnotation.value()));
+                delegateMethod.addQueryPlaceholder(parameter.getQueryParameterName());
             }
 
             delegateMethod.addParameter(parameter);

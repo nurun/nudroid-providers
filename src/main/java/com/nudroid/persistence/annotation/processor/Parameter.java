@@ -19,7 +19,7 @@ public class Parameter {
     private boolean string;
     private boolean pathParam;
     private boolean queryParam;
-    private int pathParamPosition = -1;
+    private String pathParamPosition;
     private String queryParameterName;
 
     public String getName() {
@@ -94,11 +94,11 @@ public class Parameter {
         this.queryParam = queryParam;
     }
 
-    public int getPathParamPosition() {
+    public String getPathParamPosition() {
         return pathParamPosition;
     }
 
-    public void setPathParamPosition(int pathParamPosition) {
+    public void setPathParamPosition(String pathParamPosition) {
         this.pathParamPosition = pathParamPosition;
     }
 

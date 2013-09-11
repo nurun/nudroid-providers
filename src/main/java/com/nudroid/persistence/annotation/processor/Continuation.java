@@ -14,25 +14,24 @@ import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Loads processor metadata for incremental compilation. TODO: Finish documentation.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class ProcessorContinuation {
+class Continuation {
 
     static final String CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME = "contentProviderDelegate.index";
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Filer filer;
 
     private HashSet<String> continuation = new HashSet<String>();
 
-    public ProcessorContinuation(Filer filer) {
+    private LoggingUtils logger;
+
+    public Continuation(Filer filer, LoggingUtils logger) {
         this.filer = filer;
+        this.logger = logger;
     }
 
     /**
@@ -43,21 +42,20 @@ class ProcessorContinuation {
      */
     void loadContinuation() throws IOException {
         FileObject continuationDelegateIndexFile = filer.getResource(StandardLocation.SOURCE_OUTPUT,
-                PersistenceAnnotationProcessor.GENERATED_CODE_BASE_PACKAGE,
-                CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
+                PersistenceAnnotationProcessor.GENERATED_CODE_BASE_PACKAGE, CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
         URI indexFileUri = continuationDelegateIndexFile.toUri();
-        logger.info("Obtained continuation index file path: " + indexFileUri);
-        logger.info("Attempting to load continuation index file.");
+        logger.debug("Obtained continuation index file path: " + indexFileUri);
+        logger.debug("Attempting to load continuation index file.");
 
         File file = new File(indexFileUri);
 
         if (!file.exists()) {
 
-            logger.info("Continuation file not found. First compilation interation.", file);
+            logger.debug(String.format("Continuation file not found. First compilation interation.", file));
             return;
         }
 
-        logger.info("Continuation file found. Loading continuation information.", file);
+        logger.debug(String.format("Continuation file found. Loading continuation information.", file));
 
         Scanner fileScanner = null;
 
@@ -69,7 +67,7 @@ class ProcessorContinuation {
 
                 String delegateName = fileScanner.nextLine();
                 continuation.add(delegateName);
-                logger.info("Loaded delegate {}.", delegateName);
+                logger.debug(String.format("Loaded delegate %s.", delegateName));
             }
         } finally {
 
@@ -78,17 +76,17 @@ class ProcessorContinuation {
             }
         }
 
-        logger.info("Done loading continuation.");
+        logger.debug("Done loading continuation.");
     }
 
     Set<? extends Element> loadDelegateElements(Elements elementUtils) {
 
-        logger.info("Loading continuation elements.");
+        logger.debug("Loading continuation elements.");
         Set<Element> elements = new HashSet<Element>();
 
         for (String elementName : continuation) {
 
-            logger.info("Attempting to load {}.", elementName);
+            logger.debug(String.format("Attempting to load %s.", elementName));
             Element element = elementUtils.getTypeElement(elementName);
 
             if (element != null) {
@@ -96,13 +94,13 @@ class ProcessorContinuation {
                 elements.add(element);
             } else {
 
-                logger.info("Failed to load element {}.", elementName);
+                logger.debug(String.format("Failed to load element %s.", elementName));
             }
         }
 
         if (elements.isEmpty()) {
 
-            logger.info("No continuation elements found.");
+            logger.debug("No continuation elements found.");
         }
 
         return elements;

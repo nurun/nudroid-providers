@@ -19,7 +19,7 @@ public class DelegateMethod {
     private String name;
     private List<Parameter> parameters = new ArrayList<Parameter>();
     private Set<String> pathPlaceholderNames = new HashSet<String>();
-    private Set<String> queryPlaceholderNames = new HashSet<String>();
+    private Set<String> queryPlaceholder = new HashSet<String>();
     private Uri uri;
 
     public DelegateMethod(Uri uri) {
@@ -74,11 +74,11 @@ public class DelegateMethod {
 
     public void addQueryPlaceholder(String value) {
 
-        queryPlaceholderNames.add(value);
+        queryPlaceholder.add(value);
     }
 
-    public Set<String> getQueryPlaceholderNames() {
+    public Set<String> getQueryPlaceholders() {
 
-        return Collections.unmodifiableSet(queryPlaceholderNames);
+        return Collections.unmodifiableSet(queryPlaceholder);
     }
 }

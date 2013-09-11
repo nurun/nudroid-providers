@@ -15,31 +15,44 @@ import java.util.regex.Pattern;
  */
 public class Uri {
 
-    private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
+    private static String PATH_PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
+    private static String QUERY_PLACEHOLDER_REGEXP = "([^\\=]+)\\=\\{([^\\}]+)\\}";
 
     private int id;
     private String authority;
     private String path;
     private String queryString;
-    private List<String> parameters = new ArrayList<String>();
-    private List<String> pathParams = new ArrayList<String>();
-    private List<String> queryParams = new ArrayList<String>();
+    private List<UriPlaceholderParameter> parameters = new ArrayList<UriPlaceholderParameter>();
+    private List<UriPlaceholderParameter> pathParams = new ArrayList<UriPlaceholderParameter>();
+    private List<UriPlaceholderParameter> queryParams = new ArrayList<UriPlaceholderParameter>();
 
-    public Uri(String path) {
+    @SuppressWarnings("unused")
+    private LoggingUtils logger;
 
+    public Uri(String authority, String path, LoggingUtils logger) {
+
+        this.logger = logger;
         parsePlaceholders(path);
 
-        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*");
-        URI uri = URI.create("content://host"
-                + (normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath));
+        String normalizedPath = path.replaceAll(PATH_PLACEHOLDER_REGEXP, "*");
+        URI uri;
+
+        try {
+            uri = URI.create("content://" + authority
+                    + (normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalUriPathException(e);
+        }
+
+        this.authority = authority;
         this.path = uri.getPath();
         this.queryString = uri.getQuery();
     }
 
     private void parsePlaceholders(String path) {
-        Pattern pattern = Pattern.compile(PLACEHOLDER_REGEXP);
 
-        int paramPosition = 0;
+        Pattern pathPattern = Pattern.compile(PATH_PLACEHOLDER_REGEXP);
+        Pattern queryPattern = Pattern.compile(QUERY_PLACEHOLDER_REGEXP);
 
         String[] pathAndQueryString = path.split("\\?");
 
@@ -50,55 +63,72 @@ public class Uri {
 
         if (pathAndQueryString.length >= 1) {
 
-            Matcher m = pattern.matcher(pathAndQueryString[0]);
-            while (m.find()) {
+            String pathSection = pathAndQueryString[0];
 
-                String paramName = m.group(1);
-                addPathPlaceholder(paramName, paramPosition++);
+            pathSection = pathSection.replaceAll("^/+", "");
+
+            String[] pathElements = pathSection.split("/");
+
+            for (int position = 0; position < pathElements.length; position++) {
+
+                Matcher m = pathPattern.matcher(pathElements[position]);
+
+                if (m.find()) {
+
+                    String paramName = m.group(1);
+                    addPathPlaceholder(paramName, position);
+                }
             }
         }
 
         if (pathAndQueryString.length == 2) {
 
-            Matcher m = pattern.matcher(pathAndQueryString[1]);
-            while (m.find()) {
+            String querySection = pathAndQueryString[1];
+            querySection = querySection.replaceAll("^\\?+", "");
+            querySection = querySection.replaceAll("^\\&+", "");
 
-                String paramName = m.group(1);
-                addQueryPlaceholder(paramName, paramPosition++);
+            String[] queryVars = querySection.split("\\&");
+
+            for (int position = 0; position < queryVars.length; position++) {
+
+                Matcher m = queryPattern.matcher(queryVars[position]);
+
+                if (m.find()) {
+
+                    String queryParameterName = m.group(1);
+                    String placeholderName = m.group(2);
+                    addQueryPlaceholder(placeholderName, queryParameterName);
+                }
             }
         }
     }
 
-    public Uri(String authority, String path) {
+    private void addPathPlaceholder(String paramName, int position) {
 
-        parsePlaceholders(path);
-
-        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*");
-        URI uri = URI.create("content://" + authority
-                + (normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath));
-        this.authority = authority;
-        this.path = uri.getPath();
-        this.queryString = uri.getQuery();
-    }
-
-    private void addPathPlaceholder(String paramName, int i) {
+        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(paramName, position);
 
         if (parameters.contains(paramName)) {
-            throw new DuplicateUriParameterException(paramName, parameters.indexOf(paramName), i);
+
+            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(paramName))
+                    .getPosition(), Integer.toString(position));
         }
 
-        parameters.add(paramName);
-        pathParams.add(paramName);
+        parameters.add(pathParam);
+        pathParams.add(pathParam);
     }
 
-    private void addQueryPlaceholder(String paramName, int i) {
+    private void addQueryPlaceholder(String paramName, String placeholderName) {
+
+        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(paramName, placeholderName);
 
         if (parameters.contains(paramName)) {
-            throw new DuplicateUriParameterException(paramName, parameters.indexOf(paramName), i);
+
+            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(paramName))
+                    .getPosition(), placeholderName);
         }
 
-        parameters.add(paramName);
-        queryParams.add(paramName);
+        parameters.add(pathParam);
+        queryParams.add(pathParam);
     }
 
     public String getPath() {
@@ -112,9 +142,11 @@ public class Uri {
     public int getPlaceholderCount() {
         return parameters.size();
     }
+
     public int getPathPlaceholderCount() {
         return pathParams.size();
     }
+
     public int getQueryPlaceholderCount() {
         return queryParams.size();
     }
@@ -126,12 +158,16 @@ public class Uri {
 
     public boolean containsPathPlaceholder(String parameterName) {
 
-        return pathParams.contains(parameterName);
+        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
+
+        return pathParams.contains(pathParam);
     }
 
     public boolean containsQueryPlaceholder(String parameterName) {
 
-        return queryParams.contains(parameterName);
+        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
+
+        return queryParams.contains(pathParam);
     }
 
     @Override
@@ -168,9 +204,18 @@ public class Uri {
         return this.id;
     }
 
-    public int getPathParameterPosition(String name) {
+    public String getPathParameterPosition(String name) {
 
-        return pathParams.indexOf(name);
+        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(name, 0);
+
+        return pathParams.get(pathParams.indexOf(pathParam)).getPosition();
+    }
+
+    public String getQueryParameterName(String name) {
+
+        UriPlaceholderParameter queryParam = new UriPlaceholderParameter(name, 0);
+
+        return queryParams.get(queryParams.indexOf(queryParam)).getPosition();
     }
 
     @Override
@@ -182,7 +227,7 @@ public class Uri {
     /**
      * @return
      */
-    public List<String> getParametersList() {
+    public List<UriPlaceholderParameter> getParametersList() {
         return parameters;
     }
 

@@ -1,6 +1,5 @@
 package com.nudroid.persistence.annotation.processor;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
@@ -33,11 +33,6 @@ import javax.tools.StandardLocation;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
-import org.apache.velocity.exception.MethodInvocationException;
-import org.apache.velocity.exception.ParseErrorException;
-import org.apache.velocity.exception.ResourceNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.nurun.persistence.annotation.Authority;
 import com.nurun.persistence.annotation.ContentUri;
@@ -62,6 +57,7 @@ import com.nurun.persistence.annotation.SortOrder;
         "com.nurun.persistence.annotation.Selection", "com.nurun.persistence.annotation.SelectionArgs",
         "com.nurun.persistence.annotation.SortOrder", "com.nurun.persistence.annotation.Update" })
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedOptions({ "persistence.annotation.log.level" })
 public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
     static final String GENERATED_CODE_BASE_PACKAGE = "com.nudroid.persistence";
@@ -70,7 +66,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private static final String CONTENT_URI_REGISTRY_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/ContentUriRegistryTemplate.vm";
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/RouterTemplate.vm";
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private LoggingUtils logger;
 
     private Elements elementUtils;
     private Types typeUtils;
@@ -78,7 +74,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private boolean initialized = false;
     private int iterationRun = 0;
 
-    private ProcessorContinuation continuation;
+    private Continuation continuation;
     private UriRegistry uriRegistry = new UriRegistry();
     private Metadata metadata;
 
@@ -92,7 +88,15 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         super.init(env);
 
-        logger.info("Initializing nudroid persistence annotation processor.");
+        String logLevel = env.getOptions().get("persistence.annotation.log.level");
+
+        if (logLevel == null) {
+            logLevel = System.getProperty("persistence.annotation.log.level");
+        }
+
+        logger = new LoggingUtils(env.getMessager(), logLevel);
+
+        logger.debug("Initializing nudroid persistence annotation processor.");
 
         elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
@@ -102,15 +106,16 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         contentValuesType = elementUtils.getTypeElement("android.content.ContentValues").asType();
         uriType = elementUtils.getTypeElement("android.net.Uri").asType();
 
-        continuation = new ProcessorContinuation(filer);
-        metadata = new Metadata(uriRegistry, elementUtils, typeUtils);
+        continuation = new Continuation(filer, logger);
+        metadata = new Metadata(uriRegistry, elementUtils, typeUtils, logger);
 
         try {
             continuation.loadContinuation();
             initialized = true;
-            logger.info("Initialization complete.");
+            logger.debug("Initialization complete.");
         } catch (Exception e) {
-            logger.error("Unable to load continuation index file. Aborting annotation processor.", e);
+            logger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
+            throw new AnnotationProcessorError(e);
         }
     }
 
@@ -124,6 +129,8 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
+        logger.info("Start processing " + roundEnv.getRootElements());
+        
         iterationRun++;
 
         if (!initialized) {
@@ -136,8 +143,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         if (isFirstRun()) {
 
             Set<Element> elementsToProcess = getElementsToProcess(roundEnv);
-
-            logger.info("[{}] Processing elements: {}", iterationRun, elementsToProcess);
 
             for (Element rootClass : elementsToProcess) {
 
@@ -160,14 +165,15 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private Set<Element> getElementsToProcess(RoundEnvironment roundEnv) {
         Set<Element> classesToProcess = new HashSet<Element>();
         classesToProcess.addAll(roundEnv.getRootElements());
+        logger.debug(String.format("Root elements being porocessed this round: %s", classesToProcess));
         Set<? extends Element> previousDelegateElements = continuation.loadDelegateElements(elementUtils);
 
         previousDelegateElements.removeAll(classesToProcess);
 
         if (!previousDelegateElements.isEmpty()) {
 
-            logger.info("[{}] Adding continuation elements from previous builds: {}", iterationRun,
-                    previousDelegateElements);
+            logger.debug(String.format("Adding continuation elements from previous builds: %s",
+                    previousDelegateElements));
             classesToProcess.addAll(previousDelegateElements);
         }
 
@@ -247,23 +253,21 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         if (!validateParameters(query, (ExecutableElement) method)) isValid = false;
         if (!isValid) return;
 
-        logger.info("[{}] Processing Query annotation on {}", iterationRun, rootClass + "." + method);
+        logger.debug(String.format("Processing Query annotation on %s.%s", rootClass, method));
 
         try {
 
-            metadata.addUri(metadata.parseAuthorityFromClass(rootClass), query.value());
             metadata.mapUri(rootClass, (ExecutableElement) method, metadata.parseAuthorityFromClass(rootClass), query);
 
         } catch (DuplicateUriParameterException e) {
 
-            processingEnv.getMessager().printMessage(
-                    Diagnostic.Kind.ERROR,
-                    String.format("Duplicated parameter. Parameter '%s', appearing at position '%d' "
-                            + "is already present at position '%d'.", e.getParamName(), e.getDuplicatePosition(),
-                            e.getExistingPosition()), method);
-        }
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    String.format("Duplicated placeholder parameter: '%s'", e.getParamName()), method);
+        } catch (IllegalUriPathException e) {
 
-        metadata.addTargetMethod((TypeElement) rootClass, (ExecutableElement) method);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    String.format("URL '%s' is not valid.", query.value()), method);
+        }
     }
 
     private boolean validateQueryElement(Element rootClass, Element method) {
@@ -365,8 +369,9 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             Uri uri = null;
 
             try {
-                uri = new Uri(queryPath);
+                uri = new Uri("bidon", queryPath, logger);
             } catch (IllegalUriPathException e) {
+
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                         String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
                         var);
@@ -413,7 +418,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             Uri uri = null;
 
             try {
-                uri = new Uri(queryPath);
+                uri = new Uri("biddon", queryPath, logger);
             } catch (IllegalUriPathException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                         String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
@@ -516,34 +521,45 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     }
 
     private void generateContentUriRegistry(Metadata metadata) {
+
+        logger.debug(String.format("Generating ContentUriRegistry source code at %s.%s", GENERATED_CODE_BASE_PACKAGE,
+                CONTENT_URI_REGISTRY_CLASS_NAME));
+
         Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);
+        logger.debug(String.format("Configured velocity properties with %s.", p));
+
         VelocityContext context = new VelocityContext();
         context.put("delegateClasses", metadata.getDelegateClasses().values());
         context.put("contentProviderUris", uriRegistry.getUniqueUris());
+        logger.debug(String.format("Configured velocity context."));
 
         Template template = null;
 
         try {
             template = Velocity.getTemplate(CONTENT_URI_REGISTRY_TEMPLATE_LOCATION);
+            logger.debug(String.format("Successfully loaded velocity template %s.",
+                    CONTENT_URI_REGISTRY_TEMPLATE_LOCATION));
+
             JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
                     GENERATED_CODE_BASE_PACKAGE, CONTENT_URI_REGISTRY_CLASS_NAME));
+            logger.debug(String.format("Successfully created JavaFileObject for %s.%s.", GENERATED_CODE_BASE_PACKAGE,
+                    CONTENT_URI_REGISTRY_CLASS_NAME));
+
             Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
+            logger.debug(String.format("Successfully openned JavaFileObject Writer."));
 
             template.merge(context, writerContentUriRegistry);
+            logger.debug(String.format("Successfully merged velocity template."));
+
             writerContentUriRegistry.close();
-        } catch (ResourceNotFoundException e) {
-            debug("Error Loading script..." + e);
-            e.printStackTrace();
-        } catch (ParseErrorException e) {
-            debug("Error Loading script..." + e);
-            e.printStackTrace();
-        } catch (MethodInvocationException e) {
-            debug("Error Loading script..." + e);
-            e.printStackTrace();
+            logger.debug(String.format("Successfully closed writer."));
+
+            logger.debug(String.format("Source code generation for %s.%s is done.", GENERATED_CODE_BASE_PACKAGE,
+                    CONTENT_URI_REGISTRY_CLASS_NAME));
         } catch (Exception e) {
-            debug("Error Loading script..." + e.getCause());
-            e.printStackTrace();
+            logger.error(String.format("Error processing velocity script '%s'", CONTENT_URI_REGISTRY_TEMPLATE_LOCATION));
+            throw new AnnotationProcessorError(e);
         }
     }
 
@@ -567,18 +583,10 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
-            } catch (ResourceNotFoundException e) {
-                debug("Error Loading script..." + e);
-                e.printStackTrace();
-            } catch (ParseErrorException e) {
-                debug("Error Loading script..." + e);
-                e.printStackTrace();
-            } catch (MethodInvocationException e) {
-                debug("Error Loading script..." + e);
-                e.printStackTrace();
             } catch (Exception e) {
-                debug("Error Loading script..." + e.getCause());
-                e.printStackTrace();
+                logger.error(String.format("Error processing velocity script '%s'",
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+                throw new AnnotationProcessorError(e);
             }
         }
     }
@@ -597,7 +605,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         try {
             FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT, GENERATED_CODE_BASE_PACKAGE,
-                    ProcessorContinuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
+                    Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
             Writer writer = indexFile.openWriter();
             PrintWriter printWriter = new PrintWriter(writer);
 
@@ -607,147 +615,12 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
             printWriter.close();
             writer.close();
-        } catch (IOException e) {
-            debug("Error " + e);
+        } catch (Exception e) {
+            logger.error(String.format("Error processing continuation index file '%s.%s'", GENERATED_CODE_BASE_PACKAGE,
+                    Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME));
+            throw new AnnotationProcessorError(e);
         }
     }
-
-    // private void generateCompanionSourceCode(Metadata metadata) throws IOException {
-    //
-    // JavaFileObject jfoContentUriRegistry = filer
-    // .createSourceFile("com.nurun.persistence.temp.vision.ContentUriRegistry");
-    // Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
-    // JavaWriter javaWriterContentUriRegistry = new JavaWriter(writerContentUriRegistry);
-    //
-    // writeContentUriRegistryPackage(javaWriterContentUriRegistry);
-    // writeContentUriRegistryImports(metadata, javaWriterContentUriRegistry);
-    // writeContentUriRegistryBeginClass(javaWriterContentUriRegistry);
-    // writeContentUriRegistryUriMatcherInitializer(javaWriterContentUriRegistry);
-    // writeContentUriRegistryGetRoutForMethodSignature(javaWriterContentUriRegistry);
-    //
-    // for (TypeElement targetElement : metadata.getTargetClasses()) {
-    //
-    // String routerClassName = "com.nurun.persistence.temp.vision." + targetElement.getSimpleName().toString()
-    // + "Router";
-    // JavaFileObject jfoRouter = filer.createSourceFile(routerClassName, targetElement);
-    // Writer writerRouter = jfoRouter.openWriter();
-    // JavaWriter javaWriterRouter = new JavaWriter(writerRouter);
-    //
-    // javaWriterRouter.emitPackage("com.nurun.persistence.temp.vision");
-    // javaWriterRouter.emitImports(targetElement.toString());
-    // javaWriterRouter.emitImports("com.nurun.persistence.temp.vision.ContentUriRouter");
-    // javaWriterRouter.emitEmptyLine();
-    // javaWriterRouter.beginType(routerClassName, "class", EnumSet.of(Modifier.PUBLIC, Modifier.ABSTRACT), null,
-    // "ContentUriRouter");
-    // javaWriterRouter.emitEmptyLine();
-    //
-    // javaWriterRouter.beginMethod(null, routerClassName, EnumSet.of(Modifier.PUBLIC), targetElement
-    // .getSimpleName().toString(), "target");
-    // javaWriterRouter.endMethod();
-    //
-    // for (ExecutableElement method : metadata.getMethodsForClass(targetElement)) {
-    //
-    // // List<? extends VariableElement> methodParams = method.getParameters();
-    // // String[] paramsAndTypesArray = new String[methodParams.size() * 2];
-    // // List<String> paramsAndTypesList = new ArrayList<String>(methodParams.size() * 2);
-    // //
-    // // for (VariableElement param : methodParams) {
-    // // paramsAndTypesList.add(param.asType().toString());
-    // // paramsAndTypesList.add(param.getSimpleName().toString());
-    // // }
-    // //
-    // // javaWriterContentUriRegistry.beginMethod("void", method.getSimpleName().toString(),
-    // // method.getModifiers(), paramsAndTypesList.toArray(paramsAndTypesArray)).endMethod();
-    // }
-    //
-    // closeContentUriRegistry(writerRouter, javaWriterRouter);
-    // }
-    //
-    // closeContentUriRegistry(writerContentUriRegistry, javaWriterContentUriRegistry);
-    // }
-
-    // private void writeContentUriRegistryPackage(JavaWriter javaWriterContentUriRegistry) throws IOException {
-    // javaWriterContentUriRegistry.emitPackage("com.nurun.persistence.temp.vision");
-    // }
-    //
-    // private void writeContentUriRegistryImports(Metadata metadata, JavaWriter javaWriterContentUriRegistry)
-    // throws IOException {
-    //
-    // for (TypeElement targetElement : metadata.getTargetClasses()) {
-    // javaWriterContentUriRegistry.emitImports(targetElement.toString());
-    // }
-    //
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // javaWriterContentUriRegistry.emitImports("android.content.UriMatcher");
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // }
-    //
-    // private void writeContentUriRegistryBeginClass(JavaWriter javaWriterContentUriRegistry) throws IOException {
-    // javaWriterContentUriRegistry.beginType("com.nurun.persistence.temp.vision.ContentUriRegistry", "class",
-    // EnumSet.of(Modifier.PUBLIC));
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // }
-    //
-    // private void writeContentUriRegistryUriMatcherInitializer(JavaWriter javaWriterContentUriRegistry)
-    // throws IOException {
-    // Set<Modifier> modifiers = new HashSet<Modifier>();
-    // modifiers.add(Modifier.STATIC);
-    // modifiers.add(Modifier.FINAL);
-    // javaWriterContentUriRegistry.emitField("UriMatcher", "URI_MATCHER", modifiers);
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // javaWriterContentUriRegistry.beginInitializer(true);
-    // javaWriterContentUriRegistry.emitStatement("URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH)");
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    //
-    // Map<String, Set<String>> authoritiesAndUris = metadata.getAuthoritiesAndUris();
-    // int uriId = 0;
-    //
-    // for (String authority : authoritiesAndUris.keySet()) {
-    //
-    // Set<String> uris = authoritiesAndUris.get(authority);
-    //
-    // for (String uri : uris) {
-    // javaWriterContentUriRegistry.emitStatement("URI_MATCHER.addURI(\"%s\", \"%s\", %d)", authority, uri,
-    // ++uriId);
-    // }
-    // }
-    //
-    // javaWriterContentUriRegistry.endInitializer();
-    // }
-    //
-    // private void writeContentUriRegistryGetRoutForMethodSignature(JavaWriter javaWriterContentUriRegistry)
-    // throws IOException {
-    //
-    // Set<Modifier> modifiers = new HashSet<Modifier>();
-    // modifiers.add(Modifier.PUBLIC);
-    // modifiers.add(Modifier.STATIC);
-    //
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // javaWriterContentUriRegistry.beginMethod("ContentUriRouter", "getRouterFor", modifiers, "Object", "object");
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // javaWriterContentUriRegistry.emitStatement("Class<?> objectClass = object.getClass()");
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    //
-    // for (TypeElement annotatedType : metadata.getTargetClasses()) {
-    //
-    // javaWriterContentUriRegistry.beginControlFlow(String.format("if (objectClass == %s.class)",
-    // annotatedType.getSimpleName()));
-    // javaWriterContentUriRegistry.emitSingleLineComment("return new %sRouter((%s) object)",
-    // annotatedType.getSimpleName(), annotatedType.getSimpleName());
-    // javaWriterContentUriRegistry.endControlFlow();
-    // javaWriterContentUriRegistry.emitEmptyLine();
-    // }
-    //
-    // javaWriterContentUriRegistry.emitStatement("return null");
-    // javaWriterContentUriRegistry.endMethod();
-    // }
-    //
-    // private void closeContentUriRegistry(Writer writerContentUriRegistry, JavaWriter javaWriterContentUriRegistry)
-    // throws IOException {
-    // javaWriterContentUriRegistry.endType();
-    // javaWriterContentUriRegistry.close();
-    // writerContentUriRegistry.close();
-    // }
 
     private boolean isAbstract(Element element) {
 
@@ -767,13 +640,5 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private boolean isClass(Element element) {
 
         return element.getKind().equals(ElementKind.CLASS);
-    }
-
-    /**
-     * @param string
-     */
-    private void debug(Object string) {
-
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "[DEBUG***] - " + string);
     }
 }
