@@ -37,6 +37,10 @@ public class DelegateMethod {
         this.parameters.add(parameter);
     }
 
+    public boolean hasPathParameterss() {
+        return pathPlaceholderNames.size() > 0;
+    }
+
     @Override
     public String toString() {
         return String.format("method('%s')", name);
@@ -64,17 +68,17 @@ public class DelegateMethod {
     }
 
     public Set<String> getPathPlaceholderNames() {
-        
+
         return Collections.unmodifiableSet(pathPlaceholderNames);
     }
 
     public void addQueryPlaceholder(String value) {
-        
+
         queryPlaceholderNames.add(value);
     }
-    
+
     public Set<String> getQueryPlaceholderNames() {
-        
+
         return Collections.unmodifiableSet(queryPlaceholderNames);
     }
 }
