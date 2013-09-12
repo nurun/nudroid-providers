@@ -64,10 +64,6 @@ project(':nudroid-annotations-processor') {
  */
 project(':nudroid-annotations-processor:nudroid-annotations-processor-all') {
 
-    configurations {
-        compileOnly.exclude module: 'nudroid-annotations'
-    }
-    
     dependencies {
         compileOnly project(':nudroid-annotations-processor')
         compileOnly 'org.apache.velocity:velocity:1.7'
