@@ -47,11 +47,11 @@ import com.nudroid.persistence.annotation.SortOrder;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-@SupportedAnnotationTypes({ "com.nurun.persistence.annotation.Authority", "com.nurun.persistence.annotation.Delete",
-        "com.nurun.persistence.annotation.Insert", "com.nurun.persistence.annotation.Projection",
-        "com.nurun.persistence.annotation.Query", "com.nurun.persistence.annotation.QueryParam",
-        "com.nurun.persistence.annotation.Selection", "com.nurun.persistence.annotation.SelectionArgs",
-        "com.nurun.persistence.annotation.SortOrder", "com.nurun.persistence.annotation.Update" })
+@SupportedAnnotationTypes({ "com.nudroid.persistence.annotation.Authority", "com.nudroid.persistence.annotation.Delete",
+        "com.nudroid.persistence.annotation.Insert", "com.nudroid.persistence.annotation.Projection",
+        "com.nudroid.persistence.annotation.Query", "com.nudroid.persistence.annotation.QueryParam",
+        "com.nudroid.persistence.annotation.Selection", "com.nudroid.persistence.annotation.SelectionArgs",
+        "com.nudroid.persistence.annotation.SortOrder", "com.nudroid.persistence.annotation.Update" })
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
 public class PersistenceAnnotationProcessor extends AbstractProcessor {
@@ -549,8 +549,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             Velocity.init(p);
             VelocityContext context = new VelocityContext();
             context.put("delegateClass", delegateClass);
-
-            logger.warn(String.format("Uri ids and maps = %s", delegateClass.getUriDelegateMethodMap()));
 
             Template template = null;
 

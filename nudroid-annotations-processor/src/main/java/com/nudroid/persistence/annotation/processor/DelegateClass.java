@@ -17,6 +17,7 @@ public class DelegateClass {
     private String className;
     private String simpleName;
     private Map<Integer, Set<DelegateMethod>> delegateMethods = new HashMap<Integer, Set<DelegateMethod>>();
+    @SuppressWarnings("unused")
     private LoggingUtils logger;
 
     DelegateClass(Element element, LoggingUtils logger) {
@@ -39,8 +40,6 @@ public class DelegateClass {
 
             setForUriId.add(delegateMethod);
         }
-        
-        logger.warn("Added method to class. Map is now " + delegateMethods);
     }
 
     public String getName() {
@@ -53,7 +52,6 @@ public class DelegateClass {
     
     public Map<Integer, Set<DelegateMethod>> getUriDelegateMethodMap() {
 
-        logger.warn("Returning class methods " + Collections.unmodifiableMap(delegateMethods));
         return Collections.unmodifiableMap(delegateMethods);
     }
     

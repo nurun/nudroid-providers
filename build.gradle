@@ -19,11 +19,11 @@ subprojects {
 	apply from:   '../emma.gradle'
 
 	version = '1.0-SNAPSHOT'
-	group = 'com.nurun.nudroid.persistence'
+	group = 'com.nudroid.persistence'
 	sourceCompatibility = JavaVersion.VERSION_1_6
 	targetCompatibility = JavaVersion.VERSION_1_6
 	
-	configurations { provided }
+	configurations { compileOnly }
 
 	repositories {
     	mavenCentral()
@@ -40,7 +40,9 @@ subprojects {
 
 	test { useTestNG() }
 	
-	sourceSets.main.compileClasspath += configurations.provided
+	sourceSets.main.compileClasspath += configurations.compileOnly
+    
+    eclipse.classpath.plusConfigurations += [ configurations.compileOnly ]
 }
 
 /*
@@ -52,10 +54,26 @@ project(':nudroid-annotations-processor') {
 
     dependencies {
     	compile project(':nudroid-annotations')
-        provided 'org.apache.velocity:velocity:1.7'
+        compileOnly 'org.apache.velocity:velocity:1.7'
+    }
+}
+/*
+ * =================================================================================================================
+ * nudroid-annotations-processor-all
+ * Configuration for nudroid-annotations-processor-all.
+ */
+project(':nudroid-annotations-processor:nudroid-annotations-processor-all') {
+
+    configurations {
+        compileOnly.exclude module: 'nudroid-annotations'
+    }
+    
+    dependencies {
+        compileOnly project(':nudroid-annotations-processor')
+        compileOnly 'org.apache.velocity:velocity:1.7'
     }
     
     jar {
-        from { configurations.provided.collect { it.isDirectory() ? it : zipTree(it) } }
-	}
+        from { configurations.compileOnly.collect { it.isDirectory() ? it : zipTree(it) } }
+    }
 }

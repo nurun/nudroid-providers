@@ -1,2 +1,2 @@
-include 'nudroid-annotations', 'nudroid-annotations-processor'
+include 'nudroid-annotations', 'nudroid-annotations-processor', 'nudroid-annotations-processor:nudroid-annotations-processor-all'
 rootProject.name = 'nudroid'
