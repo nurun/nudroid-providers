@@ -1,9 +1,7 @@
 package com.nudroid.persistence.annotation.processor;
 
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -26,9 +24,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
-import javax.tools.StandardLocation;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -106,7 +102,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         contentValuesType = elementUtils.getTypeElement("android.content.ContentValues").asType();
         uriType = elementUtils.getTypeElement("android.net.Uri").asType();
 
-        continuation = new Continuation(filer, logger);
+        continuation = new Continuation(filer, elementUtils, logger);
         metadata = new Metadata(uriRegistry, elementUtils, typeUtils, logger);
 
         try {
@@ -130,7 +126,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
         logger.info("Start processing " + roundEnv.getRootElements());
-        
+
         iterationRun++;
 
         if (!initialized) {
@@ -142,16 +138,16 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         if (isFirstRun()) {
 
-            Set<Element> elementsToProcess = getElementsToProcess(roundEnv);
+            Set<Element> elementsToProcess = continuation.getElementsToProcess(roundEnv);
 
             for (Element rootClass : elementsToProcess) {
 
-                processAuthorityOnClass(rootClass);
-                processQueriesOnClass(rootClass);
+                processAuthorityOnClass((TypeElement) rootClass);
+                processQueriesOnClass((TypeElement) rootClass);
             }
 
             generateCompanionSourceCode(metadata);
-            generateContinuationFile();
+            continuation.saveContinuation();
         }
 
         return true;
@@ -162,31 +158,13 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return iterationRun == 1;
     }
 
-    private Set<Element> getElementsToProcess(RoundEnvironment roundEnv) {
-        Set<Element> classesToProcess = new HashSet<Element>();
-        classesToProcess.addAll(roundEnv.getRootElements());
-        logger.debug(String.format("Root elements being porocessed this round: %s", classesToProcess));
-        Set<? extends Element> previousDelegateElements = continuation.loadDelegateElements(elementUtils);
-
-        previousDelegateElements.removeAll(classesToProcess);
-
-        if (!previousDelegateElements.isEmpty()) {
-
-            logger.debug(String.format("Adding continuation elements from previous builds: %s",
-                    previousDelegateElements));
-            classesToProcess.addAll(previousDelegateElements);
-        }
-
-        return classesToProcess;
-    }
-
-    private void processAuthorityOnClass(Element rootClass) {
+    private void processAuthorityOnClass(TypeElement rootClass) {
 
         Authority authority = rootClass.getAnnotation(Authority.class);
 
         if (authority != null) {
 
-            continuation.addContentProviderDelegate(rootClass);
+            continuation.addContinuationElement(rootClass);
 
             if (isAbstract(rootClass)) {
 
@@ -213,7 +191,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void processQueriesOnClass(Element rootClass) {
+    private void processQueriesOnClass(TypeElement rootClass) {
 
         List<? extends Element> methodElementsList = elementUtils.getAllMembers(elementUtils.getTypeElement(rootClass
                 .toString()));
@@ -224,12 +202,12 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void processQueryOnMethod(Element rootClass, Element method) {
+    private void processQueryOnMethod(TypeElement rootClass, Element method) {
         Query query = method.getAnnotation(Query.class);
 
         if (query == null) return;
 
-        continuation.addContentProviderDelegate(rootClass);
+        continuation.addContinuationElement(rootClass);
 
         boolean isValid = true;
 
@@ -530,6 +508,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         logger.debug(String.format("Configured velocity properties with %s.", p));
 
         VelocityContext context = new VelocityContext();
+
         context.put("delegateClasses", metadata.getDelegateClasses().values());
         context.put("contentProviderUris", uriRegistry.getUniqueUris());
         logger.debug(String.format("Configured velocity context."));
@@ -570,15 +549,15 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             Velocity.init(p);
             VelocityContext context = new VelocityContext();
             context.put("delegateClass", delegateClass);
-            context.put("classUriIds", delegateClass.getUriIds());
-            context.put("delegateMethods", metadata.getDelegateMethods());
+
+            logger.warn(String.format("Uri ids and maps = %s", delegateClass.getUriDelegateMethodMap()));
 
             Template template = null;
 
             try {
                 template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
                 JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
-                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterName()));
+                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterSimpleName()));
                 Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
 
                 template.merge(context, writerContentUriRegistry);
@@ -597,29 +576,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
         p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
         return p;
-    }
-
-    private void generateContinuationFile() {
-
-        Set<String> indexedTypes = continuation.getContentProviderDelegateNames();
-
-        try {
-            FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT, GENERATED_CODE_BASE_PACKAGE,
-                    Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
-            Writer writer = indexFile.openWriter();
-            PrintWriter printWriter = new PrintWriter(writer);
-
-            for (String indexedTypeName : indexedTypes) {
-                printWriter.println(indexedTypeName);
-            }
-
-            printWriter.close();
-            writer.close();
-        } catch (Exception e) {
-            logger.error(String.format("Error processing continuation index file '%s.%s'", GENERATED_CODE_BASE_PACKAGE,
-                    Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME));
-            throw new AnnotationProcessorError(e);
-        }
     }
 
     private boolean isAbstract(Element element) {

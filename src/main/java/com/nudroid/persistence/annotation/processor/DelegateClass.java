@@ -1,65 +1,68 @@
-/**
- * 
- */
 package com.nudroid.persistence.annotation.processor;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import javax.lang.model.element.Element;
 
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
- * 
  */
 public class DelegateClass {
 
+    private static final String ROUTER_SUFFIX = "Router";
     private String className;
     private String simpleName;
-    private List<DelegateMethod> methods = new LinkedList<DelegateMethod>();
-    private Set<Integer> uriIds = new HashSet<Integer>();
+    private Map<Integer, Set<DelegateMethod>> delegateMethods = new HashMap<Integer, Set<DelegateMethod>>();
+    private LoggingUtils logger;
 
-    public DelegateClass(String className) {
-        this.className = className;
+    DelegateClass(Element element, LoggingUtils logger) {
+
+        this.logger = logger;
+        this.className = element.toString().toString();
+        this.simpleName = element.getSimpleName().toString();
     }
 
-    public void addMethod(DelegateMethod method) {
+    void addMethod(DelegateMethod delegateMethod) {
+
+        Set<DelegateMethod> setForUriId = delegateMethods.get(delegateMethod.getUriId());
+
+        if (setForUriId == null) {
+
+            setForUriId = new HashSet<DelegateMethod>();
+            setForUriId.add(delegateMethod);
+            delegateMethods.put(delegateMethod.getUriId(), setForUriId);
+        } else {
+
+            setForUriId.add(delegateMethod);
+        }
         
-        methods.add(method);
-        uriIds.add(method.getUriId());
-    }
-
-    @Override
-    public String toString() {
-        return "DelegateClass [className=" + className + ", methods=" + methods + "]";
-    }
-
-    public String getSimpleName() {
-        return simpleName;
+        logger.warn("Added method to class. Map is now " + delegateMethods);
     }
 
     public String getName() {
         return className;
     }
 
-    public void setSimpleName(String simpleName) {
-        this.simpleName = simpleName;
+    public String getSimpleName() {
+        return simpleName;
     }
+    
+    public Map<Integer, Set<DelegateMethod>> getUriDelegateMethodMap() {
 
-    public List<DelegateMethod> getMethods() {
-        return Collections.unmodifiableList(methods);
+        logger.warn("Returning class methods " + Collections.unmodifiableMap(delegateMethods));
+        return Collections.unmodifiableMap(delegateMethods);
     }
-
-    /**
-     * @return
-     */
-    public String getRouterName() {
-
-        return simpleName + "Router";
-    }
-
+    
     public Set<Integer> getUriIds() {
-        return Collections.unmodifiableSet(uriIds);
+        return delegateMethods.keySet();
+    }
+
+    public String getRouterSimpleName() {
+
+        return simpleName + ROUTER_SUFFIX;
     }
 }

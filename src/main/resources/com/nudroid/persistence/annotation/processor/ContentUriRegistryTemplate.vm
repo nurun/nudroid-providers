@@ -25,7 +25,7 @@ public class ContentUriRegistry {
 
 #foreach( $delegateClass in $delegateClasses )
         if (objectClass == ${delegateClass.getSimpleName()}.class) {
-            return new ${delegateClass.getSimpleName()}Router(($delegateClass.getSimpleName()) object);
+            return new ${delegateClass.getRouterSimpleName()}(($delegateClass.getSimpleName()) object);
         }   
         
 #end

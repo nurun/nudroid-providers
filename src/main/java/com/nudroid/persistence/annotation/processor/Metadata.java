@@ -43,16 +43,6 @@ class Metadata {
     private TypeElement stringType;
     private LoggingUtils logger;
 
-    // private Map<TypeElement, Set<ExecutableElement>> classesAndMethods = new HashMap<TypeElement,
-    // Set<ExecutableElement>>();
-    // private Map<String, Set<ExecutableElement>> urisAndMethods = new HashMap<String, Set<ExecutableElement>>();
-    // private Map<String, Set<String>> authoritiesAndUris = new HashMap<String, Set<String>>();
-
-    /**
-     * @param elementUtils
-     * @param typeUtils
-     * @param uriRegistry2
-     */
     public Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
 
         this.logger = logger;
@@ -61,106 +51,11 @@ class Metadata {
         this.stringType = elementUtils.getTypeElement("java.lang.String");
     }
 
-    // /**
-    // * @param enclosingElement
-    // * @param elem
-    // */
-    // public void addTargetMethod(TypeElement enclosingElement, ExecutableElement elem) {
-    //
-    // Set<ExecutableElement> methodSet = classesAndMethods.get(enclosingElement);
-    //
-    // if (methodSet == null) {
-    //
-    // methodSet = new HashSet<ExecutableElement>();
-    // methodSet.add(elem);
-    // classesAndMethods.put(enclosingElement, methodSet);
-    // } else {
-    //
-    // methodSet.add(elem);
-    // }
-    // }
-    //
-    // /**
-    // * @return
-    // */
-    // public Set<TypeElement> getTargetClasses() {
-    //
-    // return classesAndMethods.keySet();
-    // }
-    //
-    // /**
-    // * @param targetElement
-    // * @return
-    // */
-    // public Set<ExecutableElement> getMethodsForClass(TypeElement targetElement) {
-    // return classesAndMethods.get(targetElement);
-    // }
-    //
-    // /**
-    // * @param value
-    // * @param element
-    // */
-    // public void addUri(String value, ExecutableElement element) {
-    //
-    // Set<ExecutableElement> methodSet = urisAndMethods.get(element);
-    //
-    // if (methodSet == null) {
-    //
-    // methodSet = new HashSet<ExecutableElement>();
-    // methodSet.add(element);
-    // urisAndMethods.put(value, methodSet);
-    // } else {
-    //
-    // methodSet.add(element);
-    // }
-    // }
-    //
-    // /**
-    // * @return
-    // */
-    // public Map<String, Set<String>> getAuthoritiesAndUris() {
-    //
-    // return Collections.unmodifiableMap(authoritiesAndUris);
-    // }
-
-    // /**
-    // * @param authority
-    // * @param uri
-    // */
-    // public void addUri(String authority, String uri) {
-    //
-    // Set<String> uris = authoritiesAndUris.get(authority);
-    //
-    // if (uris == null) {
-    //
-    // uris = new HashSet<String>();
-    //
-    // try {
-    // uris.add(new Uri(uri).getPath());
-    // } catch (IllegalArgumentException e) {
-    // throw new IllegalUriPathException(e);
-    // }
-    //
-    // authoritiesAndUris.put(authority, uris);
-    // } else {
-    //
-    // try {
-    // uris.add(new Uri(uri).getPath());
-    // } catch (IllegalArgumentException e) {
-    // throw new IllegalUriPathException(e);
-    // }
-    // }
-    // }
-
     public TypeElement getClassForAuthority(String string) {
 
         return authorityToClass.get(string);
     }
 
-    /**
-     * @param value
-     * @param enclosingElement
-     */
     public void setClassForAuthority(String value, TypeElement typeElement) {
 
         authorityToClass.put(value, typeElement);
@@ -181,8 +76,7 @@ class Metadata {
         DelegateClass delegateClass = delegateClasses.get(classElement.toString());
 
         if (delegateClass == null) {
-            delegateClass = new DelegateClass(classElement.toString());
-            delegateClass.setSimpleName(classElement.getSimpleName().toString());
+            delegateClass = new DelegateClass(classElement, logger);
             delegateClasses.put(classElement.toString(), delegateClass);
         }
 
@@ -190,8 +84,7 @@ class Metadata {
         int uriId = uriRegistry.addUri(uri);
         uri.setId(uriId + 1);
 
-        DelegateMethod delegateMethod = new DelegateMethod(uri);
-        delegateMethod.setName(methodExecutableElement.getSimpleName().toString());
+        DelegateMethod delegateMethod = new DelegateMethod(methodExecutableElement, uri);
 
         List<? extends VariableElement> parameters = methodExecutableElement.getParameters();
 
@@ -250,9 +143,5 @@ class Metadata {
     public Map<String, DelegateClass> getDelegateClasses() {
 
         return Collections.unmodifiableMap(delegateClasses);
-    }
-
-    public Map<Integer, Set<DelegateMethod>> getDelegateMethods() {
-        return Collections.unmodifiableMap(delegateMethods);
     }
 }
