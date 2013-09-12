@@ -1,30 +1,61 @@
-apply plugin: "java"
-apply plugin: 'maven'
-apply plugin: 'eclipse'
-apply from:'emma.gradle'
+/*
+ * =================================================================================================================
+ * subprojects
+ * Base configuration for all projects.
+ */
+allprojects {
+	apply plugin: 'eclipse'
+}
 
-version = '1.0-SNAPSHOT'
-group = 'com.nurun.nudroid.persistence'
-archivesBaseName = 'annotations';
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+/*
+ * =================================================================================================================
+ * subprojects
+ * Base configuration for all projects.
+ */
+subprojects {
 
-configurations { provided }
+	apply plugin: "java"
+	apply plugin: 'maven'
+	apply from:   '../emma.gradle'
 
-repositories {
-    mavenCentral()
-    maven {
-        url 'http://repo.springsource.org/libs-release'
-        url 'http://repo.springsource.org/libs-milestone'
+	version = '1.0-SNAPSHOT'
+	group = 'com.nurun.nudroid.persistence'
+	sourceCompatibility = JavaVersion.VERSION_1_6
+	targetCompatibility = JavaVersion.VERSION_1_6
+	
+	configurations { provided }
+
+	repositories {
+    	mavenCentral()
+    	maven {
+        	url 'http://repo.springsource.org/libs-release'
+        	url 'http://repo.springsource.org/libs-milestone'
+    	}
+	}
+
+	dependencies {
+    	testCompile 'org.testng:testng:6.8.5'
+    	testCompile 'org.mockito:mockito-all:1.9.5'
+	}
+
+	test { useTestNG() }
+	
+	sourceSets.main.compileClasspath += configurations.provided
+}
+
+/*
+ * =================================================================================================================
+ * nudroid-annotations-processor
+ * Configuration for nudroid-annotations-processor.
+ */
+project(':nudroid-annotations-processor') {
+
+    dependencies {
+    	compile project(':nudroid-annotations')
+        provided 'org.apache.velocity:velocity:1.7'
     }
+    
+    jar {
+        from { configurations.provided.collect { it.isDirectory() ? it : zipTree(it) } }
+	}
 }
-
-dependencies {
-    compile 'org.apache.velocity:velocity:1.7'
-    testCompile 'org.testng:testng:6.8.5'
-    testCompile 'org.mockito:mockito-all:1.9.5'
-}
-
-test { useTestNG() }
-
-sourceSets.main.compileClasspath += configurations.provided

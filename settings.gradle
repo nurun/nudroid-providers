@@ -1,0 +1,2 @@
+include 'nudroid-annotations', 'nudroid-annotations-processor'
+rootProject.name = 'nudroid'
