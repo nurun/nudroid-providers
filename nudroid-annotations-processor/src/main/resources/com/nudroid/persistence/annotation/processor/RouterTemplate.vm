@@ -115,7 +115,7 @@ public class ${delegateClass.getSimpleName()}Router implements ContentUriRouter 
 #foreach( $uriId in $delegateClass.getUriIds() )
         case $uriId:
 
-#foreach( $delegateMethod in $delegateClass.getUriDelegateMethodMap().get($uriId) )            
+#foreach( $delegateMethod in $delegateClass.getUriToDelegateMethodMap().get($uriId) )            
             if (#generateQueryParameterNamesMatcher($delegateMethod.getQueryPlaceholders())) {
 
 #if ( $delegateMethod.hasUriPlaceholders() )

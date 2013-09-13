@@ -50,7 +50,7 @@ public class DelegateClass {
         return simpleName;
     }
     
-    public Map<Integer, Set<DelegateMethod>> getUriDelegateMethodMap() {
+    public Map<Integer, Set<DelegateMethod>> getUriToDelegateMethodMap() {
 
         return Collections.unmodifiableMap(delegateMethods);
     }

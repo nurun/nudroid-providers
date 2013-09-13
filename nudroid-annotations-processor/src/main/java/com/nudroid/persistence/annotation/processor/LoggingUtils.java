@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.nudroid.persistence.annotation.processor;
 
 import javax.annotation.processing.Messager;
@@ -9,14 +6,13 @@ import javax.tools.Diagnostic.Kind;
 
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
- * 
  */
-public class LoggingUtils {
+class LoggingUtils {
 
     private Messager messager;
     private LogLevel logLevel;
 
-    public LoggingUtils(Messager messager, String defaultLogLevel) {
+    LoggingUtils(Messager messager, String defaultLogLevel) {
 
         this.messager = messager;
 
@@ -27,7 +23,7 @@ public class LoggingUtils {
         }
     }
 
-    public void trace(String message) {
+    void trace(String message) {
 
         if (LogLevel.TRACE.ordinal() >= logLevel.ordinal()) {
 
@@ -35,7 +31,7 @@ public class LoggingUtils {
         }
     }
 
-    public void debug(String message) {
+    void debug(String message) {
 
         if (LogLevel.DEBUG.ordinal() >= logLevel.ordinal()) {
 
@@ -43,7 +39,7 @@ public class LoggingUtils {
         }
     }
 
-    public void info(String message) {
+    void info(String message) {
 
         if (LogLevel.INFO.ordinal() >= logLevel.ordinal()) {
 
@@ -51,7 +47,7 @@ public class LoggingUtils {
         }
     }
 
-    public void warn(String message) {
+    void warn(String message) {
 
         if (LogLevel.WARN.ordinal() >= logLevel.ordinal()) {
 
@@ -59,12 +55,12 @@ public class LoggingUtils {
         }
     }
 
-    public void warn(String message, Element element) {
+    void warn(String message, Element element) {
 
         messager.printMessage(Kind.WARNING, message, element);
     }
 
-    public void error(String message) {
+    void error(String message) {
 
         if (LogLevel.ERROR.ordinal() >= logLevel.ordinal()) {
 
@@ -72,8 +68,12 @@ public class LoggingUtils {
         }
     }
 
-    public void error(String message, Element element) {
+    void error(String message, Element element) {
 
         messager.printMessage(Kind.ERROR, message, element);
+    }
+
+    private static enum LogLevel {
+        TRACE, DEBUG, INFO, WARN, ERROR
     }
 }

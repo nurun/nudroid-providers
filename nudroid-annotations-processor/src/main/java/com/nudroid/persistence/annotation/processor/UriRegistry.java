@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class UriRegistry {
+class UriRegistry {
 
     List<Uri> uris = new ArrayList<Uri>();
 
@@ -22,12 +22,12 @@ public class UriRegistry {
         return uris.indexOf(uri);
     }
 
+    List<Uri> getUniqueUris() {
+        return Collections.unmodifiableList(uris);
+    }
+
     @Override
     public String toString() {
         return "UriRegistry [uris=" + uris + "]";
-    }
-    
-    public List<Uri> getUniqueUris() {
-        return Collections.unmodifiableList(uris);
     }
 }

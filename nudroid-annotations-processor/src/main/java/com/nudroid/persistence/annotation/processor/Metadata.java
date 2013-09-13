@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.nudroid.persistence.annotation.processor;
 
 import java.util.Collections;
@@ -30,7 +27,6 @@ import com.nudroid.persistence.annotation.SortOrder;
 
 /**
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
- * 
  */
 class Metadata {
 
@@ -43,7 +39,7 @@ class Metadata {
     private TypeElement stringType;
     private LoggingUtils logger;
 
-    public Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
+    Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
 
         this.logger = logger;
         this.typeUtils = typeUtils;
@@ -51,17 +47,17 @@ class Metadata {
         this.stringType = elementUtils.getTypeElement("java.lang.String");
     }
 
-    public TypeElement getClassForAuthority(String string) {
+    TypeElement getClassForAuthority(String string) {
 
         return authorityToClass.get(string);
     }
 
-    public void setClassForAuthority(String value, TypeElement typeElement) {
+    void setClassForAuthority(String value, TypeElement typeElement) {
 
         authorityToClass.put(value, typeElement);
     }
 
-    public String parseAuthorityFromClass(Element classRoot) {
+    String parseAuthorityFromClass(Element classRoot) {
 
         Authority authority = classRoot.getAnnotation(Authority.class);
         String authorityName = authority != null ? authority.value() : classRoot.toString();
@@ -71,7 +67,7 @@ class Metadata {
         return authorityName;
     }
 
-    public void mapUri(Element classElement, ExecutableElement methodExecutableElement, String authority, Query query) {
+    void mapUri(Element classElement, ExecutableElement methodExecutableElement, String authority, Query query) {
 
         DelegateClass delegateClass = delegateClasses.get(classElement.toString());
 
@@ -91,7 +87,6 @@ class Metadata {
         for (VariableElement var : parameters) {
 
             Parameter parameter = new Parameter();
-            parameter.setName(var.getSimpleName().toString());
 
             if (var.getAnnotation(Projection.class) != null) parameter.setProjection(true);
             if (var.getAnnotation(Selection.class) != null) parameter.setSelection(true);
@@ -113,9 +108,9 @@ class Metadata {
             final QueryParam queryParamAnnotation = var.getAnnotation(QueryParam.class);
 
             if (queryParamAnnotation != null) {
-                
+
                 parameter.setQueryParameter(true);
-                parameter.setQueryParameterName(uri.getQueryParameterName(queryParamAnnotation.value()));
+                parameter.setQueryParameterName(uri.getQueryParameterPlaceholderName(queryParamAnnotation.value()));
                 delegateMethod.addQueryPlaceholder(parameter.getQueryParameterName());
             }
 
@@ -126,6 +121,11 @@ class Metadata {
         addMethodDelegateToUriMapping(delegateMethod);
     }
 
+    Map<String, DelegateClass> getDelegateClasses() {
+
+        return Collections.unmodifiableMap(delegateClasses);
+    }
+    
     private void addMethodDelegateToUriMapping(DelegateMethod delegateMethod) {
 
         Set<DelegateMethod> methodSet = delegateMethods.get(delegateMethod.getUriId());
@@ -140,8 +140,4 @@ class Metadata {
         }
     }
 
-    public Map<String, DelegateClass> getDelegateClasses() {
-
-        return Collections.unmodifiableMap(delegateClasses);
-    }
 }

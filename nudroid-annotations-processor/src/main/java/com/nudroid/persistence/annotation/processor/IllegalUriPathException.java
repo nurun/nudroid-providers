@@ -12,15 +12,15 @@ public class IllegalUriPathException extends RuntimeException {
         super();
     }
 
-    public IllegalUriPathException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public IllegalUriPathException(String s) {
         super(s);
     }
 
     public IllegalUriPathException(Throwable cause) {
         super(cause);
+    }
+
+    public IllegalUriPathException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

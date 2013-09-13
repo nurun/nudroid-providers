@@ -25,10 +25,6 @@ public class DelegateMethod {
         this.name = element.getSimpleName().toString();
     }
 
-    public boolean hasUriPlaceholders() {
-        return pathPlaceholderNames.size() > 0;
-    }
-
     public String getName() {
         return name;
     }
@@ -38,8 +34,12 @@ public class DelegateMethod {
     }
 
     public Set<String> getQueryPlaceholders() {
-
+    
         return Collections.unmodifiableSet(queryPlaceholder);
+    }
+
+    public boolean hasUriPlaceholders() {
+        return pathPlaceholderNames.size() > 0;
     }
 
     void addParameter(Parameter parameter) {
@@ -47,17 +47,13 @@ public class DelegateMethod {
     }
 
     int getUriId() {
+      
         return uri.getId();
     }
 
     void addPathPlaceholder(String value) {
 
         pathPlaceholderNames.add(value);
-    }
-
-    Set<String> getPathPlaceholderNames() {
-
-        return Collections.unmodifiableSet(pathPlaceholderNames);
     }
 
     void addQueryPlaceholder(String value) {
