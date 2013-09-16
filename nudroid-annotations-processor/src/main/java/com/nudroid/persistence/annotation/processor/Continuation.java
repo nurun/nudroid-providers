@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -19,7 +18,7 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 
 /**
- * Loads processor metadata for incremental compilation. TODO: Finish documentation.
+ * Manages annotation processing on incremental compilation in modern IDEs.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -32,15 +31,25 @@ class Continuation {
     private LoggingUtils logger;
     private Elements elementUtils;
 
+    /**
+     * Creates an instance of a continuation.
+     * 
+     * @param filer
+     *            A filer instance from a RoundEnvironment.
+     * @param elementUtils
+     *            A {@link Elements} instance from a {@link RoundEnvironment}.
+     * @param logger
+     *            The instance of the logging utils to use for logging.
+     */
     Continuation(Filer filer, Elements elementUtils, LoggingUtils logger) {
 
-        this.elementUtils = elementUtils;
         this.filer = filer;
+        this.elementUtils = elementUtils;
         this.logger = logger;
     }
 
     /**
-     * Loads the configuration from previous compilation steps.
+     * Loads the continuation information from previous compilation steps.
      * 
      * @throws IOException
      *             If unable to read the index files with the continuation information.
@@ -99,22 +108,28 @@ class Continuation {
         logger.debug("Done loading continuation.");
     }
 
+    /**
+     * Saves the continuation information for future incremental builds.
+     */
     void saveContinuation() {
-    
+
         try {
+
             FileObject indexFile = filer.createResource(StandardLocation.SOURCE_OUTPUT,
                     PersistenceAnnotationProcessor.GENERATED_CODE_BASE_PACKAGE,
                     Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME);
             Writer writer = indexFile.openWriter();
             PrintWriter printWriter = new PrintWriter(writer);
-    
+
             for (Element indexedTypeName : continuationElements) {
+
                 printWriter.println(indexedTypeName.toString());
             }
-    
+
             printWriter.close();
             writer.close();
         } catch (Exception e) {
+
             logger.error(String.format("Error processing continuation index file '%s.%s'",
                     PersistenceAnnotationProcessor.GENERATED_CODE_BASE_PACKAGE,
                     Continuation.CONTENT_PROVIDER_DELEGATE_INDEX_FILE_NAME));
@@ -122,18 +137,31 @@ class Continuation {
         }
     }
 
-    Set<TypeElement> getContinuationElements() {
-        
-        return Collections.unmodifiableSet(continuationElements);
-    }
-
+    /**
+     * Adds a {@link TypeElement} to this continuation.
+     * <p/>
+     * Elements added to this continuation can be retrieved by a subsequent incremental compilation.
+     * 
+     * @param element
+     *            The element to be added.
+     */
     void addContinuationElement(TypeElement element) {
 
         continuationElements.add(element);
     }
-    
+
+    /**
+     * Calculates the final elements that should be processed by the round environment. Should only be called after a
+     * call to {@link Continuation#loadContinuation()} is made.
+     * 
+     * @param roundEnv
+     *            A reference to the round environment.
+     * 
+     * @return The set of elements to process. The resulting set will be root elements being processed by the round
+     *         environment (i.e. {@link RoundEnvironment#getRootElements()}) plus any elements from this continuation.
+     */
     Set<Element> getElementsToProcess(RoundEnvironment roundEnv) {
-        
+
         Set<Element> classesToProcess = new HashSet<Element>();
         classesToProcess.addAll(roundEnv.getRootElements());
         logger.debug(String.format("Root elements being porocessed this round: %s", classesToProcess));
@@ -142,8 +170,7 @@ class Continuation {
 
         if (!continuationElements.isEmpty()) {
 
-            logger.debug(String.format("Adding continuation elements from previous builds: %s",
-                    continuationElements));
+            logger.debug(String.format("Adding continuation elements from previous builds: %s", continuationElements));
             classesToProcess.addAll(continuationElements);
         }
 
