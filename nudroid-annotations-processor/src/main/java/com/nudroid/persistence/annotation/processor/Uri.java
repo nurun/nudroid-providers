@@ -18,9 +18,9 @@ public class Uri {
     private String authority;
     private String path;
     private String queryString;
-    private List<UriPlaceholderParameter> parameters = new ArrayList<UriPlaceholderParameter>();
-    private List<UriPlaceholderParameter> pathParams = new ArrayList<UriPlaceholderParameter>();
-    private List<UriPlaceholderParameter> queryParams = new ArrayList<UriPlaceholderParameter>();
+    private List<UriPlaceholderParameter> placeholders = new ArrayList<UriPlaceholderParameter>();
+    private List<UriPlaceholderParameter> pathPlaceholders = new ArrayList<UriPlaceholderParameter>();
+    private List<UriPlaceholderParameter> queryPlaceholders = new ArrayList<UriPlaceholderParameter>();
 
     @SuppressWarnings("unused")
     private LoggingUtils logger;
@@ -59,52 +59,27 @@ public class Uri {
 
         UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
 
-        return pathParams.contains(pathParam);
+        return pathPlaceholders.contains(pathParam);
     }
 
     boolean containsQueryPlaceholder(String parameterName) {
 
         UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
 
-        return queryParams.contains(pathParam);
+        return queryPlaceholders.contains(pathParam);
     }
 
     String getPathParameterPosition(String name) {
 
         UriPlaceholderParameter pathParam = new UriPlaceholderParameter(name, 0);
 
-        return pathParams.get(pathParams.indexOf(pathParam)).getKey();
+        return pathPlaceholders.get(pathPlaceholders.indexOf(pathParam)).getKey();
     }
 
     String getQueryParameterPlaceholderName(String name) {
 
         UriPlaceholderParameter queryParam = new UriPlaceholderParameter(name, 0);
-
-        return queryParams.get(queryParams.indexOf(queryParam)).getKey();
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((authority == null) ? 0 : authority.hashCode());
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        Uri other = (Uri) obj;
-        if (authority == null) {
-            if (other.authority != null) return false;
-        } else if (!authority.equals(other.authority)) return false;
-        if (path == null) {
-            if (other.path != null) return false;
-        } else if (!path.equals(other.path)) return false;
-        return true;
+        return queryPlaceholders.get(queryPlaceholders.indexOf(queryParam)).getKey();
     }
 
     private void parsePlaceholders(String path) {
@@ -161,37 +136,61 @@ public class Uri {
         }
     }
 
-    private void addPathPlaceholder(String paramName, int position) {
+    private void addPathPlaceholder(String placeholderName, int position) {
 
-        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(paramName, position);
+        UriPlaceholderParameter pathPlaceholder = new UriPlaceholderParameter(placeholderName, position);
 
-        if (parameters.contains(pathParam)) {
+        if (placeholders.contains(pathPlaceholder)) {
 
-            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(pathParam)).getKey(),
-                    Integer.toString(position));
+            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(
+                    placeholders.indexOf(pathPlaceholder)).getKey(), Integer.toString(position));
         }
 
-        parameters.add(pathParam);
-        pathParams.add(pathParam);
+        placeholders.add(pathPlaceholder);
+        pathPlaceholders.add(pathPlaceholder);
     }
 
-    private void addQueryPlaceholder(String paramName, String placeholderName) {
+    private void addQueryPlaceholder(String placeholderName, String queryParameterName) {
 
-        UriPlaceholderParameter queryParam = new UriPlaceholderParameter(paramName, placeholderName);
+        UriPlaceholderParameter queryPlaceholder = new UriPlaceholderParameter(placeholderName, queryParameterName);
 
-        if (parameters.contains(queryParam)) {
+        if (placeholders.contains(queryPlaceholder)) {
 
-            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(queryParam)).getKey(),
-                    placeholderName);
+            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(
+                    placeholders.indexOf(queryPlaceholder)).getKey(), queryParameterName);
         }
 
-        parameters.add(queryParam);
-        queryParams.add(queryParam);
+        placeholders.add(queryPlaceholder);
+        queryPlaceholders.add(queryPlaceholder);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((authority == null) ? 0 : authority.hashCode());
+        result = prime * result + ((path == null) ? 0 : path.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Uri other = (Uri) obj;
+        if (authority == null) {
+            if (other.authority != null) return false;
+        } else if (!authority.equals(other.authority)) return false;
+        if (path == null) {
+            if (other.path != null) return false;
+        } else if (!path.equals(other.path)) return false;
+        return true;
     }
 
     @Override
     public String toString() {
         return "Uri [id=" + id + ", authority=" + authority + ", path=" + path + ", queryString=" + queryString
-                + ", pathParams=" + pathParams + ", queryParams=" + queryParams +  "]";
+                + ", pathPlaceholders=" + pathPlaceholders + ", queryPlaceholders=" + queryPlaceholders + "]";
     }
 }

@@ -231,10 +231,10 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             
             final String authority = metadata.parseAuthorityFromClass(rootClass);
             uri = new Uri(authority, uriPathAndQuery, logger);
-        } catch (DuplicateUriParameterException e) {
+        } catch (DuplicateUriPlaceholderException e) {
 
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    String.format("Duplicated placeholder parameter: '%s'.", e.getParamName()), method);
+                    String.format("Duplicated placeholder parameter: '%s'.", e.getPlaceholderName()), method);
         } catch (IllegalUriPathException e) {
 
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
