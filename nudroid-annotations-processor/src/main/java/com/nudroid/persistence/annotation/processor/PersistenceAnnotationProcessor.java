@@ -47,11 +47,12 @@ import com.nudroid.persistence.annotation.SortOrder;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-@SupportedAnnotationTypes({ "com.nudroid.persistence.annotation.Authority", "com.nudroid.persistence.annotation.Delete",
-        "com.nudroid.persistence.annotation.Insert", "com.nudroid.persistence.annotation.Projection",
-        "com.nudroid.persistence.annotation.Query", "com.nudroid.persistence.annotation.QueryParam",
-        "com.nudroid.persistence.annotation.Selection", "com.nudroid.persistence.annotation.SelectionArgs",
-        "com.nudroid.persistence.annotation.SortOrder", "com.nudroid.persistence.annotation.Update" })
+@SupportedAnnotationTypes({ "com.nudroid.persistence.annotation.Authority",
+        "com.nudroid.persistence.annotation.Delete", "com.nudroid.persistence.annotation.Insert",
+        "com.nudroid.persistence.annotation.Projection", "com.nudroid.persistence.annotation.Query",
+        "com.nudroid.persistence.annotation.QueryParam", "com.nudroid.persistence.annotation.Selection",
+        "com.nudroid.persistence.annotation.SelectionArgs", "com.nudroid.persistence.annotation.SortOrder",
+        "com.nudroid.persistence.annotation.Update" })
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
 public class PersistenceAnnotationProcessor extends AbstractProcessor {
@@ -203,12 +204,48 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     }
 
     private void processQueryOnMethod(TypeElement rootClass, Element method) {
+
         Query query = method.getAnnotation(Query.class);
 
         if (query == null) return;
 
         continuation.addContinuationElement(rootClass);
+        Uri uri = composeUri(rootClass, method, query);
+        
+        if (uri == null) return;
+        
+        boolean isValidAnnotations = validateAnnotations(rootClass, method, query, uri);
 
+        if (!isValidAnnotations || isAbstract(rootClass)) return;
+
+        logger.debug(String.format("Processing Query annotation on %s.%s", rootClass, method));
+        metadata.mapUri(rootClass, (ExecutableElement) method, uri, query);
+    }
+
+    private Uri composeUri(TypeElement rootClass, Element method, Query query) {
+        
+        final String uriPathAndQuery = query.value();
+        Uri uri = null;
+
+        try {
+            
+            final String authority = metadata.parseAuthorityFromClass(rootClass);
+            uri = new Uri(authority, uriPathAndQuery, logger);
+        } catch (DuplicateUriParameterException e) {
+
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    String.format("Duplicated placeholder parameter: '%s'.", e.getParamName()), method);
+        } catch (IllegalUriPathException e) {
+
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                    String.format("Path '%s' is not a valid query URI.", uriPathAndQuery), method);
+        }
+
+        return uri;
+    }
+
+    private boolean validateAnnotations(TypeElement rootClass, Element method, Query query, Uri uri) {
+        
         boolean isValid = true;
 
         if (isInterface(rootClass)) {
@@ -222,30 +259,9 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
             isValid = false;
         }
 
-        if (isAbstract(rootClass)) {
-
-            return;
-        }
-
         if (!validateQueryElement(rootClass, method)) isValid = false;
-        if (!validateParameters(query, (ExecutableElement) method)) isValid = false;
-        if (!isValid) return;
-
-        logger.debug(String.format("Processing Query annotation on %s.%s", rootClass, method));
-
-        try {
-
-            metadata.mapUri(rootClass, (ExecutableElement) method, metadata.parseAuthorityFromClass(rootClass), query);
-
-        } catch (DuplicateUriParameterException e) {
-
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    String.format("Duplicated placeholder parameter: '%s'", e.getParamName()), method);
-        } catch (IllegalUriPathException e) {
-
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    String.format("URL '%s' is not valid.", query.value()), method);
-        }
+        if (!validateParameters(query, (ExecutableElement) method, uri)) isValid = false;
+        return isValid;
     }
 
     private boolean validateQueryElement(Element rootClass, Element method) {
@@ -269,7 +285,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return isValid;
     }
 
-    private boolean validateParameters(Query query, ExecutableElement method) {
+    private boolean validateParameters(Query query, ExecutableElement method, Uri uri) {
 
         boolean isValid = true;
 
@@ -293,8 +309,8 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
                     accumulatedAnnotations);
             isValid = validateParameterAnnotation(var, ContentUri.class, parameterType, uriType, accumulatedAnnotations);
 
-            isValid = validatePathParamAnnotation(var, query, accumulatedAnnotations);
-            isValid = validateQueryParamAnnotation(var, query, accumulatedAnnotations);
+            isValid = validatePathParamAnnotation(var, query, uri, accumulatedAnnotations);
+            isValid = validateQueryParamAnnotation(var, query, uri, accumulatedAnnotations);
         }
 
         return isValid;
@@ -334,7 +350,8 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return isValid;
     }
 
-    private boolean validatePathParamAnnotation(VariableElement var, Query query, List<Class<?>> accumulatedAnnotations) {
+    private boolean validatePathParamAnnotation(VariableElement var, Query query, Uri uri,
+            List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -343,19 +360,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         if (annotation != null) {
 
             String paramName = annotation.value();
-            final String queryPath = query.value();
-            Uri uri = null;
-
-            try {
-                uri = new Uri("bidon", queryPath, logger);
-            } catch (IllegalUriPathException e) {
-
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
-                        var);
-
-                return false;
-            }
+            final String uriPathAndQuery = query.value();
 
             accumulatedAnnotations.add(PathParam.class);
 
@@ -374,7 +379,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
                         String.format("Could not find placeholder named '%s' on the path element of '%s'.", paramName,
-                                queryPath), var);
+                                uriPathAndQuery), var);
 
                 isValid = false;
             }
@@ -383,7 +388,8 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         return isValid;
     }
 
-    private boolean validateQueryParamAnnotation(VariableElement var, Query query, List<Class<?>> accumulatedAnnotations) {
+    private boolean validateQueryParamAnnotation(VariableElement var, Query query, Uri uri,
+            List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -393,17 +399,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
             String paramName = annotation.value();
             final String queryPath = query.value();
-            Uri uri = null;
-
-            try {
-                uri = new Uri("biddon", queryPath, logger);
-            } catch (IllegalUriPathException e) {
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                        String.format("Path '%s' is not a valid URI path and query string combination.", queryPath),
-                        var);
-
-                return false;
-            }
 
             accumulatedAnnotations.add(PathParam.class);
 
@@ -413,7 +408,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
                 processingEnv.getMessager().printMessage(
                         Diagnostic.Kind.ERROR,
-                        String.format("Parameters %s can only be annotated with one of %s.", var,
+                        String.format("Parameter '%s' can only be annotated with one of %s.", var,
                                 accumulatedAnnotations), var);
             }
 
@@ -569,6 +564,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     }
 
     private Properties generateVelocityConfigurationProperties() {
+        
         Properties p = new Properties();
         p.put("resource.loader", "classpath");
         p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");

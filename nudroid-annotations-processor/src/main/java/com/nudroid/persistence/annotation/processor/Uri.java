@@ -46,12 +46,12 @@ public class Uri {
     }
 
     public int getId() {
-    
+
         return this.id;
     }
 
     void setId(int uriId) {
-    
+
         this.id = uriId;
     }
 
@@ -107,58 +107,52 @@ public class Uri {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "Uri [id=" + id + ", authority=" + authority + ", path=" + path + ", queryString=" + queryString
-                + ", parameters=" + parameters + ", pathParams=" + pathParams + ", queryParams=" + queryParams + "]";
-    }
-
     private void parsePlaceholders(String path) {
-    
+
         Pattern pathPattern = Pattern.compile(PATH_PLACEHOLDER_REGEXP);
         Pattern queryPattern = Pattern.compile(QUERY_PLACEHOLDER_REGEXP);
-    
+
         String[] pathAndQueryString = path.split("\\?");
-    
+
         if (pathAndQueryString.length > 2) {
-    
+
             throw new IllegalUriPathException(String.format("The path uri '%s' is invalid.", path));
         }
-    
+
         if (pathAndQueryString.length >= 1) {
-    
+
             String pathSection = pathAndQueryString[0];
-    
+
             pathSection = pathSection.replaceAll("^/+", "");
-    
+
             String[] pathElements = pathSection.split("/");
-    
+
             for (int position = 0; position < pathElements.length; position++) {
-    
+
                 Matcher m = pathPattern.matcher(pathElements[position]);
-    
+
                 if (m.find()) {
-    
+
                     String paramName = m.group(1);
                     addPathPlaceholder(paramName, position);
                 }
             }
         }
-    
+
         if (pathAndQueryString.length == 2) {
-    
+
             String querySection = pathAndQueryString[1];
             querySection = querySection.replaceAll("^\\?+", "");
             querySection = querySection.replaceAll("^\\&+", "");
-    
+
             String[] queryVars = querySection.split("\\&");
-    
+
             for (int position = 0; position < queryVars.length; position++) {
-    
+
                 Matcher m = queryPattern.matcher(queryVars[position]);
-    
+
                 if (m.find()) {
-    
+
                     String queryParameterName = m.group(1);
                     String placeholderName = m.group(2);
                     addQueryPlaceholder(placeholderName, queryParameterName);
@@ -168,30 +162,36 @@ public class Uri {
     }
 
     private void addPathPlaceholder(String paramName, int position) {
-    
+
         UriPlaceholderParameter pathParam = new UriPlaceholderParameter(paramName, position);
-    
-        if (parameters.contains(paramName)) {
-    
-            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(paramName))
-                    .getKey(), Integer.toString(position));
+
+        if (parameters.contains(pathParam)) {
+
+            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(pathParam)).getKey(),
+                    Integer.toString(position));
         }
-    
+
         parameters.add(pathParam);
         pathParams.add(pathParam);
     }
 
     private void addQueryPlaceholder(String paramName, String placeholderName) {
-    
-        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(paramName, placeholderName);
-    
-        if (parameters.contains(paramName)) {
-    
-            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(paramName))
-                    .getKey(), placeholderName);
+
+        UriPlaceholderParameter queryParam = new UriPlaceholderParameter(paramName, placeholderName);
+
+        if (parameters.contains(queryParam)) {
+
+            throw new DuplicateUriParameterException(paramName, parameters.get(parameters.indexOf(queryParam)).getKey(),
+                    placeholderName);
         }
-    
-        parameters.add(pathParam);
-        queryParams.add(pathParam);
+
+        parameters.add(queryParam);
+        queryParams.add(queryParam);
+    }
+
+    @Override
+    public String toString() {
+        return "Uri [id=" + id + ", authority=" + authority + ", path=" + path + ", queryString=" + queryString
+                + ", pathParams=" + pathParams + ", queryParams=" + queryParams +  "]";
     }
 }

@@ -67,7 +67,7 @@ class Metadata {
         return authorityName;
     }
 
-    void mapUri(Element classElement, ExecutableElement methodExecutableElement, String authority, Query query) {
+    void mapUri(Element classElement, ExecutableElement methodExecutableElement, Uri uri, Query query) {
 
         DelegateClass delegateClass = delegateClasses.get(classElement.toString());
 
@@ -76,7 +76,6 @@ class Metadata {
             delegateClasses.put(classElement.toString(), delegateClass);
         }
 
-        Uri uri = new Uri(authority, query.value(), logger);
         int uriId = uriRegistry.addUri(uri);
         uri.setId(uriId + 1);
 
@@ -125,7 +124,7 @@ class Metadata {
 
         return Collections.unmodifiableMap(delegateClasses);
     }
-    
+
     private void addMethodDelegateToUriMapping(DelegateMethod delegateMethod) {
 
         Set<DelegateMethod> methodSet = delegateMethods.get(delegateMethod.getUriId());
