@@ -45,6 +45,14 @@ public class Uri {
         this.queryString = uri.getQuery();
     }
 
+    public String getAuthority() {
+        return authority;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
     public int getId() {
 
         return this.id;
