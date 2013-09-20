@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -42,8 +43,15 @@ import com.nudroid.persistence.annotation.SelectionArgs;
 import com.nudroid.persistence.annotation.SortOrder;
 
 /**
- * Annotation processor creating the bindings necessary for Android content provider delegates. TODO Finish
- * documentation
+ * Annotation processor creating the bindings necessary for Android content provider delegates.
+ * 
+ * <h1>Logging</h1> This processor can be configured to display log messages during the annotation processing rounds.
+ * Log messages are delivered through the processors {@link Messager} objects. In other words, they are issued as
+ * compiler notes, warning or errors.
+ * <p/>
+ * The logging level can be configured through the property persistence.annotation.log.level. The logging level can
+ * either be configured through a processor property (with the -A option) or a system property (with a -D option).
+ * Processor property configuration takes precedence over the system property.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -72,7 +80,6 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private int iterationRun = 0;
 
     private Continuation continuation;
-    private UriRegistry uriRegistry = new UriRegistry();
     private Metadata metadata;
 
     private TypeMirror stringType;
@@ -80,6 +87,12 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     private TypeMirror contentValuesType;
     private TypeMirror uriType;
 
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
+     * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
+     */
     @Override
     public synchronized void init(ProcessingEnvironment env) {
 
@@ -104,7 +117,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         uriType = elementUtils.getTypeElement("android.net.Uri").asType();
 
         continuation = new Continuation(filer, elementUtils, logger);
-        metadata = new Metadata(uriRegistry, elementUtils, typeUtils, logger);
+        metadata = new Metadata(elementUtils, typeUtils, logger);
 
         try {
             continuation.loadContinuation();
@@ -211,24 +224,24 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         continuation.addContinuationElement(rootClass);
         Uri uri = composeUri(rootClass, method, query);
-        
+
         if (uri == null) return;
-        
+
         boolean isValidAnnotations = validateAnnotations(rootClass, method, query, uri);
 
         if (!isValidAnnotations || isAbstract(rootClass)) return;
 
         logger.debug(String.format("Processing Query annotation on %s.%s", rootClass, method));
-        metadata.mapUri(rootClass, (ExecutableElement) method, uri, query);
+        metadata.mapUri(rootClass, (ExecutableElement) method, uri);
     }
 
     private Uri composeUri(TypeElement rootClass, Element method, Query query) {
-        
+
         final String uriPathAndQuery = query.value();
         Uri uri = null;
 
         try {
-            
+
             final String authority = metadata.parseAuthorityFromClass(rootClass);
             uri = new Uri(authority, uriPathAndQuery, logger);
         } catch (DuplicateUriPlaceholderException e) {
@@ -245,7 +258,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     }
 
     private boolean validateAnnotations(TypeElement rootClass, Element method, Query query, Uri uri) {
-        
+
         boolean isValid = true;
 
         if (isInterface(rootClass)) {
@@ -489,11 +502,11 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
     private void generateCompanionSourceCode(Metadata metadata) {
 
-        generateContentUriRegistry(metadata);
-        generateContentProviderRouters(metadata);
+        generateContentUriRegistrySourceCode(metadata);
+        generateContentProviderRouterSourceCode(metadata);
     }
 
-    private void generateContentUriRegistry(Metadata metadata) {
+    private void generateContentUriRegistrySourceCode(Metadata metadata) {
 
         logger.debug(String.format("Generating ContentUriRegistry source code at %s.%s", GENERATED_CODE_BASE_PACKAGE,
                 CONTENT_URI_REGISTRY_CLASS_NAME));
@@ -505,7 +518,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         VelocityContext context = new VelocityContext();
 
         context.put("delegateClasses", metadata.getDelegateClasses().values());
-        context.put("contentProviderUris", uriRegistry.getUniqueUris());
+        context.put("contentProviderUris", metadata.getUniqueUris());
         logger.debug(String.format("Configured velocity context."));
 
         Template template = null;
@@ -537,7 +550,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void generateContentProviderRouters(Metadata metadata) {
+    private void generateContentProviderRouterSourceCode(Metadata metadata) {
 
         for (DelegateClass delegateClass : metadata.getDelegateClasses().values()) {
             Properties p = generateVelocityConfigurationProperties();
@@ -564,7 +577,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
     }
 
     private Properties generateVelocityConfigurationProperties() {
-        
+
         Properties p = new Properties();
         p.put("resource.loader", "classpath");
         p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");

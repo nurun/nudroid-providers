@@ -15,7 +15,7 @@ public class ContentUriRegistry {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
 #foreach( $uri in $contentProviderUris )
-        URI_MATCHER.addURI("$uri.getAuthority()", "$uri.getPath()", $uri.getId());
+        URI_MATCHER.addURI("$uri.getAuthority()", "$uri.getNormalizedPath()", $uri.getId());
 #end
     }
 

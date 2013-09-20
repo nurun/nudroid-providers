@@ -1,5 +1,6 @@
 package com.nudroid.persistence.annotation.processor;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -26,6 +26,8 @@ import com.nudroid.persistence.annotation.SelectionArgs;
 import com.nudroid.persistence.annotation.SortOrder;
 
 /**
+ * Gather all the information required to generate the source code for the router files and uri registry.
+ * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class Metadata {
@@ -39,49 +41,110 @@ class Metadata {
     private TypeElement stringType;
     private LoggingUtils logger;
 
-    Metadata(UriRegistry uriRegistry, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
+    /**
+     * Creates an instance of this class.
+     * 
+     * @param elementUtils
+     *            The annotation processor's {@link Elements} instance.
+     * @param typeUtils
+     *            The annotation processor's {@link Types} instance.
+     * @param logger
+     *            The logger utility instance to use.
+     */
+    Metadata(Elements elementUtils, Types typeUtils, LoggingUtils logger) {
 
         this.logger = logger;
         this.typeUtils = typeUtils;
-        this.uriRegistry = uriRegistry;
+        this.uriRegistry = new UriRegistry();
         this.stringType = elementUtils.getTypeElement("java.lang.String");
     }
 
-    TypeElement getClassForAuthority(String string) {
+    /**
+     * Maps a delegate class to a <a
+     * href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a> authority
+     * name.
+     * 
+     * @param authority
+     *            The authority name.
+     * @param typeElement
+     *            The type element for the delaget class.
+     */
+    void setClassForAuthority(String authority, TypeElement typeElement) {
 
-        return authorityToClass.get(string);
+        authorityToClass.put(authority, typeElement);
     }
 
-    void setClassForAuthority(String value, TypeElement typeElement) {
+    /**
+     * Gets the delegate class associated with the given <a
+     * href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a> authority.
+     * 
+     * @param authority
+     *            The authority name.
+     * 
+     * @return The {@link TypeElement} for the delegate class associated with the given authority name.
+     */
+    TypeElement getClassForAuthority(String authority) {
 
-        authorityToClass.put(value, typeElement);
+        return authorityToClass.get(authority);
     }
 
-    String parseAuthorityFromClass(Element classRoot) {
+    /**
+     * Get's the authority name from the authority annotation. Infer the authority name from the class name if an
+     * explicit authority name is not given to the annotation.
+     * 
+     * @param delegateClass
+     *            The class to get the authority name for.
+     * 
+     * @return The name of the authority the delegate class handles.
+     * 
+     * @throws IllegalArgumentException
+     *             if the class is not annotated with {@link Authority}.
+     */
+    String parseAuthorityFromClass(TypeElement delegateClass) {
 
-        Authority authority = classRoot.getAnnotation(Authority.class);
-        String authorityName = authority != null ? authority.value() : classRoot.toString();
+        Authority authority = delegateClass.getAnnotation(Authority.class);
 
-        authorityName = authorityName.equals("") ? classRoot.toString() : authorityName;
+        if (authority == null) {
+
+            throw new IllegalArgumentException(String.format("Delegate class %s must be annotated with %s.",
+                    delegateClasses.toString(), Authority.class.getName()));
+        }
+
+        String authorityName = authority != null ? authority.value() : delegateClass.toString();
+
+        authorityName = authorityName.equals("") ? delegateClass.toString() : authorityName;
 
         return authorityName;
     }
 
-    void mapUri(Element classElement, ExecutableElement methodExecutableElement, Uri uri, Query query) {
+    /**
+     * Maps a <a href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a>
+     * URI with it's target delegate class and {@link Query} method.
+     * <p/>
+     * The mapping will be stored in this metadata and can be retrieved by the several getXXX methods available.
+     * 
+     * @param delegateClassType
+     *            The type of the class responsible for handling this URI.
+     * @param delegateMethodType
+     *            The delegate method within the delegate class to handle this particular URI.
+     * @param uri
+     *            The URI to map.
+     */
+    void mapUri(TypeElement delegateClassType, ExecutableElement delegateMethodType, Uri uri) {
 
-        DelegateClass delegateClass = delegateClasses.get(classElement.toString());
+        DelegateClass delegateClass = delegateClasses.get(delegateClassType.toString());
 
         if (delegateClass == null) {
-            delegateClass = new DelegateClass(classElement, logger);
-            delegateClasses.put(classElement.toString(), delegateClass);
+            delegateClass = new DelegateClass(delegateClassType, logger);
+            delegateClasses.put(delegateClassType.toString(), delegateClass);
         }
 
         int uriId = uriRegistry.addUri(uri);
         uri.setId(uriId + 1);
 
-        DelegateMethod delegateMethod = new DelegateMethod(methodExecutableElement, uri);
+        DelegateMethod delegateMethod = new DelegateMethod(delegateMethodType, uri);
 
-        List<? extends VariableElement> parameters = methodExecutableElement.getParameters();
+        List<? extends VariableElement> parameters = delegateMethodType.getParameters();
 
         for (VariableElement var : parameters) {
 
@@ -120,9 +183,25 @@ class Metadata {
         addMethodDelegateToUriMapping(delegateMethod);
     }
 
+    /**
+     * Returns a map with the delegate class names registered in this metadata object and their corresponding
+     * {@link DelegateClass} representation.
+     * 
+     * @return A map with the delegate class names registered in this metadata object and their corresponding
+     *         {@link DelegateClass} representation.
+     */
     Map<String, DelegateClass> getDelegateClasses() {
 
         return Collections.unmodifiableMap(delegateClasses);
+    }
+
+    /**
+     * Returns a list of unique URIs handled by all the delegate classes.
+     * 
+     * @return A list of unique URIs handled by all the delegate classes.
+     */
+    List<Uri> getUniqueUris() {
+        return uriRegistry.getUniqueUris();
     }
 
     private void addMethodDelegateToUriMapping(DelegateMethod delegateMethod) {
@@ -139,4 +218,36 @@ class Metadata {
         }
     }
 
+    /**
+     * Keeps a record of unique URIs. A unique URI is identified by it's autority + path elements and does not take into
+     * consideration the query string. This means that the URIs
+     * <tt>content://authority/users/{name}?orderBy={field}</tt> and
+     * <tt>content://authority/users/{name}?model={model_type}</tt> are considered to be the same.
+     * 
+     * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+     */
+    private static class UriRegistry {
+
+        List<Uri> uris = new ArrayList<Uri>();
+
+        int addUri(Uri uri) {
+
+            int existing = uris.indexOf(uri);
+
+            if (existing == -1) {
+                uris.add(uri);
+            }
+
+            return uris.indexOf(uri);
+        }
+
+        List<Uri> getUniqueUris() {
+            return Collections.unmodifiableList(uris);
+        }
+
+        @Override
+        public String toString() {
+            return "UriRegistry [uris=" + uris + "]";
+        }
+    }
 }
