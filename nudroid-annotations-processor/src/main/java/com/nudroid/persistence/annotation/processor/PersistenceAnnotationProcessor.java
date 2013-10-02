@@ -46,8 +46,7 @@ import com.nudroid.persistence.annotation.SortOrder;
  * TODO: Add validations documented in the annotations package.<br/>
  * TODO: Bug remove parameters which are not annotated from the list of parameters or else the generated code is
  * invalid.<br/>
- * TODO: queryParameter matching checks should use all query parameters, not only the ones with placeholders. 
- * <p/>
+ * 
  * Annotation processor creating the bindings necessary for Android content provider delegates.
  * 
  * <h1>Logging</h1> This processor can be configured to display log messages during the annotation processing rounds.
@@ -61,11 +60,12 @@ import com.nudroid.persistence.annotation.SortOrder;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @SupportedAnnotationTypes({ "com.nudroid.persistence.annotation.Authority",
+        "com.nudroid.persistence.annotation.ContentUri", "com.nudroid.persistence.annotation.ContentValuesRef",
         "com.nudroid.persistence.annotation.Delete", "com.nudroid.persistence.annotation.Insert",
-        "com.nudroid.persistence.annotation.Projection", "com.nudroid.persistence.annotation.Query",
-        "com.nudroid.persistence.annotation.QueryParam", "com.nudroid.persistence.annotation.Selection",
-        "com.nudroid.persistence.annotation.SelectionArgs", "com.nudroid.persistence.annotation.SortOrder",
-        "com.nudroid.persistence.annotation.Update" })
+        "com.nudroid.persistence.annotation.PathParam", "com.nudroid.persistence.annotation.Projection",
+        "com.nudroid.persistence.annotation.Query", "com.nudroid.persistence.annotation.QueryParam",
+        "com.nudroid.persistence.annotation.Selection", "com.nudroid.persistence.annotation.SelectionArgs",
+        "com.nudroid.persistence.annotation.SortOrder", "com.nudroid.persistence.annotation.Update" })
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
 public class PersistenceAnnotationProcessor extends AbstractProcessor {
