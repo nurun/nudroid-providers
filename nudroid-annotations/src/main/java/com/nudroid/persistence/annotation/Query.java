@@ -7,39 +7,37 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Defines the configuration for a {@link InterceptableContentProvider} content URI. This annotation must be used inside
- * a {@link ContentUriSet}.
+ * Denotes a method responsible to handle a query operation sent to a content provider.
  * <p/>
+ * 
+ * Methods annotated with Query must return a Cursor (or null) object.
+ * <p/>
+ * 
  * Example usage:
  * 
  * <pre>
+ * &#064;Authority(&quot;com.example.userscontentprovider&quot;)
+ * public class UsersContentProviderDelegate {
+ *      &#064;Query(&quot;/users&quot;)
+ *      public Cursor listUsers(...) {
  * 
- * &#064;ContentUriSet({
- *         &#064;ContentUri(contentPath = &quot;/test&quot;, code = 100),
- *         &#064;ContentUri(contentPath = &quot;/test2&quot;, code = 200, ),
- *         &#064;ContentUri(contentPath = &quot;/test3&quot;, code = 300, cacheLoader = DummyCacheLoader.class),
- *         &#064;ContentUri(contentPath = &quot;/test4&quot;, code = 400, cacheLoader = DummyCacheLoader.class), })
- * abstract class CompleteAnnotatedClass extends InterceptableContentProvider {
+ *          ...
+ *      }
  * }
- * 
  * </pre>
  * 
- * The mandatory <tt>code</tt> attribute is used as the identifier for the content URI formed by the authority + the
- * content path, exactly as expected for it to work with a {@link UriMatcher}. The content path supports exactly the
- * same syntax as the {@link UriMatcher}. The URI <tt>code</tt> is conveniently passed through the
- * {@link InterceptableContentProvider#doQuery(android.net.Uri, int, String[], String, String[], String, com.nurun.persistence.provider.CachingContext)}
- * method so clients do not have to match the URI again.
+ * The above class and method definitions will respond the following content path URLs:
+ * content://com.example.userscontentprovider/users.
  * 
- * @author daniel.freitas
+ * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Documented
 public @interface Query {
+
     /**
-     * The content path relative to the annotated {@link InterceptableContentProvider}. The path can have a leading
-     * slash. The framework will properly concatenate the authority with the content path if it is not present so the
-     * leading slash is not mandatory.
+     * Mandatory. The content path relative to the the content provider authority name.
      */
     String value();
 }

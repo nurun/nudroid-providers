@@ -7,26 +7,27 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation type used to define the Authority of a InterceptableContentProvider. This annotation is not required. If
- * not present, the fully qualified provider class name will be used as its authority name.
+ * Define the authority name to be mapped by a content provider delegate.
  * <p/>
  * Example usage:
  * 
  * <pre>
- * &#064;Authority(&quot;my.custom.authority.name&quot;)
- * public abstract class MyProvider extends InterceptableContentProvider {
+ * &#064;Authority(&quot;com.example.contentprovider.users&quot;)
+ * public class UserContentProviderDelegate {
  * 
  * }
  * </pre>
  * 
- * @author daniel.freitas
+ * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @Target({ ElementType.TYPE })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Documented
 public @interface Authority {
+
     /**
-     * The name of the authority for the annotated {@link InterceptableContentProvider}
+     * Optional. The name of the authority of the ContentProvider. This attribute is optional. If not present, the fully
+     * qualified name of the annotated class will be used as an Authority name.
      */
     String value() default "";
 }

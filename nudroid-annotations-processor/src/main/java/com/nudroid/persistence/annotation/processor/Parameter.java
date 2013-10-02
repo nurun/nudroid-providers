@@ -1,7 +1,7 @@
 package com.nudroid.persistence.annotation.processor;
 
 import com.nudroid.persistence.annotation.ContentUri;
-import com.nudroid.persistence.annotation.ContentValues;
+import com.nudroid.persistence.annotation.ContentValuesRef;
 import com.nudroid.persistence.annotation.PathParam;
 import com.nudroid.persistence.annotation.Projection;
 import com.nudroid.persistence.annotation.QueryParam;
@@ -65,7 +65,7 @@ public class Parameter {
     }
 
     /**
-     * The parameter is annotated with {@link ContentValues}.
+     * The parameter is annotated with {@link ContentValuesRef}.
      * 
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
@@ -168,7 +168,7 @@ public class Parameter {
     }
 
     /**
-     * Sets if this parameter is annotated with {@link ContentValues}.
+     * Sets if this parameter is annotated with {@link ContentValuesRef}.
      * 
      * @param projection
      *            If the parameter is annotated or not.

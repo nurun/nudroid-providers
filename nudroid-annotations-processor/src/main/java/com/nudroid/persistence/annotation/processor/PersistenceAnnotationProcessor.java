@@ -33,7 +33,7 @@ import org.apache.velocity.app.Velocity;
 
 import com.nudroid.persistence.annotation.Authority;
 import com.nudroid.persistence.annotation.ContentUri;
-import com.nudroid.persistence.annotation.ContentValues;
+import com.nudroid.persistence.annotation.ContentValuesRef;
 import com.nudroid.persistence.annotation.PathParam;
 import com.nudroid.persistence.annotation.Projection;
 import com.nudroid.persistence.annotation.Query;
@@ -43,6 +43,11 @@ import com.nudroid.persistence.annotation.SelectionArgs;
 import com.nudroid.persistence.annotation.SortOrder;
 
 /**
+ * TODO: Add validations documented in the annotations package.<br/>
+ * TODO: Bug remove parameters which are not annotated from the list of parameters or else the generated code is
+ * invalid.<br/>
+ * TODO: queryParameter matching checks should use all query parameters, not only the ones with placeholders. 
+ * <p/>
  * Annotation processor creating the bindings necessary for Android content provider delegates.
  * 
  * <h1>Logging</h1> This processor can be configured to display log messages during the annotation processing rounds.
@@ -318,7 +323,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
                     accumulatedAnnotations);
             isValid = validateParameterAnnotation(var, SortOrder.class, parameterType, stringType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(var, ContentValues.class, parameterType, contentValuesType,
+            isValid = validateParameterAnnotation(var, ContentValuesRef.class, parameterType, contentValuesType,
                     accumulatedAnnotations);
             isValid = validateParameterAnnotation(var, ContentUri.class, parameterType, uriType, accumulatedAnnotations);
 

@@ -16,7 +16,7 @@ import javax.lang.model.util.Types;
 
 import com.nudroid.persistence.annotation.Authority;
 import com.nudroid.persistence.annotation.ContentUri;
-import com.nudroid.persistence.annotation.ContentValues;
+import com.nudroid.persistence.annotation.ContentValuesRef;
 import com.nudroid.persistence.annotation.PathParam;
 import com.nudroid.persistence.annotation.Projection;
 import com.nudroid.persistence.annotation.Query;
@@ -154,7 +154,7 @@ class Metadata {
             if (var.getAnnotation(Selection.class) != null) parameter.setSelection(true);
             if (var.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
             if (var.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
-            if (var.getAnnotation(ContentValues.class) != null) parameter.setContentValues(true);
+            if (var.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
             if (var.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
             if (typeUtils.isSameType(var.asType(), stringType.asType())) parameter.setString(true);
 
