@@ -143,6 +143,7 @@ class Metadata {
         uri.setId(uriId + 1);
 
         DelegateMethod delegateMethod = new DelegateMethod(delegateMethodType, uri);
+        delegateMethod.setQueryParameterNames(uri.getQueryParameterNames());
 
         List<? extends VariableElement> parameters = delegateMethodType.getParameters();
 
@@ -173,7 +174,6 @@ class Metadata {
 
                 parameter.setQueryParameter(true);
                 parameter.setQueryParameterName(uri.getQueryParameterPlaceholderName(queryParamAnnotation.value()));
-                delegateMethod.addQueryPlaceholder(parameter.getQueryParameterName());
             }
 
             delegateMethod.addParameter(parameter);

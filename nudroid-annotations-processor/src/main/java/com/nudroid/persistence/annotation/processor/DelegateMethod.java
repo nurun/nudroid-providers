@@ -26,7 +26,7 @@ public class DelegateMethod {
     private String name;
     private List<Parameter> parameters = new ArrayList<Parameter>();
     private Set<String> pathPlaceholderNames = new HashSet<String>();
-    private Set<String> queryPlaceholder = new HashSet<String>();
+    private Set<String> queryStringParameterNames = new HashSet<String>();
     private Uri uri;
 
     /**
@@ -62,13 +62,13 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the names of any placeholder appearing in a query string on the delegate annotation of this method.
+     * Gets the names of the query string parameters on the query string on the delegate annotation of this method.
      * 
-     * @return The names of the query string placeholder in the URI of this method.
+     * @return The set of query string parameter names.
      */
-    public Set<String> getQueryPlaceholders() {
+    public Set<String> getQueryStringParameterNames() {
 
-        return Collections.unmodifiableSet(queryPlaceholder);
+        return Collections.unmodifiableSet(queryStringParameterNames);
     }
 
     /**
@@ -116,14 +116,24 @@ public class DelegateMethod {
     }
 
     /**
-     * Adds a query string placeholder name to the list of query string placeholders of this method. This method is
+     * Adds a query string parameter name to the list of query string parameters of this method. This method is
      * idempotent.
      * 
-     * @param placehorderName
-     *            The name of the path placeholder.
+     * @param queryStringParameterName
+     *            The name of the query string parameter.
      */
-    void addQueryPlaceholder(String placehorderName) {
+    void addQueryStringParameter(String queryStringParameterName) {
 
-        queryPlaceholder.add(placehorderName);
+        queryStringParameterNames.add(queryStringParameterName);
+    }
+
+    /**
+     * Sets the query parameter names for the URI mapped to this method.
+     * 
+     * @param queryParameterNames The set of query parameter names.
+     */
+    void setQueryParameterNames(Set<String> queryParameterNames) {
+        
+         this.queryStringParameterNames = queryParameterNames;
     }
 }

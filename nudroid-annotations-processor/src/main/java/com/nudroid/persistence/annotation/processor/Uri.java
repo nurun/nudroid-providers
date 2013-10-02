@@ -2,7 +2,10 @@ package com.nudroid.persistence.annotation.processor;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,8 +22,7 @@ import java.util.regex.Pattern;
  */
 public class Uri {
 
-    private static String PATH_PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
-    private static String QUERY_PLACEHOLDER_REGEXP = "([^\\=]+)\\=\\{([^\\}]+)\\}";
+    private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
 
     private int id;
     private String authority;
@@ -29,9 +31,12 @@ public class Uri {
     private List<UriPlaceholderParameter> placeholders = new ArrayList<UriPlaceholderParameter>();
     private List<UriPlaceholderParameter> pathPlaceholders = new ArrayList<UriPlaceholderParameter>();
     private List<UriPlaceholderParameter> queryPlaceholders = new ArrayList<UriPlaceholderParameter>();
+    private Set<String> queryParameterNames = new HashSet<String>();
 
     @SuppressWarnings("unused")
     private LoggingUtils logger;
+
+    private String originalPath;
 
     /**
      * Creates an instance of this class.
@@ -49,10 +54,11 @@ public class Uri {
      */
     Uri(String authority, String path, LoggingUtils logger) {
 
+        this.originalPath = path;
         this.logger = logger;
         parsePlaceholders(path);
 
-        String normalizedPath = path.replaceAll(PATH_PLACEHOLDER_REGEXP, "*");
+        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*");
         URI uri;
 
         try {
@@ -178,10 +184,19 @@ public class Uri {
         return queryPlaceholders.get(queryPlaceholders.indexOf(queryParam)).getKey();
     }
 
+    /**
+     * Gets the list o query parameter names for this URI.
+     * 
+     * @return The list o query parameter names for this URI.
+     */
+    public Set<String> getQueryParameterNames() {
+
+        return Collections.unmodifiableSet(queryParameterNames);
+    }
+
     private void parsePlaceholders(String path) {
 
-        Pattern pathPattern = Pattern.compile(PATH_PLACEHOLDER_REGEXP);
-        Pattern queryPattern = Pattern.compile(QUERY_PLACEHOLDER_REGEXP);
+        Pattern placeholderPattern = Pattern.compile(PLACEHOLDER_REGEXP);
 
         String[] pathAndQueryString = path.split("\\?");
 
@@ -200,7 +215,7 @@ public class Uri {
 
             for (int position = 0; position < pathElements.length; position++) {
 
-                Matcher m = pathPattern.matcher(pathElements[position]);
+                Matcher m = placeholderPattern.matcher(pathElements[position]);
 
                 if (m.find()) {
 
@@ -220,13 +235,21 @@ public class Uri {
 
             for (int position = 0; position < queryVars.length; position++) {
 
-                Matcher m = queryPattern.matcher(queryVars[position]);
+                String[] nameAndValue = queryVars[position].split("\\=");
 
-                if (m.find()) {
+                if (nameAndValue.length != 2) {
 
-                    String queryParameterName = m.group(1);
-                    String placeholderName = m.group(2);
-                    addQueryPlaceholder(placeholderName, queryParameterName);
+                    throw new IllegalUriPathException(String.format("Path %s query string is invalid.", originalPath));
+                }
+
+                queryParameterNames.add(nameAndValue[0]);
+
+                Matcher m = placeholderPattern.matcher(nameAndValue[1]);
+
+                if (m.matches()) {
+
+                    String placeholderName = m.group(1);
+                    addQueryPlaceholder(placeholderName, nameAndValue[0]);
                 }
             }
         }
