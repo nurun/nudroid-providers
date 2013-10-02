@@ -44,8 +44,6 @@ import com.nudroid.persistence.annotation.SortOrder;
 
 /**
  * TODO: Add validations documented in the annotations package.<br/>
- * TODO: Bug remove parameters which are not annotated from the list of parameters or else the generated code is
- * invalid.<br/>
  * 
  * Annotation processor creating the bindings necessary for Android content provider delegates.
  * 

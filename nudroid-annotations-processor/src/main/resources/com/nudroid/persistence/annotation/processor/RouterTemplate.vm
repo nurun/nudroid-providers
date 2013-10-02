@@ -46,18 +46,20 @@ sortOrder#delimiterIfNeeded( $velocityCount $paramaters ", " )
 contentValues#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isContentUri() )
 uri#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#elseif( $parameter.isString() )
-#if(         $parameter.isPathParameter() )
+#elseif( $parameter.isPathParameter() )
+#if( $parameter.isString())
 pathSegments.get($parameter.getPathParamPosition())#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#elseif(     $parameter.isQueryParameter() )
+#else
+pathSegments.get($parameter.getPathParamPosition())#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
+#end##if $parameter.isPathParameter()
+#elseif( $parameter.isQueryParameter() )
+#if( $parameter.isString())
+uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $velocityCount $paramaters ", " )
+#else
 uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #end##if $parameter.isPathParameter()
 #else
-#if(         $parameter.isPathParameter() )
-pathSegments.get($parameter.getPathPosition())#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#elseif(     $parameter.isQueryParameter() )
-uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#end##if $parameter.isPathParameter()
+    null#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #end##if $parameter.isProjection()
 #end##for each $parameter in $paramaters
 #end##macro
