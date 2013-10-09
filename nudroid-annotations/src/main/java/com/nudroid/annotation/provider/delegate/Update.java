@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Update {
-    
+
     /**
      * Mandatory. The content path relative to the the content provider authority name.
      */

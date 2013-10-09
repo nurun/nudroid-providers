@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -12,9 +13,13 @@ import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+
+import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 
 /**
  * TODO: Add validations documented in the annotations package.<br/>
@@ -31,17 +36,19 @@ import javax.lang.model.util.Types;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-@SupportedAnnotationTypes({ "com.nudroid.annotation.provider.delegate.Authority",
-        "com.nudroid.annotation.provider.delegate.ContentUri",
-        "com.nudroid.annotation.provider.delegate.ContentValuesRef", "com.nudroid.annotation.provider.delegate.Delete",
-        "com.nudroid.annotation.provider.delegate.Insert", "com.nudroid.annotation.provider.delegate.PathParam",
-        "com.nudroid.annotation.provider.delegate.Projection", "com.nudroid.annotation.provider.delegate.Query",
-        "com.nudroid.annotation.provider.delegate.QueryParam", "com.nudroid.annotation.provider.delegate.Selection",
-        "com.nudroid.annotation.provider.delegate.SelectionArgs", "com.nudroid.annotation.provider.delegate.SortOrder",
-        "com.nudroid.annotation.provider.delegate.Update" })
+//@f[off]
+@SupportedAnnotationTypes({
+    "com.nudroid.annotation.provider.delegate.Authority",
+    "com.nudroid.annotation.provider.delegate.Delete",
+    "com.nudroid.annotation.provider.delegate.Insert",
+    "com.nudroid.annotation.provider.delegate.Query",
+    "com.nudroid.annotation.provider.delegate.Update",
+    
+    "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
+//@f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
-public class PersistenceAnnotationProcessor extends AbstractProcessor {
+public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private LoggingUtils logger;
 
@@ -56,6 +63,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
     private AuthorityProcessor authorityProcessor;
     private QueryProcessor queryProcessor;
+    private ProviderInterceptorPointProcessor providerInterceptorPointProcessor;
 
     private SourceCodeGenerator sourceCodeGenerator;
 
@@ -100,6 +108,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
                 elementUtils, typeUtils, logger);
         authorityProcessor = new AuthorityProcessor(processorContext);
         queryProcessor = new QueryProcessor(processorContext);
+        providerInterceptorPointProcessor = new ProviderInterceptorPointProcessor(processorContext);
         sourceCodeGenerator = new SourceCodeGenerator(processorContext);
     }
 
@@ -110,6 +119,7 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
      * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
      *      javax.annotation.processing.RoundEnvironment)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
@@ -126,14 +136,26 @@ public class PersistenceAnnotationProcessor extends AbstractProcessor {
 
         if (isFirstRun()) {
 
-            Set<Element> elementsToProcess = continuation.getElementsToProcess(roundEnv);
+            continuation.calculateElementsToProcess(roundEnv);
+            final Set<Element> elementsToProcess = continuation.getElementsToProcess(roundEnv);
 
-            for (Element rootClass : elementsToProcess) {
+            Set<TypeElement> typesToProcess = ElementFilter.typesIn(elementsToProcess);
+            Set<? extends Element> interceptorsToProcess = roundEnv
+                    .getElementsAnnotatedWith(ProviderInterceptorPoint.class);
 
-                if (ElementUtils.isClassOrInterface(rootClass)) {
+            providerInterceptorPointProcessor.registerInterceptors((Set<TypeElement>) interceptorsToProcess);
 
-                    authorityProcessor.processAuthorityOnClass((TypeElement) rootClass);
-                    queryProcessor.processQueriesOnClass((TypeElement) rootClass);
+            for (TypeElement typeElement : typesToProcess) {
+
+                authorityProcessor.processAuthorityOnClass(typeElement);
+
+                List<? extends ExecutableElement> executableElementList = ElementFilter.methodsIn(elementUtils
+                        .getAllMembers(typeElement));
+
+                for (ExecutableElement executableElement : executableElementList) {
+
+                    queryProcessor.processQueriesOnMethod(typeElement, executableElement);
+                    providerInterceptorPointProcessor.processInterceptorPoints(executableElement);
                 }
             }
 

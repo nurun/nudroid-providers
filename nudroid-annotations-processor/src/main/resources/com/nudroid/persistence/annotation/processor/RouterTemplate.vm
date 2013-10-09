@@ -123,6 +123,10 @@ public class ${delegateClass.getSimpleName()}Router implements ContentUriRouter 
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
 #end
+#foreach($interceptor in $delegateMethod.getInterceptorElements())
+                $interceptor __$velocityCount = new $interceptor();
+                __${velocityCount}.beforeQuery(uri, projection, selection, selectionArgs, sortOrder);
+#end
                 return delegate.$delegateMethod.getName()(#generateParamsList($delegateMethod.getParameters()));
             }
             

@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
@@ -30,6 +34,8 @@ class Continuation {
     private HashSet<TypeElement> continuationElements = new HashSet<TypeElement>();
     private LoggingUtils logger;
     private Elements elementUtils;
+
+    private Set<Element> classesToProcess;
 
     /**
      * Creates an instance of a continuation.
@@ -163,7 +169,61 @@ class Continuation {
      */
     Set<Element> getElementsToProcess(RoundEnvironment roundEnv) {
 
-        Set<Element> classesToProcess = new HashSet<Element>();
+        return Collections.unmodifiableSet(classesToProcess);
+    }
+
+    /**
+     * @param annotationMirror
+     * @return
+     */
+    public List<Element> getElementsAnnotatedWith(AnnotationMirror annotationMirror) {
+
+        List<Element> interceptorElements = new ArrayList<Element>();
+
+        for (Element clazz : classesToProcess) {
+
+            List<? extends AnnotationMirror> mirrors = clazz.getAnnotationMirrors();
+
+            for (AnnotationMirror m : mirrors) {
+
+                if (m.getAnnotationType().equals(annotationMirror.getAnnotationType())) {
+                    interceptorElements.add(clazz);
+                }
+            }
+        }
+
+        return interceptorElements;
+    }
+
+    /**
+     * @param annotationMirror
+     * @return
+     */
+    public List<Element> getElementsAnnotatedWith(TypeElement element) {
+
+        List<Element> interceptorElements = new ArrayList<Element>();
+
+        for (Element clazz : classesToProcess) {
+
+            List<? extends AnnotationMirror> mirrors = clazz.getAnnotationMirrors();
+
+            for (AnnotationMirror m : mirrors) {
+
+                if (m.getAnnotationType().equals(element)) {
+                    interceptorElements.add(clazz);
+                }
+            }
+        }
+
+        return interceptorElements;
+    }
+
+    /**
+     * @param roundEnv
+     */
+    void calculateElementsToProcess(RoundEnvironment roundEnv) {
+
+        classesToProcess = new HashSet<Element>();
         classesToProcess.addAll(roundEnv.getRootElements());
         logger.debug(String.format("Root elements being porocessed this round: %s", classesToProcess));
 
@@ -174,7 +234,5 @@ class Continuation {
             logger.debug(String.format("Adding continuation elements from previous builds: %s", continuationElements));
             classesToProcess.addAll(continuationElements);
         }
-
-        return classesToProcess;
     }
 }

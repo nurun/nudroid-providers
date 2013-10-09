@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -34,8 +35,10 @@ class Metadata {
 
     private UriRegistry uriRegistry;
     private Map<String, DelegateClass> delegateClasses = new HashMap<String, DelegateClass>();
-    private Map<Integer, Set<DelegateMethod>> delegateMethods = new HashMap<Integer, Set<DelegateMethod>>();
+    private Map<Integer, Set<DelegateMethod>> uriIdToDelegateMethodMap = new HashMap<Integer, Set<DelegateMethod>>();
+    private Map<ExecutableElement, DelegateMethod> elementToDelegateMethodMap = new HashMap<ExecutableElement, DelegateMethod>();
     private Map<String, TypeElement> authorityToClass = new HashMap<String, TypeElement>();
+    private Set<Element> interceptorElements = new HashSet<Element>();
 
     private Types typeUtils;
     private TypeElement stringType;
@@ -86,6 +89,11 @@ class Metadata {
     TypeElement getClassForAuthority(String authority) {
 
         return authorityToClass.get(authority);
+    }
+
+    DelegateMethod getDelegateMethodForElement(ExecutableElement element) {
+
+        return elementToDelegateMethodMap.get(element);
     }
 
     /**
@@ -181,6 +189,7 @@ class Metadata {
 
         delegateClass.addMethod(delegateMethod);
         addMethodDelegateToUriMapping(delegateMethod);
+        addMethodDelegateToElementMapping(delegateMethod);
     }
 
     /**
@@ -206,16 +215,21 @@ class Metadata {
 
     private void addMethodDelegateToUriMapping(DelegateMethod delegateMethod) {
 
-        Set<DelegateMethod> methodSet = delegateMethods.get(delegateMethod.getUriId());
+        Set<DelegateMethod> methodSet = uriIdToDelegateMethodMap.get(delegateMethod.getUriId());
 
         if (methodSet == null) {
             methodSet = new HashSet<DelegateMethod>();
             methodSet.add(delegateMethod);
-            delegateMethods.put(delegateMethod.getUriId(), methodSet);
+            uriIdToDelegateMethodMap.put(delegateMethod.getUriId(), methodSet);
         } else {
 
             methodSet.add(delegateMethod);
         }
+    }
+
+    private void addMethodDelegateToElementMapping(DelegateMethod delegateMethod) {
+
+        elementToDelegateMethodMap.put(delegateMethod.getExecutableElement(), delegateMethod);
     }
 
     /**
@@ -249,5 +263,17 @@ class Metadata {
         public String toString() {
             return "UriRegistry [uris=" + uris + "]";
         }
+    }
+
+    /**
+     * @param interceptorElements
+     */
+    void addInterceptorClasses(List<Element> interceptorElements) {
+
+        interceptorElements.addAll(interceptorElements);
+    }
+
+    Set<Element> getInterceptorElements() {
+        return interceptorElements;
     }
 }

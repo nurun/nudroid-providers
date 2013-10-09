@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 
 import com.nudroid.annotation.provider.delegate.Delete;
@@ -28,12 +29,14 @@ public class DelegateMethod {
     private Set<String> pathPlaceholderNames = new HashSet<String>();
     private Set<String> queryStringParameterNames = new HashSet<String>();
     private Uri uri;
+    private ExecutableElement executableElement;
+    private List<Element> interceptorElements = new ArrayList<Element>();
 
     /**
      * Creates an instance of this class.
      * 
      * @param element
-     *            The target delegate method.
+     *            The element representing this delegate method.
      * @param uri
      *            An {@link Uri} describing the URI the method should match.
      */
@@ -41,6 +44,7 @@ public class DelegateMethod {
 
         this.uri = uri;
         this.name = element.getSimpleName().toString();
+        this.executableElement = element;
     }
 
     /**
@@ -130,10 +134,34 @@ public class DelegateMethod {
     /**
      * Sets the query parameter names for the URI mapped to this method.
      * 
-     * @param queryParameterNames The set of query parameter names.
+     * @param queryParameterNames
+     *            The set of query parameter names.
      */
     void setQueryParameterNames(Set<String> queryParameterNames) {
-        
-         this.queryStringParameterNames = queryParameterNames;
+
+        this.queryStringParameterNames = queryParameterNames;
+    }
+
+    ExecutableElement getExecutableElement() {
+
+        return executableElement;
+    }
+
+    /**
+     * @param interceptorElements
+     */
+    public void addInterceptors(List<Element> interceptorElements) {
+
+        this.interceptorElements.addAll(interceptorElements);
+    }
+
+    public List<Element> getInterceptorElements() {
+
+        return Collections.unmodifiableList(interceptorElements);
+    }
+
+    @Override
+    public String toString() {
+        return "DelegateMethod [name=" + name + ", parameters=" + parameters + "]";
     }
 }

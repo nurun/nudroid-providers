@@ -1,1 +1,1 @@
-com.nudroid.persistence.annotation.processor.PersistenceAnnotationProcessor
+com.nudroid.annotation.processor.ProviderAnnotationProcessor

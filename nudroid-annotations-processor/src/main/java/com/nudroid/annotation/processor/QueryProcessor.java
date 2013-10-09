@@ -12,7 +12,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -37,7 +36,6 @@ class QueryProcessor {
     private Continuation continuation;
     private Metadata metadata;
     private ProcessingEnvironment processingEnv;
-    private Elements elementUtils;
     private LoggingUtils logger;
 
     private TypeMirror stringType;
@@ -57,7 +55,6 @@ class QueryProcessor {
         this.continuation = processorContext.continuation;
         this.metadata = processorContext.metadata;
         this.processingEnv = processorContext.processingEnv;
-        this.elementUtils = processorContext.elementUtils;
         this.typeUtils = processorContext.typeUtils;
         this.logger = processorContext.logger;
 
@@ -67,24 +64,7 @@ class QueryProcessor {
         uriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
     }
 
-    /**
-     * Process the queries on the given class.
-     * 
-     * @param typeElement
-     *            The class to process.
-     */
-    void processQueriesOnClass(TypeElement typeElement) {
-
-        List<? extends Element> methodElementsList = elementUtils.getAllMembers(elementUtils.getTypeElement(typeElement
-                .toString()));
-
-        for (Element targetElement : methodElementsList) {
-
-            processQueryOnMethod(typeElement, targetElement);
-        }
-    }
-
-    private void processQueryOnMethod(TypeElement rootClass, Element method) {
+    void processQueriesOnMethod(TypeElement rootClass, ExecutableElement method) {
 
         Query query = method.getAnnotation(Query.class);
 
