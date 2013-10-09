@@ -1,6 +1,5 @@
 .cache
 .target
-**/.classpath
 bin
 logs
 test-output
@@ -20,3 +19,6 @@ build
 **/.project
 /RUNNING_PID
 **/.settings
+.classpath
+.project
+/.settings
