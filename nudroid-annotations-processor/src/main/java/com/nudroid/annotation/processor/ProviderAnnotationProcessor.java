@@ -137,7 +137,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         if (isFirstRun()) {
 
             continuation.calculateElementsToProcess(roundEnv);
-            final Set<Element> elementsToProcess = continuation.getElementsToProcess(roundEnv);
+            final Set<Element> elementsToProcess = continuation.getElementsToProcess();
 
             Set<TypeElement> typesToProcess = ElementFilter.typesIn(elementsToProcess);
             Set<? extends Element> interceptorsToProcess = roundEnv
@@ -159,8 +159,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
                 }
             }
 
-            sourceCodeGenerator.generateCompanionSourceCode(metadata);
-            continuation.saveContinuation();
+            sourceCodeGenerator.generateCompanionSourceCode(continuation, metadata);
         }
 
         return true;

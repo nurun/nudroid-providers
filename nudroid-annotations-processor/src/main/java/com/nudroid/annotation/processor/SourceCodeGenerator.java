@@ -44,16 +44,18 @@ class SourceCodeGenerator {
      * Generates the source code based on the gathered metadata. This method will generate the ContentUri registry and
      * the delegate classes.
      * 
+     * @param continuation
+     * 
      * @param metadata
      *            The metadata object containing the information gathered during the processor phase.
      */
-    void generateCompanionSourceCode(Metadata metadata) {
+    void generateCompanionSourceCode(Continuation continuation, Metadata metadata) {
 
-        generateContentUriRegistrySourceCode(metadata);
+        generateContentUriRegistrySourceCode(continuation, metadata);
         generateContentProviderRouterSourceCode(metadata);
     }
 
-    private void generateContentUriRegistrySourceCode(Metadata metadata) {
+    private void generateContentUriRegistrySourceCode(Continuation continuation, Metadata metadata) {
 
         logger.debug(String.format("Generating ContentUriRegistry source code at %s.%s", GENERATED_CODE_BASE_PACKAGE,
                 CONTENT_URI_REGISTRY_CLASS_NAME));
@@ -66,6 +68,7 @@ class SourceCodeGenerator {
 
         context.put("delegateClasses", metadata.getDelegateClasses().values());
         context.put("contentProviderUris", metadata.getUniqueUris());
+        context.put("continuationElements", continuation.getContinuationElements());
         logger.debug(String.format("Configured velocity context."));
 
         Template template = null;

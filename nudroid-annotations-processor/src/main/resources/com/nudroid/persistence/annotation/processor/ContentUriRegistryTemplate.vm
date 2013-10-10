@@ -1,12 +1,32 @@
+##-----------------------------------------------------------------
+## Add delimiters in a delimiter separated list to all items but the last
+##
+## Param: $index      - pass in $velocityCount
+## Param: $list       - pass in your velocity list variable
+## Param: $delimiter  - the delimiter to use. This method will not add spaces by itself
+##                      so provide the necessary space for this argument. For example: ", "
+##-----------------------------------------------------------------
+#macro( delimiterIfNeeded $index $list $delimiter )
+#set ( $lastone = $list.size() - 1 )
+#if( $index <= $lastone )$delimiter#else#end
+#end
 package com.nudroid.persistence;
 
 #foreach( $delegateClass in $delegateClasses )
 import $delegateClass.getName();
 #end
 
+import com.nudroid.annotation.provider.processor.Continuation;
 import com.nurun.persistence.temp.vision.ContentUriRouter;
 import android.content.UriMatcher;
 
+@Continuation({
+#foreach($continuationElement in $continuationElements)
+    "$continuationElement"#delimiterIfNeeded( $velocityCount $continuationElements ",
+" )
+#end
+
+})
 public class ContentUriRegistry {
 
     static final UriMatcher URI_MATCHER;
