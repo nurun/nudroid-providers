@@ -1,4 +1,4 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.annotation.processor.model;
 
 /**
  * A placeholder in a <a
@@ -6,7 +6,7 @@ package com.nudroid.annotation.processor;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class UriPlaceholderParameter {
+class PathPlaceholderParameter {
 
     private String key;
     private String name;
@@ -19,7 +19,7 @@ class UriPlaceholderParameter {
      * @param position
      *            The position it appears on the URI path.
      */
-    UriPlaceholderParameter(String name, int position) {
+    PathPlaceholderParameter(String name, int position) {
 
         super();
         this.name = name;
@@ -34,7 +34,7 @@ class UriPlaceholderParameter {
      * @param queryParameterName
      *            The name of the query string parameter it appears on the URI query string.
      */
-    UriPlaceholderParameter(String name, String queryParameterName) {
+    PathPlaceholderParameter(String name, String queryParameterName) {
 
         super();
         this.key = queryParameterName;
@@ -77,7 +77,7 @@ class UriPlaceholderParameter {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        UriPlaceholderParameter other = (UriPlaceholderParameter) obj;
+        PathPlaceholderParameter other = (PathPlaceholderParameter) obj;
         if (name == null) {
             if (other.name != null) return false;
         } else if (!name.equals(other.name)) return false;

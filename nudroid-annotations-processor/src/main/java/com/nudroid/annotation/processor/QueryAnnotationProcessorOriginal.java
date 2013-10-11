@@ -15,7 +15,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
-import com.nudroid.annotation.provider.delegate.Authority;
+import com.nudroid.annotation.processor.model.MatcherUri;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.PathParam;
@@ -31,7 +31,7 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class QueryProcessor {
+class QueryAnnotationProcessorOriginal {
 
     private Continuation continuation;
     private Metadata metadata;
@@ -50,9 +50,8 @@ class QueryProcessor {
      * @param processorContext
      *            The processor context parameter object.
      */
-    QueryProcessor(ProcessorContext processorContext) {
+    QueryAnnotationProcessorOriginal(ProcessorContext processorContext) {
 
-        this.continuation = processorContext.continuation;
         this.metadata = processorContext.metadata;
         this.processingEnv = processorContext.processingEnv;
         this.typeUtils = processorContext.typeUtils;
@@ -71,7 +70,7 @@ class QueryProcessor {
         if (query == null) return;
 
         continuation.addContinuationElement(rootClass);
-        Uri uri = composeUri(rootClass, method, query);
+        MatcherUri uri = composeUri(rootClass, method, query);
 
         if (uri == null) return;
 
@@ -80,18 +79,18 @@ class QueryProcessor {
         if (!isValidAnnotations || ElementUtils.isAbstract(rootClass)) return;
 
         logger.debug(String.format("Processing Query annotation on %s.%s", rootClass, method));
-        metadata.mapUri(rootClass, (ExecutableElement) method, uri);
+//        metadata.mapUri(rootClass, (ExecutableElement) method, uri);
     }
 
-    private Uri composeUri(TypeElement rootClass, Element method, Query query) {
+    private MatcherUri composeUri(TypeElement rootClass, Element method, Query query) {
 
         final String uriPathAndQuery = query.value();
-        Uri uri = null;
+        MatcherUri uri = null;
 
         try {
 
-            final String authority = metadata.parseAuthorityFromClass(rootClass);
-            uri = new Uri(authority, uriPathAndQuery, logger);
+//            final String authority = metadata.parseAuthorityFromClass(rootClass);
+//            uri = new Uri(authority, uriPathAndQuery, logger);
         } catch (DuplicateUriPlaceholderException e) {
 
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
@@ -105,7 +104,7 @@ class QueryProcessor {
         return uri;
     }
 
-    private boolean validateAnnotations(TypeElement rootClass, Element method, Query query, Uri uri) {
+    private boolean validateAnnotations(TypeElement rootClass, Element method, Query query, MatcherUri uri) {
 
         boolean isValid = true;
 
@@ -125,7 +124,7 @@ class QueryProcessor {
         return isValid;
     }
 
-    private boolean validateParameters(Query query, ExecutableElement method, Uri uri) {
+    private boolean validateParameters(Query query, ExecutableElement method, MatcherUri uri) {
 
         boolean isValid = true;
 
@@ -156,7 +155,7 @@ class QueryProcessor {
         return isValid;
     }
 
-    private boolean validatePathParamAnnotation(VariableElement var, Query query, Uri uri,
+    private boolean validatePathParamAnnotation(VariableElement var, Query query, MatcherUri uri,
             List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
@@ -194,7 +193,7 @@ class QueryProcessor {
         return isValid;
     }
 
-    private boolean validateQueryParamAnnotation(VariableElement var, Query query, Uri uri,
+    private boolean validateQueryParamAnnotation(VariableElement var, Query query, MatcherUri uri,
             List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
@@ -291,13 +290,13 @@ class QueryProcessor {
 
         boolean isValid = true;
 
-        if (methodEnclosingClass.getAnnotation(Authority.class) == null) {
-
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                    "Class needs to be annotated with @Authority annotation.", method);
-
-            isValid = false;
-        }
+        // if (methodEnclosingClass.getAnnotation(Authority.class) == null) {
+        //
+        // processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+        // "Class needs to be annotated with @Authority annotation.", method);
+        //
+        // isValid = false;
+        // }
 
         return isValid;
     }

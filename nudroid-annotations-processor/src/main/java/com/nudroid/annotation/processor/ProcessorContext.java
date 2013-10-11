@@ -10,11 +10,6 @@ import javax.lang.model.util.Types;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class ProcessorContext {
-    
-    /**
-     * The continuation object being used by this processor.
-     */
-    final Continuation continuation;
 
     /**
      * The metadata object being used by this processor.
@@ -44,8 +39,6 @@ public class ProcessorContext {
     /**
      * Creates an instance of this parameter object.
      * 
-     * @param continuation
-     *            The continuation instance.
      * @param metadata
      *            The metadata instance.
      * @param processingEnv
@@ -57,10 +50,9 @@ public class ProcessorContext {
      * @param logger
      *            The logger instance.
      */
-    public ProcessorContext(Continuation continuation, Metadata metadata, ProcessingEnvironment processingEnv,
-            Elements elementUtils, Types typeUtils, LoggingUtils logger) {
-        
-        this.continuation = continuation;
+    public ProcessorContext(Metadata metadata, ProcessingEnvironment processingEnv, Elements elementUtils,
+            Types typeUtils, LoggingUtils logger) {
+
         this.metadata = metadata;
         this.processingEnv = processingEnv;
         this.elementUtils = elementUtils;

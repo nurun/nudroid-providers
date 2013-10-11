@@ -66,8 +66,8 @@ class SourceCodeGenerator {
 
         VelocityContext context = new VelocityContext();
 
-        context.put("delegateClasses", metadata.getDelegateClasses().values());
-        context.put("contentProviderUris", metadata.getUniqueUris());
+//        context.put("delegateClasses", metadata.getDelegateClasses().values());
+//        context.put("contentProviderUris", metadata.getUniqueUris());
         context.put("continuationElements", continuation.getContinuationElements());
         logger.debug(String.format("Configured velocity context."));
 
@@ -102,28 +102,28 @@ class SourceCodeGenerator {
 
     private void generateContentProviderRouterSourceCode(Metadata metadata) {
 
-        for (DelegateClass delegateClass : metadata.getDelegateClasses().values()) {
-            Properties p = generateVelocityConfigurationProperties();
-            Velocity.init(p);
-            VelocityContext context = new VelocityContext();
-            context.put("delegateClass", delegateClass);
-
-            Template template = null;
-
-            try {
-                template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
-                JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
-                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterSimpleName()));
-                Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
-
-                template.merge(context, writerContentUriRegistry);
-                writerContentUriRegistry.close();
-            } catch (Exception e) {
-                logger.error(String.format("Error processing velocity script '%s'",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
-                throw new AnnotationProcessorError(e);
-            }
-        }
+//        for (DelegateClass delegateClass : metadata.getDelegateClasses().values()) {
+//            Properties p = generateVelocityConfigurationProperties();
+//            Velocity.init(p);
+//            VelocityContext context = new VelocityContext();
+//            context.put("delegateClass", delegateClass);
+//
+//            Template template = null;
+//
+//            try {
+//                template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+//                JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
+//                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterSimpleName()));
+//                Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
+//
+//                template.merge(context, writerContentUriRegistry);
+//                writerContentUriRegistry.close();
+//            } catch (Exception e) {
+//                logger.error(String.format("Error processing velocity script '%s'",
+//                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+//                throw new AnnotationProcessorError(e);
+//            }
+//        }
     }
 
     private Properties generateVelocityConfigurationProperties() {

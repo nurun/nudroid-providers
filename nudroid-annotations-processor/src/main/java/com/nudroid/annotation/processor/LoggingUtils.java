@@ -13,8 +13,12 @@ import javax.tools.Diagnostic.Kind;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class LoggingUtils {
+public class LoggingUtils {
 
+    /**
+     * 
+     */
+    private static final String LOG_PATTERN = "%7s - %s";
     private Messager messager;
     private LogLevel logLevel;
 
@@ -48,7 +52,7 @@ class LoggingUtils {
 
         if (LogLevel.TRACE.ordinal() >= logLevel.ordinal()) {
 
-            messager.printMessage(Kind.NOTE, "[TRACE] " + message);
+            messager.printMessage(Kind.NOTE, String.format(LOG_PATTERN, LogLevel.TRACE, message));
         }
     }
 
@@ -62,7 +66,7 @@ class LoggingUtils {
 
         if (LogLevel.DEBUG.ordinal() >= logLevel.ordinal()) {
 
-            messager.printMessage(Kind.NOTE, "[DEBUG] " + message);
+            messager.printMessage(Kind.NOTE, String.format(LOG_PATTERN, LogLevel.DEBUG, message));
         }
     }
 
@@ -76,7 +80,7 @@ class LoggingUtils {
 
         if (LogLevel.INFO.ordinal() >= logLevel.ordinal()) {
 
-            messager.printMessage(Kind.NOTE, "[INFO] " + message);
+            messager.printMessage(Kind.NOTE, String.format(LOG_PATTERN, LogLevel.INFO, message));
         }
     }
 
@@ -90,7 +94,7 @@ class LoggingUtils {
 
         if (LogLevel.WARN.ordinal() >= logLevel.ordinal()) {
 
-            messager.printMessage(Kind.NOTE, "[WARN] " + message);
+            messager.printMessage(Kind.NOTE, String.format(LOG_PATTERN, LogLevel.WARN, message));
         }
     }
 
@@ -118,7 +122,7 @@ class LoggingUtils {
 
         if (LogLevel.ERROR.ordinal() >= logLevel.ordinal()) {
 
-            messager.printMessage(Kind.NOTE, "[ERROR] " + message);
+            messager.printMessage(Kind.NOTE, String.format(LOG_PATTERN, LogLevel.ERROR, message));
         }
     }
 
@@ -137,6 +141,17 @@ class LoggingUtils {
     }
 
     private static enum LogLevel {
-        TRACE, DEBUG, INFO, WARN, ERROR
+        TRACE, DEBUG, INFO, WARN, ERROR;
+
+        /**
+         * {@inheritDoc}
+         * 
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+
+            return "[" + super.toString() + "]";
+        }
     }
 }

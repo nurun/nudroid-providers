@@ -1,4 +1,4 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.annotation.processor.model;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -9,77 +9,57 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.nudroid.annotation.processor.DuplicateUriPlaceholderException;
+import com.nudroid.annotation.processor.IllegalUriPathException;
+
 /**
- * Represents a <a
- * href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a> URI mapped to
- * a delegate method, along with information about it's placeholder names.
- * <p/>
- * Note: {@link Uri} objects do not take the query string portion into consideration when comparing itself to other
- * instances of this class (i.e. {@link Object#equals(Object)} and {@link Object#hashCode()}). If two {@link Uri}
- * objects are distinguised by the query string option alone, they are considered to be the same URI.
+ * A uniquely mapped URI tied to a delegate method. This class extends the concept of a matcher URI adding query string
+ * variables to this URIs identification.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class Uri {
+public class DelegateUri {
 
     private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
+    private static String LEADING_SLASH_REGEXP = "^\\/";
 
-    private int id;
-    private String authority;
-    private String path;
+    private int mId;
+    private String mAuthority;
+    private String mPath;
     private String queryString;
-    private List<UriPlaceholderParameter> placeholders = new ArrayList<UriPlaceholderParameter>();
-    private List<UriPlaceholderParameter> pathPlaceholders = new ArrayList<UriPlaceholderParameter>();
-    private List<UriPlaceholderParameter> queryPlaceholders = new ArrayList<UriPlaceholderParameter>();
+    private List<PathPlaceholderParameter> placeholders = new ArrayList<PathPlaceholderParameter>();
+    private List<PathPlaceholderParameter> pathPlaceholders = new ArrayList<PathPlaceholderParameter>();
+    private List<PathPlaceholderParameter> queryPlaceholders = new ArrayList<PathPlaceholderParameter>();
     private Set<String> queryParameterNames = new HashSet<String>();
 
-    @SuppressWarnings("unused")
-    private LoggingUtils logger;
-
-    private String originalPath;
+    private String originalPathAndQuery;
 
     /**
      * Creates an instance of this class.
      * 
-     * @param authority
-     *            The <a
-     *            href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a>
-     *            authority name.
-     * @param path
-     *            The mapped <a
-     *            href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a>
-     *            URI path.
-     * @param logger
-     *            An instance of the logger class.
+     * @param matcherUri
+     *            The matcher uri for this method.
+     * @param pathAndQuery
+     *            The path and optional query string.
      */
-    Uri(String authority, String path, LoggingUtils logger) {
+    public DelegateUri(MatcherUri matcherUri, String pathAndQuery) {
 
-        this.originalPath = path;
-        this.logger = logger;
-        parsePlaceholders(path);
+        this.originalPathAndQuery = pathAndQuery;
 
-        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*");
+        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*").replaceAll(LEADING_SLASH_REGEXP, "");
+        parsePlaceholders(normalizedPath);
         URI uri;
 
         try {
-            uri = URI.create("content://" + authority
-                    + (normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath));
+            uri = URI.create(String.format("content://%s/%s", matcherUri.getAuthorityName(), normalizedPath));
         } catch (IllegalArgumentException e) {
             throw new IllegalUriPathException(e);
         }
 
-        this.authority = authority;
-        this.path = uri.getPath();
+        this.mAuthority = matcherUri.getAuthorityName();
+        this.mPath = uri.getPath();
         this.queryString = uri.getQuery();
-    }
-
-    /**
-     * Gets the authority name of this URI.
-     * 
-     * @return The authority name of this URI.
-     */
-    public String getAuthority() {
-        return authority;
+        this.mId = matcherUri.getId();
     }
 
     /**
@@ -90,31 +70,7 @@ public class Uri {
      * @return The normalized path for this URI.
      */
     public String getNormalizedPath() {
-        return path;
-    }
-
-    /**
-     * Gets the id to be mapped to this URI in the <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @return The id to be mapped to this URI in the <a
-     *         href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
-     */
-    public int getId() {
-
-        return this.id;
-    }
-
-    /**
-     * Sets the id of this URI to be mapped to a the id to be mapped to this URI in the <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @param uriId
-     *            The URI id.
-     */
-    void setId(int uriId) {
-
-        this.id = uriId;
+        return mPath;
     }
 
     /**
@@ -125,9 +81,9 @@ public class Uri {
      * 
      * @return <tt>true</tt> if this URI has a path placeholder named as parameterName, <tt>false</tt> otherwise.
      */
-    boolean containsPathPlaceholder(String parameterName) {
+    public boolean containsPathPlaceholder(String parameterName) {
 
-        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
+        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(parameterName, 0);
 
         return pathPlaceholders.contains(pathParam);
     }
@@ -141,9 +97,9 @@ public class Uri {
      * @return <tt>true</tt> if this URI has a query string placeholder named as parameterName, <tt>false</tt>
      *         otherwise.
      */
-    boolean containsQueryPlaceholder(String parameterName) {
+    public boolean containsQueryPlaceholder(String parameterName) {
 
-        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(parameterName, 0);
+        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(parameterName, 0);
 
         return queryPlaceholders.contains(pathParam);
     }
@@ -159,9 +115,9 @@ public class Uri {
      * @throws NullPointerException
      *             if this URI does not have the provided path parameter.
      */
-    String getPathParameterPosition(String name) {
+    public String getPathParameterPosition(String name) {
 
-        UriPlaceholderParameter pathParam = new UriPlaceholderParameter(name, 0);
+        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(name, 0);
 
         return pathPlaceholders.get(pathPlaceholders.indexOf(pathParam)).getKey();
     }
@@ -178,9 +134,9 @@ public class Uri {
      * @throws NullPointerException
      *             if this URI does not have the provided query string parameter.
      */
-    String getQueryParameterPlaceholderName(String name) {
+    public String getQueryParameterPlaceholderName(String name) {
 
-        UriPlaceholderParameter queryParam = new UriPlaceholderParameter(name, 0);
+        PathPlaceholderParameter queryParam = new PathPlaceholderParameter(name, 0);
         return queryPlaceholders.get(queryPlaceholders.indexOf(queryParam)).getKey();
     }
 
@@ -194,22 +150,20 @@ public class Uri {
         return Collections.unmodifiableSet(queryParameterNames);
     }
 
-    private void parsePlaceholders(String path) {
+    private void parsePlaceholders(String pathAndQuery) {
 
         Pattern placeholderPattern = Pattern.compile(PLACEHOLDER_REGEXP);
 
-        String[] pathAndQueryString = path.split("\\?");
+        String[] pathAndQueryString = pathAndQuery.split("\\?");
 
         if (pathAndQueryString.length > 2) {
 
-            throw new IllegalUriPathException(String.format("The path uri '%s' is invalid.", path));
+            throw new IllegalUriPathException(String.format("The path '%s' is invalid.", pathAndQuery));
         }
 
         if (pathAndQueryString.length >= 1) {
 
             String pathSection = pathAndQueryString[0];
-
-            pathSection = pathSection.replaceAll("^/+", "");
 
             String[] pathElements = pathSection.split("/");
 
@@ -239,7 +193,8 @@ public class Uri {
 
                 if (nameAndValue.length != 2) {
 
-                    throw new IllegalUriPathException(String.format("Path %s query string is invalid.", originalPath));
+                    throw new IllegalUriPathException(String.format("Segment '%s' on path %s is invalid.",
+                            queryVars[position], originalPathAndQuery));
                 }
 
                 queryParameterNames.add(nameAndValue[0]);
@@ -257,7 +212,7 @@ public class Uri {
 
     private void addPathPlaceholder(String placeholderName, int position) {
 
-        UriPlaceholderParameter pathPlaceholder = new UriPlaceholderParameter(placeholderName, position);
+        PathPlaceholderParameter pathPlaceholder = new PathPlaceholderParameter(placeholderName, position);
 
         if (placeholders.contains(pathPlaceholder)) {
 
@@ -271,7 +226,7 @@ public class Uri {
 
     private void addQueryPlaceholder(String placeholderName, String queryParameterName) {
 
-        UriPlaceholderParameter queryPlaceholder = new UriPlaceholderParameter(placeholderName, queryParameterName);
+        PathPlaceholderParameter queryPlaceholder = new PathPlaceholderParameter(placeholderName, queryParameterName);
 
         if (placeholders.contains(queryPlaceholder)) {
 
@@ -284,8 +239,6 @@ public class Uri {
     }
 
     /**
-     * Only the authority and the path must be taken in consideration when comparing Uri objects.
-     * <p/>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#hashCode()
@@ -294,14 +247,13 @@ public class Uri {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((authority == null) ? 0 : authority.hashCode());
-        result = prime * result + ((path == null) ? 0 : path.hashCode());
+        result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
+        result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
+        result = prime * result + ((queryParameterNames == null) ? 0 : queryParameterNames.hashCode());
         return result;
     }
 
     /**
-     * Only the authority and the path must be taken in consideration when comparing Uri objects.
-     * <p/>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#equals(java.lang.Object)
@@ -311,13 +263,16 @@ public class Uri {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        Uri other = (Uri) obj;
-        if (authority == null) {
-            if (other.authority != null) return false;
-        } else if (!authority.equals(other.authority)) return false;
-        if (path == null) {
-            if (other.path != null) return false;
-        } else if (!path.equals(other.path)) return false;
+        DelegateUri other = (DelegateUri) obj;
+        if (mAuthority == null) {
+            if (other.mAuthority != null) return false;
+        } else if (!mAuthority.equals(other.mAuthority)) return false;
+        if (mPath == null) {
+            if (other.mPath != null) return false;
+        } else if (!mPath.equals(other.mPath)) return false;
+        if (queryParameterNames == null) {
+            if (other.queryParameterNames != null) return false;
+        } else if (!queryParameterNames.equals(other.queryParameterNames)) return false;
         return true;
     }
 
@@ -329,7 +284,11 @@ public class Uri {
      */
     @Override
     public String toString() {
-        return "Uri [id=" + id + ", authority=" + authority + ", path=" + path + ", queryString=" + queryString
+        return "Uri [authority=" + mAuthority + ", path=" + mPath + ", queryString=" + queryString
                 + ", pathPlaceholders=" + pathPlaceholders + ", queryPlaceholders=" + queryPlaceholders + "]";
+    }
+
+    public int getmId() {
+        return mId;
     }
 }

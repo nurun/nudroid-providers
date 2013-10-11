@@ -7,14 +7,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Define the authority name to be mapped by a content provider delegate.
+ * Registers a content provider delegate. A ContentProvider will be automatically generated and will forward methods to
+ * the annotated delegate.
  * <p/>
  * Example usage:
  * 
  * <pre>
- * &#064;Authority(&quot;com.example.contentprovider.users&quot;)
+ * &#064;ContentProviderDelegate(authority=&quot;com.example.contentprovider.users&quot;)
  * public class UserContentProviderDelegate {
- * 
+ *     ...
  * }
  * </pre>
  * 
@@ -23,11 +24,10 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.SOURCE)
 @Documented
-public @interface Authority {
+public @interface ContentProviderDelegate {
 
     /**
-     * Optional. The name of the authority of the ContentProvider. This attribute is optional. If not present, the fully
-     * qualified name of the annotated class will be used as an Authority name.
+     * The name of the authority to be handled by the generated ContentProvider.
      */
-    String value() default "";
+    String authority();
 }

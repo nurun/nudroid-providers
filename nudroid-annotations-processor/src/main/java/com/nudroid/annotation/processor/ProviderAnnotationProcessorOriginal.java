@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -11,9 +12,14 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+
+import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 
 /**
  * TODO: Add validations documented in the annotations package.<br/>
@@ -32,7 +38,7 @@ import javax.lang.model.util.Types;
  */
 //@f[off]
 @SupportedAnnotationTypes({
-    "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
+    "com.nudroid.annotation.provider.delegate.Authority",
     "com.nudroid.annotation.provider.delegate.Delete",
     "com.nudroid.annotation.provider.delegate.Insert",
     "com.nudroid.annotation.provider.delegate.Query",
@@ -42,7 +48,7 @@ import javax.lang.model.util.Types;
 //@f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
-public class ProviderAnnotationProcessor extends AbstractProcessor {
+public class ProviderAnnotationProcessorOriginal extends AbstractProcessor {
 
     private LoggingUtils logger;
 
@@ -50,16 +56,16 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     private Types typeUtils;
     private Filer filer;
     private boolean initialized = false;
+    private int iterationRun = 0;
 
+    private Continuation continuation;
     private Metadata metadata;
 
-    private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
-    private QueryAnnotationProcessor queryAnnotationProcessor;
+    private ContentProviderDelegateAnnotationProcessor authorityProcessor;
+    private QueryAnnotationProcessor queryProcessor;
     private ProviderInterceptorPointProcessor providerInterceptorPointProcessor;
 
     private SourceCodeGenerator sourceCodeGenerator;
-
-    private int mRound = 0;
 
     /**
      * <p/>
@@ -86,9 +92,11 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         typeUtils = env.getTypeUtils();
         filer = env.getFiler();
 
-        metadata = new Metadata();
+        continuation = new Continuation(filer, elementUtils, logger);
+//        metadata = new Metadata(elementUtils, typeUtils, logger);
 
         try {
+            continuation.loadContinuation();
             initialized = true;
             logger.debug("Initialization complete.");
         } catch (Exception e) {
@@ -98,8 +106,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
         final ProcessorContext processorContext = new ProcessorContext(metadata, processingEnv, elementUtils,
                 typeUtils, logger);
-        contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
-        queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
+        authorityProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
+        queryProcessor = new QueryAnnotationProcessor(processorContext);
         providerInterceptorPointProcessor = new ProviderInterceptorPointProcessor(processorContext);
         sourceCodeGenerator = new SourceCodeGenerator(processorContext);
     }
@@ -111,11 +119,13 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
      * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
      *      javax.annotation.processing.RoundEnvironment)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        logger.info("Starting provider annotation processor round " + ++mRound);
-        logger.trace("    Target classes " + roundEnv.getRootElements());
+        logger.info("Start processing " + roundEnv.getRootElements());
+
+        iterationRun++;
 
         if (!initialized) {
 
@@ -124,25 +134,39 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             return false;
         }
 
-        contentProviderDelegateAnnotationProcessor.processContentProviderDelegateAnnotations(roundEnv, metadata);
-        queryAnnotationProcessor.processQueryAnnotationOnMethods(roundEnv, metadata);
+        if (isFirstRun()) {
 
-        // for (TypeElement typeElement : null) {
-        //
-        // authorityProcessor.processAuthorityOnClass(typeElement);
-        //
-        // List<? extends ExecutableElement> executableElementList = ElementFilter.methodsIn(elementUtils
-        // .getAllMembers(typeElement));
-        //
-        // for (ExecutableElement executableElement : executableElementList) {
-        //
-        // queryProcessor.processQueriesOnMethod(typeElement, executableElement);
-        // providerInterceptorPointProcessor.processInterceptorPoints(executableElement);
-        // }
-        // }
+            continuation.calculateElementsToProcess(roundEnv);
+            final Set<Element> elementsToProcess = continuation.getElementsToProcess();
 
-//        sourceCodeGenerator.generateCompanionSourceCode(null, metadata);
+            Set<TypeElement> typesToProcess = ElementFilter.typesIn(elementsToProcess);
+            Set<? extends Element> interceptorsToProcess = roundEnv
+                    .getElementsAnnotatedWith(ProviderInterceptorPoint.class);
+
+            providerInterceptorPointProcessor.registerInterceptors((Set<TypeElement>) interceptorsToProcess);
+
+            for (TypeElement typeElement : typesToProcess) {
+
+//                authorityProcessor.processContentProviderDelegateAnnotation(typeElement);
+
+                List<? extends ExecutableElement> executableElementList = ElementFilter.methodsIn(elementUtils
+                        .getAllMembers(typeElement));
+
+                for (ExecutableElement executableElement : executableElementList) {
+
+//                    queryProcessor.processQueriesOnMethod(typeElement, executableElement);
+                    providerInterceptorPointProcessor.processInterceptorPoints(executableElement);
+                }
+            }
+
+            sourceCodeGenerator.generateCompanionSourceCode(continuation, metadata);
+        }
 
         return true;
+    }
+
+    private boolean isFirstRun() {
+
+        return iterationRun == 1;
     }
 }

@@ -1,12 +1,18 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.annotation.processor.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+
+import com.nudroid.annotation.processor.DelegateMethod;
+import com.nudroid.annotation.processor.DuplicatePathException;
 
 /**
  * Holds information about the delegate class for a content provider.
@@ -16,25 +22,28 @@ import javax.lang.model.element.Element;
 public class DelegateClass {
 
     private static final String ROUTER_SUFFIX = "Router";
-    private String className;
-    private String simpleName;
+    private String mQualifiedName;
+    private String mSimpleName;
     private Map<Integer, Set<DelegateMethod>> delegateMethods = new HashMap<Integer, Set<DelegateMethod>>();
-    @SuppressWarnings("unused")
-    private LoggingUtils logger;
+    private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
+    private List<DelegateUri> mDelegateUris = new ArrayList<DelegateUri>();
+    private Authority authority;
+    private int mMatcherUriIdCount;
 
     /**
      * Creates an instance of this class.
      * 
+     * @param authorityName
+     *            The authority name being handled by the delegate class.
+     * 
      * @param element
      *            The {@link Element} for the delegate class as provided by a round environment.
-     * @param logger
-     *            An instance of the logging utils.
      */
-    DelegateClass(Element element, LoggingUtils logger) {
+    public DelegateClass(String authorityName, Element element) {
 
-        this.logger = logger;
-        this.className = element.toString().toString();
-        this.simpleName = element.getSimpleName().toString();
+        this.mQualifiedName = element.toString();
+        this.mSimpleName = element.getSimpleName().toString();
+        this.authority = new Authority(authorityName, this);
     }
 
     /**
@@ -43,7 +52,7 @@ public class DelegateClass {
      * @param delegateMethod
      *            The method to be added.
      */
-    void addMethod(DelegateMethod delegateMethod) {
+    public void addMethod(DelegateMethod delegateMethod) {
 
         Set<DelegateMethod> setForUriId = delegateMethods.get(delegateMethod.getUriId());
 
@@ -64,7 +73,7 @@ public class DelegateClass {
      * @return The fully qualified name of the delegate class.
      */
     public String getName() {
-        return className;
+        return mQualifiedName;
     }
 
     /**
@@ -72,8 +81,8 @@ public class DelegateClass {
      * 
      * @return The qualified name of the delegate class (i.e. without the package name).
      */
-    public String getSimpleName() {
-        return simpleName;
+    public String getmSimpleName() {
+        return mSimpleName;
     }
 
     /**
@@ -104,6 +113,44 @@ public class DelegateClass {
      */
     public String getRouterSimpleName() {
 
-        return simpleName + ROUTER_SUFFIX;
+        return mSimpleName + ROUTER_SUFFIX;
+    }
+
+    /**
+     * Gets the authority associated with this class.
+     * 
+     * @return The authority associated with this class.
+     */
+    public Authority getAuthority() {
+        return authority;
+    }
+
+    /**
+     * Registers a path to be matched by the content provider uri matcher.
+     * 
+     * @param queryMethodElement
+     *            The method the path appears on.
+     * 
+     * @param path
+     *            The path to register.
+     */
+    public DelegateUri registerPath(ExecutableElement queryMethodElement, String path) {
+
+        MatcherUri matcherUri = new MatcherUri(authority, path);
+
+        if (!mMactherUris.contains(matcherUri)) {
+            matcherUri.setId(++mMatcherUriIdCount);
+            mMactherUris.add(matcherUri);
+        }
+
+        DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), path);
+
+        if (mDelegateUris.contains(delegateUri)) {
+
+            throw new DuplicatePathException("");
+        }
+
+        mDelegateUris.add(delegateUri);
+        return delegateUri;
     }
 }

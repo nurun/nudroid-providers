@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 
+import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.MatcherUri;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -28,7 +30,7 @@ public class DelegateMethod {
     private List<Parameter> parameters = new ArrayList<Parameter>();
     private Set<String> pathPlaceholderNames = new HashSet<String>();
     private Set<String> queryStringParameterNames = new HashSet<String>();
-    private Uri uri;
+    private DelegateUri uri;
     private ExecutableElement executableElement;
     private List<Element> interceptorElements = new ArrayList<Element>();
 
@@ -38,9 +40,9 @@ public class DelegateMethod {
      * @param element
      *            The element representing this delegate method.
      * @param uri
-     *            An {@link Uri} describing the URI the method should match.
+     *            An {@link DelegateUri} describing the URI the method should match.
      */
-    DelegateMethod(ExecutableElement element, Uri uri) {
+    DelegateMethod(ExecutableElement element, DelegateUri uri) {
 
         this.uri = uri;
         this.name = element.getSimpleName().toString();
@@ -103,9 +105,9 @@ public class DelegateMethod {
      * 
      * @return the URI id assigned to this method's URI.
      */
-    int getUriId() {
+    public int getUriId() {
 
-        return uri.getId();
+        return uri.getmId();
     }
 
     /**

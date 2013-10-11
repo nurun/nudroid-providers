@@ -18,7 +18,6 @@ class ProviderInterceptorPointProcessor {
 
     private Set<TypeElement> interceptorAnnotations = new HashSet<TypeElement>();
     private Metadata metadata;
-    private Continuation continuation;
     private Types typeUtils;
 
     /**
@@ -30,7 +29,6 @@ class ProviderInterceptorPointProcessor {
     ProviderInterceptorPointProcessor(ProcessorContext processorContext) {
 
         this.metadata = processorContext.metadata;
-        this.continuation = processorContext.continuation;
         this.typeUtils = processorContext.typeUtils;
     }
 
@@ -44,20 +42,20 @@ class ProviderInterceptorPointProcessor {
      */
     void processInterceptorPoints(ExecutableElement methodElement) {
 
-        DelegateMethod method = metadata.getDelegateMethodForElement(methodElement);
-
-        List<? extends AnnotationMirror> annotationMirrors = methodElement.getAnnotationMirrors();
-
-        for (AnnotationMirror annotationMirror : annotationMirrors) {
-
-            if (interceptorAnnotations.contains(typeUtils.asElement(annotationMirror.getAnnotationType()))) {
-
-                if (method != null) {
-
-                    method.addInterceptors(continuation.getElementsAnnotatedWith(annotationMirror));
-                }
-            }
-        }
+//        DelegateMethod method = metadata.getDelegateMethodForElement(methodElement);
+//
+//        List<? extends AnnotationMirror> annotationMirrors = methodElement.getAnnotationMirrors();
+//
+//        for (AnnotationMirror annotationMirror : annotationMirrors) {
+//
+//            if (interceptorAnnotations.contains(typeUtils.asElement(annotationMirror.getAnnotationType()))) {
+//
+//                if (method != null) {
+//
+//                    method.addInterceptors(continuation.getElementsAnnotatedWith(annotationMirror));
+//                }
+//            }
+//        }
     }
 
     /**
@@ -72,7 +70,7 @@ class ProviderInterceptorPointProcessor {
 
         for (TypeElement element : interceptorAnnotations) {
 
-            metadata.addInterceptorClasses(continuation.getElementsAnnotatedWith(element));
+//            metadata.addInterceptorClasses(continuation.getElementsAnnotatedWith(element));
         }
     }
 }
