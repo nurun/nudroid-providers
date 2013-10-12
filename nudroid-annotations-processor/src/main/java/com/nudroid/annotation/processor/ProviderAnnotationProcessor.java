@@ -3,7 +3,6 @@ package com.nudroid.annotation.processor;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -30,119 +29,94 @@ import javax.lang.model.util.Types;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-//@f[off]
-@SupportedAnnotationTypes({
-    "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
-    "com.nudroid.annotation.provider.delegate.Delete",
-    "com.nudroid.annotation.provider.delegate.Insert",
-    "com.nudroid.annotation.provider.delegate.Query",
-    "com.nudroid.annotation.provider.delegate.Update",
-    
-    "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
-//@f[on]
+// @f[off]
+@SupportedAnnotationTypes({ "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
+        "com.nudroid.annotation.provider.delegate.Delete", "com.nudroid.annotation.provider.delegate.Insert",
+        "com.nudroid.annotation.provider.delegate.Query", "com.nudroid.annotation.provider.delegate.Update",
+
+        "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
+// @f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "persistence.annotation.log.level" })
 public class ProviderAnnotationProcessor extends AbstractProcessor {
 
-    private LoggingUtils logger;
+	private LoggingUtils mLogger;
 
-    private Elements elementUtils;
-    private Types typeUtils;
-    private Filer filer;
-    private boolean initialized = false;
+	private Elements elementUtils;
+	private Types typeUtils;
+	private boolean initialized = false;
 
-    private Metadata metadata;
+	private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
+	private QueryAnnotationProcessor queryAnnotationProcessor;
 
-    private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
-    private QueryAnnotationProcessor queryAnnotationProcessor;
-    private ProviderInterceptorPointProcessor providerInterceptorPointProcessor;
+	private SourceCodeGenerator sourceCodeGenerator;
 
-    private SourceCodeGenerator sourceCodeGenerator;
+	private int mRound = 0;
 
-    private int mRound = 0;
+	/**
+	 * <p/>
+	 * {@inheritDoc}
+	 * 
+	 * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
+	 */
+	@Override
+	public synchronized void init(ProcessingEnvironment env) {
 
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
-     */
-    @Override
-    public synchronized void init(ProcessingEnvironment env) {
+		super.init(env);
 
-        super.init(env);
+		String logLevel = env.getOptions().get("persistence.annotation.log.level");
 
-        String logLevel = env.getOptions().get("persistence.annotation.log.level");
+		if (logLevel == null) {
+			logLevel = System.getProperty("persistence.annotation.log.level");
+		}
 
-        if (logLevel == null) {
-            logLevel = System.getProperty("persistence.annotation.log.level");
-        }
+		mLogger = new LoggingUtils(env.getMessager(), logLevel);
 
-        logger = new LoggingUtils(env.getMessager(), logLevel);
+		mLogger.debug("Initializing nudroid persistence annotation processor.");
 
-        logger.debug("Initializing nudroid persistence annotation processor.");
+		elementUtils = env.getElementUtils();
+		typeUtils = env.getTypeUtils();
 
-        elementUtils = env.getElementUtils();
-        typeUtils = env.getTypeUtils();
-        filer = env.getFiler();
+		try {
+			initialized = true;
+			mLogger.debug("Initialization complete.");
+		} catch (Exception e) {
+			mLogger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
+			throw new AnnotationProcessorException(e);
+		}
 
-        metadata = new Metadata();
+		final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
+		contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
+		queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
+		sourceCodeGenerator = new SourceCodeGenerator(processorContext);
+	}
 
-        try {
-            initialized = true;
-            logger.debug("Initialization complete.");
-        } catch (Exception e) {
-            logger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
-            throw new AnnotationProcessorError(e);
-        }
+	/**
+	 * <p/>
+	 * {@inheritDoc}
+	 * 
+	 * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
+	 *      javax.annotation.processing.RoundEnvironment)
+	 */
+	@Override
+	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        final ProcessorContext processorContext = new ProcessorContext(metadata, processingEnv, elementUtils,
-                typeUtils, logger);
-        contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
-        queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
-        providerInterceptorPointProcessor = new ProviderInterceptorPointProcessor(processorContext);
-        sourceCodeGenerator = new SourceCodeGenerator(processorContext);
-    }
+		mLogger.info("Starting provider annotation processor round " + ++mRound);
+		mLogger.trace("    Target classes " + roundEnv.getRootElements());
 
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
-     *      javax.annotation.processing.RoundEnvironment)
-     */
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		if (!initialized) {
 
-        logger.info("Starting provider annotation processor round " + ++mRound);
-        logger.trace("    Target classes " + roundEnv.getRootElements());
+			mLogger.error("Annotation processor not initialized. Aborting.");
 
-        if (!initialized) {
+			return false;
+		}
 
-            logger.error("Annotation processor not initialized. Aborting.");
+		Metadata metadata = new Metadata();
+		contentProviderDelegateAnnotationProcessor.processContentProviderDelegateAnnotations(roundEnv, metadata);
+		queryAnnotationProcessor.processQueryAnnotationOnMethods(roundEnv, metadata);
 
-            return false;
-        }
+		sourceCodeGenerator.generateCompanionSourceCode(metadata);
 
-        contentProviderDelegateAnnotationProcessor.processContentProviderDelegateAnnotations(roundEnv, metadata);
-        queryAnnotationProcessor.processQueryAnnotationOnMethods(roundEnv, metadata);
-
-        // for (TypeElement typeElement : null) {
-        //
-        // authorityProcessor.processAuthorityOnClass(typeElement);
-        //
-        // List<? extends ExecutableElement> executableElementList = ElementFilter.methodsIn(elementUtils
-        // .getAllMembers(typeElement));
-        //
-        // for (ExecutableElement executableElement : executableElementList) {
-        //
-        // queryProcessor.processQueriesOnMethod(typeElement, executableElement);
-        // providerInterceptorPointProcessor.processInterceptorPoints(executableElement);
-        // }
-        // }
-
-//        sourceCodeGenerator.generateCompanionSourceCode(null, metadata);
-
-        return true;
-    }
+		return true;
+	}
 }

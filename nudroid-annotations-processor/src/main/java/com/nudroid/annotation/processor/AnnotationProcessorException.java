@@ -5,35 +5,35 @@ package com.nudroid.annotation.processor;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class AnnotationProcessorError extends RuntimeException {
+public class AnnotationProcessorException extends RuntimeException {
 
     private static final long serialVersionUID = 379279303608925588L;
 
     /**
      * @see Exception#Exception()
      */
-    public AnnotationProcessorError() {
+    public AnnotationProcessorException() {
         super();
     }
 
     /**
      * @see Exception#Exception(String)
      */
-    public AnnotationProcessorError(String s) {
-        super(s);
+    public AnnotationProcessorException(String message) {
+        super(message);
     }
 
     /**
      * @see Exception#Exception(Throwable)
      */
-    public AnnotationProcessorError(Throwable cause) {
+    public AnnotationProcessorException(Throwable cause) {
         super(cause);
     }
 
     /**
      * @see Exception#Exception(String, Throwable)
      */
-    public AnnotationProcessorError(String message, Throwable cause) {
+    public AnnotationProcessorException(String message, Throwable cause) {
         super(message, cause);
     }
 }

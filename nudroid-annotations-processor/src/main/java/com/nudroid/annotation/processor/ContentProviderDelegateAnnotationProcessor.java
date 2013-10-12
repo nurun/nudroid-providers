@@ -1,9 +1,14 @@
 package com.nudroid.annotation.processor;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
@@ -15,78 +20,118 @@ import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
  */
 class ContentProviderDelegateAnnotationProcessor {
 
-    private LoggingUtils mLogger;
+	private LoggingUtils mLogger;
 
-    /**
-     * Creates an instance of this class.
-     * 
-     * @param processorContext
-     *            The context for the provider annotation processor.
-     */
-    ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
+	/**
+	 * Creates an instance of this class.
+	 * 
+	 * @param processorContext
+	 *            The context for the provider annotation processor.
+	 */
+	ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
-        this.mLogger = processorContext.logger;
-    }
+		this.mLogger = processorContext.logger;
+	}
 
-    /**
-     * Process the {@link ContentProviderDelegate} annotations on this round.
-     * 
-     * @param roundEnv
-     *            The round environment to process.
-     * @param metadata
-     *            The annotation metadata for the processor.
-     */
-    @SuppressWarnings("unchecked")
-    void processContentProviderDelegateAnnotations(RoundEnvironment roundEnv, Metadata metadata) {
+	/**
+	 * Process the {@link ContentProviderDelegate} annotations on this round.
+	 * 
+	 * @param roundEnv
+	 *            The round environment to process.
+	 * @param metadata
+	 *            The annotation metadata for the processor.
+	 */
+	@SuppressWarnings("unchecked")
+	void processContentProviderDelegateAnnotations(RoundEnvironment roundEnv, Metadata metadata) {
 
-        Set<? extends TypeElement> delegateClassTypes = (Set<? extends TypeElement>) roundEnv
-                .getElementsAnnotatedWith(ContentProviderDelegate.class);
+		Set<? extends TypeElement> delegateClassTypes = (Set<? extends TypeElement>) roundEnv
+		        .getElementsAnnotatedWith(ContentProviderDelegate.class);
 
-        mLogger.info("Start processing ContentProviderDelegate annotations.");
-        mLogger.trace("    Classes annotated with ContentProviderDelegate for the round " + delegateClassTypes);
+		mLogger.info("Start processing @ContentProviderDelegate annotations.");
+		mLogger.trace("    Classes annotated with @ContentProviderDelegate for the round " + delegateClassTypes);
 
-        for (TypeElement delegateClassType : delegateClassTypes) {
-            
-            mLogger.trace("    Processing " + delegateClassType);
-            processContentProviderDelegateAnnotation(delegateClassType, metadata);
-            mLogger.trace("    Done processing " + delegateClassType);
-        }
+		for (TypeElement delegateClassType : delegateClassTypes) {
 
-        mLogger.info("Done processing ContentProviderDelegate annotations.");
-    }
+			mLogger.trace("    Processing " + delegateClassType);
+			processContentProviderDelegateAnnotation(delegateClassType, metadata);
+			mLogger.trace("    Done processing " + delegateClassType);
+		}
 
-    private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
+		mLogger.info("Done processing ContentProviderDelegate annotations.");
+	}
 
-        ContentProviderDelegate contentProviderDelegateAnnotation = delegateClassType
-                .getAnnotation(ContentProviderDelegate.class);
+	private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        if (contentProviderDelegateAnnotation != null) {
+		ContentProviderDelegate contentProviderDelegateAnnotation = delegateClassType
+		        .getAnnotation(ContentProviderDelegate.class);
 
-            if (ElementUtils.isAbstract(delegateClassType)) {
+		if (ElementUtils.isAbstract(delegateClassType)) {
 
-                mLogger.trace("        Class is abstract. Signaling compilatoin error.");
-                mLogger.error("@ContentProviderDelegate annotations are only allowed on concrete classes",
-                        delegateClassType);
-            } else {
+			mLogger.trace("        Class is abstract. Signaling compilatoin error.");
+			mLogger.error("@ContentProviderDelegate annotations are only allowed on concrete classes",
+			        delegateClassType);
+		}
 
-                final String authorityName = contentProviderDelegateAnnotation.authority();
-                mLogger.trace(String.format("        Authority name ='%s'.", authorityName));
-                
-                DelegateClass delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
+		if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
 
-                if (delegateClassForAuthority != null) {
+			mLogger.trace("        Class is not top level nor static. Signaling compilatoin error.");
+			mLogger.error(String.format("@%s annotations can only appear on top level or static classes",
+			        ContentProviderDelegate.class.getSimpleName()), delegateClassType);
+		}
 
-                    mLogger.trace(String.format(
-                            "        Authority is already registered by class %s. Signaling compilation error.",
-                            delegateClassForAuthority));
-                    mLogger.error(String.format("Authority '%s' has already been registered by class %s",
-                            authorityName, delegateClassForAuthority.getName()), delegateClassType);
-                }
+		if (!validateClassHasPublicDefaultConstructor(delegateClassType)) {
 
-                mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
-                        authorityName));
-                metadata.registerAuthorityHandler(authorityName, delegateClassType);
-            }
-        }
-    }
+			mLogger.trace("        Class does not have a public default constructor. Signaling compilatoin error.");
+			mLogger.error(String.format("Classes annotated with @%s must have a public default constructor",
+			        ContentProviderDelegate.class.getSimpleName()), delegateClassType);
+		}
+
+		final String authorityName = contentProviderDelegateAnnotation.authority();
+		mLogger.trace(String.format("        Authority name ='%s'.", authorityName));
+
+		DelegateClass delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
+
+		if (delegateClassForAuthority != null) {
+
+			mLogger.trace(String.format(
+			        "        Authority is already registered by class %s. Signaling compilation error.",
+			        delegateClassForAuthority));
+			mLogger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
+			        delegateClassForAuthority.getQualifiedName()), delegateClassType);
+		}
+
+		mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
+		        authorityName));
+		metadata.registernewDelegateClass(authorityName, delegateClassType);
+	}
+
+	private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {
+
+		Set<Modifier> delegateClassModifiers = delegateClassType.getModifiers();
+
+		Element enclosingDelegateClassElement = delegateClassType.getEnclosingElement();
+
+		if (ElementUtils.isClassOrInterface(enclosingDelegateClassElement)
+		        && !delegateClassModifiers.contains(Modifier.STATIC)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean validateClassHasPublicDefaultConstructor(TypeElement delegateClassType) {
+
+		List<? extends Element> enclosedElements = delegateClassType.getEnclosedElements();
+
+		for (ExecutableElement constructor : ElementFilter.constructorsIn(enclosedElements)) {
+
+			if (constructor.getParameters().size() == 0 && constructor.getModifiers().contains(Modifier.PUBLIC)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

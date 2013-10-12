@@ -16,17 +16,17 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
  */
 public class Parameter {
 
-    private boolean projection;
-    private boolean selection;
-    private boolean selectionArgs;
-    private boolean sortOrder;
-    private boolean contentValues;
-    private boolean contentUri;
-    private boolean string;
-    private boolean pathParam;
-    private boolean queryParam;
-    private String pathParamPosition;
-    private String queryParameterName;
+    private boolean mProjection;
+    private boolean mSelection;
+    private boolean mSelectionArgs;
+    private boolean mSortOrder;
+    private boolean mContentValues;
+    private boolean mContentUri;
+    private boolean mString;
+    private boolean mPathParam;
+    private boolean mQueryParam;
+    private String mPathParamPosition;
+    private String mQueryParameterName;
 
     /**
      * The parameter is annotated with {@link Projection}.
@@ -34,7 +34,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isProjection() {
-        return projection;
+        return mProjection;
     }
 
     /**
@@ -43,7 +43,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isSelection() {
-        return selection;
+        return mSelection;
     }
 
     /**
@@ -52,7 +52,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isSelectionArgs() {
-        return selectionArgs;
+        return mSelectionArgs;
     }
 
     /**
@@ -61,7 +61,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isSortOrder() {
-        return sortOrder;
+        return mSortOrder;
     }
 
     /**
@@ -70,16 +70,25 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isContentValues() {
-        return contentValues;
+        return mContentValues;
     }
 
     /**
+	 * The parameter is a annotated with {@link ContentUri}.
+	 * 
+	 * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
+	 */
+	public boolean isContentUri() {
+	    return mContentUri;
+	}
+
+	/**
      * The parameter is of type {@link String}.
      * 
      * @return <tt>true</tt> if {@link String}, <tt>false</tt> otherwise.
      */
     public boolean isString() {
-        return string;
+        return mString;
     }
 
     /**
@@ -88,7 +97,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isPathParameter() {
-        return pathParam;
+        return mPathParam;
     }
 
     /**
@@ -97,7 +106,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isQueryParameter() {
-        return queryParam;
+        return mQueryParam;
     }
 
     /**
@@ -106,16 +115,7 @@ public class Parameter {
      * @return The position in the URI path this parameter maps to.
      */
     public String getPathParamPosition() {
-        return pathParamPosition;
-    }
-
-    /**
-     * The parameter is a annotated with {@link ContentUri}.
-     * 
-     * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
-     */
-    public boolean isContentUri() {
-        return contentUri;
+        return mPathParamPosition;
     }
 
     /**
@@ -124,7 +124,7 @@ public class Parameter {
      * @return The query parameter name in the URI query string this parameter maps to.
      */
     public String getQueryParameterName() {
-        return queryParameterName;
+        return mQueryParameterName;
     }
 
     /**
@@ -134,77 +134,87 @@ public class Parameter {
      *            If the parameter is annotated or not.
      */
     void setProjection(boolean projection) {
-        this.projection = projection;
+        this.mProjection = projection;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Selection}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setSelection(boolean selection) {
-        this.selection = selection;
+        this.mSelection = selection;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SelectionArgs}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setSelectionArgs(boolean selectionArgs) {
-        this.selectionArgs = selectionArgs;
+        this.mSelectionArgs = selectionArgs;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SortOrder}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setSortOrder(boolean sortOrder) {
-        this.sortOrder = sortOrder;
+        this.mSortOrder = sortOrder;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setContentValues(boolean contentValues) {
-        this.contentValues = contentValues;
+        this.mContentValues = contentValues;
     }
 
     /**
+	 * Sets if this parameter is annotated with {@link ContentUri}.
+	 * 
+	 * @param mProjection
+	 *            If the parameter is annotated or not.
+	 */
+	void setContentUri(boolean contentUri) {
+	    this.mContentUri = contentUri;
+	}
+
+	/**
      * Sets if this parameter is of type {@link String}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is of type {@link String}.
      */
     void setString(boolean string) {
-        this.string = string;
+        this.mString = string;
     }
 
     /**
      * Sets if this parameter is annotated with {@link PathParam}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setPathParameter(boolean pathParam) {
-        this.pathParam = pathParam;
+        this.mPathParam = pathParam;
     }
 
     /**
      * Sets if this parameter is annotated with {@link QueryParam}.
      * 
-     * @param projection
+     * @param mProjection
      *            If the parameter is annotated or not.
      */
     void setQueryParameter(boolean queryParam) {
-        this.queryParam = queryParam;
+        this.mQueryParam = queryParam;
     }
 
     /**
@@ -214,17 +224,7 @@ public class Parameter {
      *            The position in the URI's path.
      */
     void setPathParamPosition(String pathParamPosition) {
-        this.pathParamPosition = pathParamPosition;
-    }
-
-    /**
-     * Sets if this parameter is annotated with {@link ContentUri}.
-     * 
-     * @param projection
-     *            If the parameter is annotated or not.
-     */
-    void setContentUri(boolean contentUri) {
-        this.contentUri = contentUri;
+        this.mPathParamPosition = pathParamPosition;
     }
 
     /**
@@ -234,7 +234,7 @@ public class Parameter {
      *            The name of the parameter in the URI's query string.
      */
     void setQueryParameterName(String queryParameterName) {
-        this.queryParameterName = queryParameterName;
+        this.mQueryParameterName = queryParameterName;
     }
 
     /**
@@ -244,9 +244,9 @@ public class Parameter {
      */
     @Override
     public String toString() {
-        return "Parameter [projection=" + projection + ", selection=" + selection + ", selectionArgs=" + selectionArgs
-                + ", sortOrder=" + sortOrder + ", contentValues=" + contentValues + ", contentUri=" + contentUri
-                + ", string=" + string + ", pathParam=" + pathParam + ", queryParam=" + queryParam
-                + ", pathParamPosition=" + pathParamPosition + ", queryParameterName=" + queryParameterName + "]";
+        return "Parameter [projection=" + mProjection + ", selection=" + mSelection + ", selectionArgs=" + mSelectionArgs
+                + ", sortOrder=" + mSortOrder + ", contentValues=" + mContentValues + ", contentUri=" + mContentUri
+                + ", string=" + mString + ", pathParam=" + mPathParam + ", queryParam=" + mQueryParam
+                + ", pathParamPosition=" + mPathParamPosition + ", queryParameterName=" + mQueryParameterName + "]";
     }
 }

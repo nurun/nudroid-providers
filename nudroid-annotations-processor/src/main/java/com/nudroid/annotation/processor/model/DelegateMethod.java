@@ -1,4 +1,4 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,8 +9,7 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 
-import com.nudroid.annotation.processor.model.DelegateUri;
-import com.nudroid.annotation.processor.model.MatcherUri;
+import com.nudroid.annotation.processor.Parameter;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -42,7 +41,7 @@ public class DelegateMethod {
      * @param uri
      *            An {@link DelegateUri} describing the URI the method should match.
      */
-    DelegateMethod(ExecutableElement element, DelegateUri uri) {
+    public DelegateMethod(ExecutableElement element, DelegateUri uri) {
 
         this.uri = uri;
         this.name = element.getSimpleName().toString();
@@ -55,6 +54,7 @@ public class DelegateMethod {
      * @return The method name.
      */
     public String getName() {
+    	
         return name;
     }
 
@@ -64,6 +64,7 @@ public class DelegateMethod {
      * @return List of parameters this method accepts.
      */
     public List<Parameter> getParameters() {
+    	
         return Collections.unmodifiableList(parameters);
     }
 
@@ -94,7 +95,7 @@ public class DelegateMethod {
      * @param parameter
      *            The parameter to add.
      */
-    void addParameter(Parameter parameter) {
+    public void addParameter(Parameter parameter) {
 
         this.parameters.add(parameter);
     }
@@ -116,7 +117,7 @@ public class DelegateMethod {
      * @param placehorderName
      *            The name of the path placeholder.
      */
-    void addPathPlaceholder(String placehorderName) {
+    public void addPathPlaceholder(String placehorderName) {
 
         pathPlaceholderNames.add(placehorderName);
     }
@@ -139,12 +140,12 @@ public class DelegateMethod {
      * @param queryParameterNames
      *            The set of query parameter names.
      */
-    void setQueryParameterNames(Set<String> queryParameterNames) {
+    public void setQueryParameterNames(Set<String> queryParameterNames) {
 
         this.queryStringParameterNames = queryParameterNames;
     }
 
-    ExecutableElement getExecutableElement() {
+    public ExecutableElement getExecutableElement() {
 
         return executableElement;
     }

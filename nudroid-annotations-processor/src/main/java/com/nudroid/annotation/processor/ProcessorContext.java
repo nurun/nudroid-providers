@@ -11,52 +11,44 @@ import javax.lang.model.util.Types;
  */
 public class ProcessorContext {
 
-    /**
-     * The metadata object being used by this processor.
-     */
-    final Metadata metadata;
+	/**
+	 * The processing environment object being used by this processor.
+	 */
+	final ProcessingEnvironment processingEnv;
 
-    /**
-     * The processing environment object being used by this processor.
-     */
-    final ProcessingEnvironment processingEnv;
+	/**
+	 * The elements utility object being used by this processor.
+	 */
+	final Elements elementUtils;
 
-    /**
-     * The elements utility object being used by this processor.
-     */
-    final Elements elementUtils;
+	/**
+	 * The types utility object being used by this processor.
+	 */
+	final Types typeUtils;
 
-    /**
-     * The types utility object being used by this processor.
-     */
-    final Types typeUtils;
+	/**
+	 * The logger object being used by this processor.
+	 */
+	final LoggingUtils logger;
 
-    /**
-     * The logger object being used by this processor.
-     */
-    final LoggingUtils logger;
+	/**
+	 * Creates an instance of this parameter object.
+	 * 
+	 * @param processingEnv
+	 *            The processing environment instance.
+	 * @param elementUtils
+	 *            The elements utility instance.
+	 * @param typeUtils
+	 *            The type utilities instance.
+	 * @param logger
+	 *            The logger instance.
+	 */
+	public ProcessorContext(ProcessingEnvironment processingEnv, Elements elementUtils, Types typeUtils,
+	        LoggingUtils logger) {
 
-    /**
-     * Creates an instance of this parameter object.
-     * 
-     * @param metadata
-     *            The metadata instance.
-     * @param processingEnv
-     *            The processing environment instance.
-     * @param elementUtils
-     *            The elements utility instance.
-     * @param typeUtils
-     *            The type utilities instance.
-     * @param logger
-     *            The logger instance.
-     */
-    public ProcessorContext(Metadata metadata, ProcessingEnvironment processingEnv, Elements elementUtils,
-            Types typeUtils, LoggingUtils logger) {
-
-        this.metadata = metadata;
-        this.processingEnv = processingEnv;
-        this.elementUtils = elementUtils;
-        this.typeUtils = typeUtils;
-        this.logger = logger;
-    }
+		this.processingEnv = processingEnv;
+		this.elementUtils = elementUtils;
+		this.typeUtils = typeUtils;
+		this.logger = logger;
+	}
 }

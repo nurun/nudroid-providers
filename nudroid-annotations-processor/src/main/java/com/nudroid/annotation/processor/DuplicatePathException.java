@@ -1,39 +1,34 @@
 package com.nudroid.annotation.processor;
 
+import javax.lang.model.element.ExecutableElement;
+
 /**
- * Exception raised when the URI provided to the delegate method is not valid.
+ * Exception raised when the URI provided to the delegate method is duplicated.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DuplicatePathException extends RuntimeException {
 
-    private static final long serialVersionUID = -4364782083955709261L;
+	private static final long serialVersionUID = -4364782083955709261L;
+	private ExecutableElement mOriginalMethod;
 
-    /**
-     * @see Exception#Exception()
-     */
-    public DuplicatePathException() {
-        super();
-    }
+	/**
+	 * @param existingDelegateMethod
+	 *            The delegate method which already define the path.
+	 */
+	public DuplicatePathException(ExecutableElement existingDelegateMethod, String pathAndQuery) {
+		super(String.format("An equivalent path has already been registerd by method %s", existingDelegateMethod));
 
-    /**
-     * @see Exception#Exception(String)
-     */
-    public DuplicatePathException(String s) {
-        super(s);
-    }
+		this.mOriginalMethod = existingDelegateMethod;
+	}
 
-    /**
-     * @see Exception#Exception(Throwable)
-     */
-    public DuplicatePathException(Throwable cause) {
-        super(cause);
-    }
+	/**
+	 * Gets the method which originally registered the offending path.
+	 * 
+	 * @return The method which originally registered the offending path.
+	 */
+	public Object getOriginalMoethod() {
 
-    /**
-     * @see Exception#Exception(String, Throwable)
-     */
-    public DuplicatePathException(String message, Throwable cause) {
-        super(message, cause);
-    }
+		return mOriginalMethod;
+	}
 }
