@@ -1,4 +1,4 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
@@ -133,7 +133,7 @@ public class Parameter {
      * @param projection
      *            If the parameter is annotated or not.
      */
-    void setProjection(boolean projection) {
+    public void setProjection(boolean projection) {
         this.mProjection = projection;
     }
 
@@ -143,7 +143,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setSelection(boolean selection) {
+    public void setSelection(boolean selection) {
         this.mSelection = selection;
     }
 
@@ -153,7 +153,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setSelectionArgs(boolean selectionArgs) {
+    public void setSelectionArgs(boolean selectionArgs) {
         this.mSelectionArgs = selectionArgs;
     }
 
@@ -163,7 +163,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setSortOrder(boolean sortOrder) {
+	public void setSortOrder(boolean sortOrder) {
         this.mSortOrder = sortOrder;
     }
 
@@ -173,7 +173,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setContentValues(boolean contentValues) {
+    public void setContentValues(boolean contentValues) {
         this.mContentValues = contentValues;
     }
 
@@ -183,7 +183,7 @@ public class Parameter {
 	 * @param mProjection
 	 *            If the parameter is annotated or not.
 	 */
-	void setContentUri(boolean contentUri) {
+	public void setContentUri(boolean contentUri) {
 	    this.mContentUri = contentUri;
 	}
 
@@ -193,7 +193,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is of type {@link String}.
      */
-    void setString(boolean string) {
+    public void setString(boolean string) {
         this.mString = string;
     }
 
@@ -203,7 +203,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setPathParameter(boolean pathParam) {
+    public void setPathParameter(boolean pathParam) {
         this.mPathParam = pathParam;
     }
 
@@ -213,7 +213,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-    void setQueryParameter(boolean queryParam) {
+    public void setQueryParameter(boolean queryParam) {
         this.mQueryParam = queryParam;
     }
 
@@ -223,7 +223,7 @@ public class Parameter {
      * @param pathParamPosition
      *            The position in the URI's path.
      */
-    void setPathParamPosition(String pathParamPosition) {
+    public void setPathParamPosition(String pathParamPosition) {
         this.mPathParamPosition = pathParamPosition;
     }
 
@@ -233,7 +233,7 @@ public class Parameter {
      * @param queryParameterName
      *            The name of the parameter in the URI's query string.
      */
-    void setQueryParameterName(String queryParameterName) {
+    public void setQueryParameterName(String queryParameterName) {
         this.mQueryParameterName = queryParameterName;
     }
 

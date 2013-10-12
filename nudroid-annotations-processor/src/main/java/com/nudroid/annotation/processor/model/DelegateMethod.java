@@ -9,7 +9,6 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 
-import com.nudroid.annotation.processor.Parameter;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;

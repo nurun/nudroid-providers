@@ -14,6 +14,7 @@ import javax.lang.model.util.Types;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
