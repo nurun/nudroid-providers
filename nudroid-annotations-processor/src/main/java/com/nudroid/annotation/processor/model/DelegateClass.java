@@ -169,6 +169,15 @@ public class DelegateClass {
 		return mSimpleName + ROUTER_SUFFIX;
 	}
 
+	public String getContentProviderSimpleName() {
+		String delegateClassName = getSimpleName();
+
+		delegateClassName = delegateClassName.replaceAll("Delegate", "").replaceAll("ContentProvider", "");
+		delegateClassName = delegateClassName + "ContentProvider";
+
+		return delegateClassName;
+	}
+
 	/**
 	 * @see java.lang.Object#toString()
 	 */

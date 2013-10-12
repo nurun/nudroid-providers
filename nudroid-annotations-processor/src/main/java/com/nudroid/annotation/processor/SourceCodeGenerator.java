@@ -26,6 +26,7 @@ class SourceCodeGenerator {
 
 	static final String GENERATED_CODE_BASE_PACKAGE = "com.nudroid.persistence";
 	private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/RouterTemplate.vm";
+	private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/persistence/annotation/processor/ContentProviderTemplate.vm";
 
 	/**
 	 * Creates an instance of this class.
@@ -52,6 +53,7 @@ class SourceCodeGenerator {
 	void generateCompanionSourceCode(Metadata metadata) {
 
 		generateContentProviderRouterSourceCode(metadata);
+		generateContentProviderSourceCode(metadata);
 	}
 
 	private void generateContentProviderRouterSourceCode(Metadata metadata) {
@@ -76,6 +78,33 @@ class SourceCodeGenerator {
 			} catch (Exception e) {
 				logger.error(String.format("Error processing velocity script '%s'",
 				        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+				throw new AnnotationProcessorException(e);
+			}
+		}
+	}
+	
+	private void generateContentProviderSourceCode(Metadata metadata) {
+		
+		for (DelegateClass delegateClass : metadata.getDelegateClasses()) {
+			
+			Properties p = generateVelocityConfigurationProperties();
+			Velocity.init(p);
+			VelocityContext context = new VelocityContext();
+			context.put("delegateClass", delegateClass);
+			
+			Template template = null;
+			
+			try {
+				template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
+				JavaFileObject jfoContentUriRegistry = filer.createSourceFile(String.format("%s.%s",
+						GENERATED_CODE_BASE_PACKAGE, delegateClass.getContentProviderSimpleName()));
+				Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
+				
+				template.merge(context, writerContentUriRegistry);
+				writerContentUriRegistry.close();
+			} catch (Exception e) {
+				logger.error(String.format("Error processing velocity script '%s'",
+						CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
 				throw new AnnotationProcessorException(e);
 			}
 		}

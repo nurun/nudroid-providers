@@ -115,7 +115,7 @@ class QueryAnnotationProcessor {
 			mLogger.trace(String.format(
 			        "        Path '%s' has already been registered by method %s. Signaling compilation error.",
 			        pathAndQuery, e.getOriginalMoethod()));
-			mLogger.error(String.format("An equivalent path has already been registered by method %s",
+			mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
 			        e.getOriginalMoethod()), queryMethod);
 			return;
 		} catch (DuplicateUriPlaceholderException e) {
