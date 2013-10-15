@@ -47,8 +47,9 @@ class ContentProviderDelegateAnnotationProcessor {
 		Set<? extends TypeElement> delegateClassTypes = (Set<? extends TypeElement>) roundEnv
 		        .getElementsAnnotatedWith(ContentProviderDelegate.class);
 
-		mLogger.info("Start processing @ContentProviderDelegate annotations.");
-		mLogger.trace("    Classes annotated with @ContentProviderDelegate for the round " + delegateClassTypes);
+		mLogger.info(String.format("Start processing @%s annotations.", ContentProviderDelegate.class.getSimpleName()));
+		mLogger.trace(String.format("    Classes annotated with @%s for the round: %s ",
+		        ContentProviderDelegate.class.getSimpleName(), delegateClassTypes));
 
 		for (TypeElement delegateClassType : delegateClassTypes) {
 
@@ -57,7 +58,7 @@ class ContentProviderDelegateAnnotationProcessor {
 			mLogger.trace("    Done processing " + delegateClassType);
 		}
 
-		mLogger.info("Done processing ContentProviderDelegate annotations.");
+		mLogger.info(String.format("Done processing @%s annotations.", ContentProviderDelegate.class.getSimpleName()));
 	}
 
 	private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
@@ -68,8 +69,9 @@ class ContentProviderDelegateAnnotationProcessor {
 		if (ElementUtils.isAbstract(delegateClassType)) {
 
 			mLogger.trace("        Class is abstract. Signaling compilatoin error.");
-			mLogger.error("@ContentProviderDelegate annotations are only allowed on concrete classes",
-			        delegateClassType);
+			mLogger.error(
+			        String.format("@%s annotations are only allowed on concrete classes",
+			                ContentProviderDelegate.class.getSimpleName()), delegateClassType);
 		}
 
 		if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
