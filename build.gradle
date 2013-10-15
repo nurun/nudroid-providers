@@ -54,6 +54,7 @@ project(':nudroid-annotations-processor') {
 
     dependencies {
     	compile project(':nudroid-annotations')
+        compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.apache.velocity:velocity:1.7'
     }
 }
@@ -67,6 +68,7 @@ project(':nudroid-annotations-processor:nudroid-annotations-processor-all') {
     dependencies {
         compileOnly project(':nudroid-annotations-processor')
         compileOnly 'org.apache.velocity:velocity:1.7'
+        compileOnly 'com.google.guava:guava:15.0'
     }
     
     jar {

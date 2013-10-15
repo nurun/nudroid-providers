@@ -33,348 +33,308 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
  */
 class QueryAnnotationProcessor {
 
-	private LoggingUtils mLogger;
-
-	private TypeMirror mStringType;
-	private TypeMirror mArrayOfStringsType;
-	private TypeMirror mContentValuesType;
-	private TypeMirror mUriType;
-	private Types mTtypeUtils;
-
-	/**
-	 * Creates an instance of this class.
-	 * 
-	 * @param processorContext
-	 *            The processor context parameter object.
-	 */
-	QueryAnnotationProcessor(ProcessorContext processorContext) {
+    private LoggingUtils mLogger;
+
+    private TypeMirror mStringType;
+    private TypeMirror mArrayOfStringsType;
+    private TypeMirror mContentValuesType;
+    private TypeMirror mUriType;
+    private Types mTtypeUtils;
+
+    /**
+     * Creates an instance of this class.
+     * 
+     * @param processorContext
+     *            The processor context parameter object.
+     */
+    QueryAnnotationProcessor(ProcessorContext processorContext) {
 
-		this.mTtypeUtils = processorContext.typeUtils;
-		this.mLogger = processorContext.logger;
-
-		mStringType = processorContext.elementUtils.getTypeElement("java.lang.String").asType();
-		mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-		mContentValuesType = processorContext.elementUtils.getTypeElement("android.content.ContentValues").asType();
-		mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
-	}
+        this.mTtypeUtils = processorContext.typeUtils;
+        this.mLogger = processorContext.logger;
+
+        mStringType = processorContext.elementUtils.getTypeElement("java.lang.String").asType();
+        mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
+        mContentValuesType = processorContext.elementUtils.getTypeElement("android.content.ContentValues").asType();
+        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
+    }
+
+    /**
+     * Process the {@link Query} annotations on this round.
+     * 
+     * @param roundEnv
+     *            The round environment to process.
+     * @param metadata
+     *            The annotation metadata for the processor.
+     */
+    @SuppressWarnings("unchecked")
+    public void process(RoundEnvironment roundEnv, Metadata metadata) {
 
-	/**
-	 * Process the {@link Query} annotations on this round.
-	 * 
-	 * @param roundEnv
-	 *            The round environment to process.
-	 * @param metadata
-	 *            The annotation metadata for the processor.
-	 */
-	@SuppressWarnings("unchecked")
-	public void processQueryAnnotationOnMethods(RoundEnvironment roundEnv, Metadata metadata) {
+        Set<ExecutableElement> queryMethods = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(Query.class);
 
-		Set<ExecutableElement> queryMethods = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(Query.class);
+        mLogger.info("Start processing @Query annotations.");
+        mLogger.trace("    Methods annotated with @Query for the round " + queryMethods);
 
-		mLogger.info("Start processing @Query annotations.");
-		mLogger.trace("    Methods annotated with @Query for the round " + queryMethods);
+        for (ExecutableElement queryMethod : queryMethods) {
 
-		for (ExecutableElement queryMethod : queryMethods) {
+            TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
+            ContentProviderDelegate contentProviderDelegateAnnotation = enclosingClass
+                    .getAnnotation(ContentProviderDelegate.class);
 
-			TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
-			ContentProviderDelegate contentProviderDelegateAnnotation = enclosingClass
-			        .getAnnotation(ContentProviderDelegate.class);
+            if (contentProviderDelegateAnnotation == null) {
 
-			if (contentProviderDelegateAnnotation == null) {
+                mLogger.error(
+                        String.format("Enclosing class must be annotated with @%s",
+                                ContentProviderDelegate.class.getName()), queryMethod);
+                continue;
+            }
 
-				mLogger.error(
-				        String.format("Enclosing class must be annotated with @%s",
-				                ContentProviderDelegate.class.getName()), queryMethod);
-				continue;
-			}
+            mLogger.trace("    Processing " + queryMethod);
+            DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
+            processQueryOnMethod(enclosingClass, queryMethod, delegateClass, metadata);
+            mLogger.trace("    Done processing " + queryMethod);
+        }
 
-			mLogger.trace("    Processing " + queryMethod);
-			DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-			processQueryOnMethod(enclosingClass, queryMethod, delegateClass);
-			mLogger.trace("    Done processing " + queryMethod);
-		}
+        mLogger.info("Done processing @Query annotations.");
+    }
 
-		mLogger.info("Done processing @Query annotations.");
-	}
+    private void processQueryOnMethod(TypeElement enclosingClass, ExecutableElement queryMethod,
+            DelegateClass delegateClass, Metadata metadata) {
 
-	private void processQueryOnMethod(TypeElement enclosingClass, ExecutableElement queryMethod,
-	        DelegateClass delegateClass) {
+        Query query = queryMethod.getAnnotation(Query.class);
+        String pathAndQuery = query.value();
 
-		Query query = queryMethod.getAnnotation(Query.class);
-		String pathAndQuery = query.value();
+        DelegateUri delegateUri = null;
 
-		DelegateUri delegateUri = null;
+        try {
 
-		try {
+            mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
+            delegateUri = delegateClass.registerPath(queryMethod, pathAndQuery);
+            mLogger.trace(String.format("        Done registering URI path '%s'.", pathAndQuery));
+        } catch (DuplicatePathException e) {
 
-			mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
-			delegateUri = delegateClass.registerPath(queryMethod, pathAndQuery);
-			mLogger.trace(String.format("        Done registering URI path '%s'.", pathAndQuery));
-		} catch (DuplicatePathException e) {
+            mLogger.trace(String.format(
+                    "        Path '%s' has already been registered by method %s. Signaling compilation error.",
+                    pathAndQuery, e.getOriginalMoethod()));
+            mLogger.error(
+                    String.format("An equivalent path has already been registered by method '%s'",
+                            e.getOriginalMoethod()), queryMethod);
+            return;
+        } catch (DuplicateUriPlaceholderException e) {
 
-			mLogger.trace(String.format(
-			        "        Path '%s' has already been registered by method %s. Signaling compilation error.",
-			        pathAndQuery, e.getOriginalMoethod()));
-			mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
-			        e.getOriginalMoethod()), queryMethod);
-			return;
-		} catch (DuplicateUriPlaceholderException e) {
+            mLogger.trace(String.format("        Path '%s' has duplicated placeholder. Signaling compilation error.",
+                    pathAndQuery));
+            mLogger.error(
+                    String.format("Placeholder '%s' appearing at position '%s' is already present at position '%s'",
+                            e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), queryMethod);
+            return;
+        }
 
-			mLogger.trace(String.format("        Path '%s' has duplicated placeholder. Signaling compilation error.",
-			        pathAndQuery));
-			mLogger.error(
-			        String.format("Placeholder '%s' appearing at position '%s' is already present at position '%s'",
-			                e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), queryMethod);
-			return;
-		}
-
-		boolean hasValidAnnotations = hasValidAnnotations(enclosingClass, queryMethod, query, delegateUri);
-
-		if (!hasValidAnnotations) {
-
-			return;
-		}
-
-		DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
-		mLogger.trace(String.format("        Added delegate method %s to delegate class %s.", queryMethod,
-		        enclosingClass));
-
-		delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
+        boolean hasValidAnnotations = hasValidAnnotations(enclosingClass, queryMethod, query, delegateUri);
 
-		List<? extends VariableElement> parameters = queryMethod.getParameters();
+        if (!hasValidAnnotations) {
 
-		for (VariableElement methodParameter : parameters) {
+            return;
+        }
 
-			Parameter parameter = new Parameter();
+        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
+        mLogger.trace(String.format("        Added delegate method %s to delegate class %s.", queryMethod,
+                enclosingClass));
 
-			if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
-			if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
-			if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
-			if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
-			if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
-			if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
-			if (mTtypeUtils.isSameType(methodParameter.asType(), mStringType)) parameter.setString(true);
+        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
 
-			final PathParam pathParamAnnotation = methodParameter.getAnnotation(PathParam.class);
+        List<? extends VariableElement> parameters = queryMethod.getParameters();
 
-			if (pathParamAnnotation != null) {
+        for (VariableElement methodParameter : parameters) {
 
-				parameter.setPathParameter(true);
-				parameter.setPathParamPosition(delegateUri.getPathParameterPosition(pathParamAnnotation.value()));
-				delegateMethod.addPathPlaceholder(pathParamAnnotation.value());
-			}
+            Parameter parameter = new Parameter();
 
-			final QueryParam queryParamAnnotation = methodParameter.getAnnotation(QueryParam.class);
+            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
+            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
+            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
+            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
+            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
+            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
+            if (mTtypeUtils.isSameType(methodParameter.asType(), mStringType)) parameter.setString(true);
 
-			if (queryParamAnnotation != null) {
+            final PathParam pathParamAnnotation = methodParameter.getAnnotation(PathParam.class);
 
-				parameter.setQueryParameter(true);
-				parameter.setQueryParameterName(delegateUri.getQueryParameterPlaceholderName(queryParamAnnotation
-				        .value()));
-			}
+            if (pathParamAnnotation != null) {
 
-			delegateMethod.addParameter(parameter);
-		}
+                parameter.setPathParameter(true);
+                parameter.setPathParamPosition(delegateUri.getPathParameterPosition(pathParamAnnotation.value()));
+                delegateMethod.addPathPlaceholder(pathParamAnnotation.value());
+            }
 
-		delegateClass.addMethod(delegateMethod);
-	}
+            final QueryParam queryParamAnnotation = methodParameter.getAnnotation(QueryParam.class);
 
-	private boolean hasValidAnnotations(TypeElement enclosingClass, ExecutableElement method, Query query,
-	        DelegateUri uri) {
+            if (queryParamAnnotation != null) {
 
-		boolean isValid = true;
+                parameter.setQueryParameter(true);
+                parameter.setQueryParameterName(delegateUri.getQueryParameterPlaceholderName(queryParamAnnotation
+                        .value()));
+            }
 
-		List<? extends VariableElement> parameters = method.getParameters();
+            delegateMethod.addParameter(parameter);
+        }
 
-		for (VariableElement parameterElement : parameters) {
+        delegateClass.addMethod(delegateMethod);
+        metadata.registerDelegateMethod(queryMethod, delegateMethod);
+    }
 
-			List<Class<?>> accumulatedAnnotations = new ArrayList<Class<?>>();
+    private boolean hasValidAnnotations(TypeElement enclosingClass, ExecutableElement method, Query query,
+            DelegateUri uri) {
 
-			final TypeMirror parameterType = parameterElement.asType();
+        boolean isValid = true;
 
-			isValid = validateParameterAnnotation(parameterElement, Projection.class, parameterType,
-			        mArrayOfStringsType, accumulatedAnnotations);
-			isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
-			        accumulatedAnnotations);
-			isValid = validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
-			        mArrayOfStringsType, accumulatedAnnotations);
-			isValid = validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
-			        accumulatedAnnotations);
-			isValid = validateParameterAnnotation(parameterElement, ContentValuesRef.class, parameterType,
-			        mContentValuesType, accumulatedAnnotations);
-			isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
-			        accumulatedAnnotations);
+        List<? extends VariableElement> parameters = method.getParameters();
 
-			isValid = validatePathParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
-			isValid = validateQueryParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
-		}
+        for (VariableElement parameterElement : parameters) {
 
-		return isValid;
-	}
+            List<Class<?>> accumulatedAnnotations = new ArrayList<Class<?>>();
 
-	// private boolean validateQueryElement(TypeElement rootClass, ExecutableElement method) {
-	//
-	// boolean isValid = true;
-	// Element enclosingElement = method.getEnclosingElement();
-	// Element parentEnclosingElement = enclosingElement.getEnclosingElement();
-	//
-	// if (!validateClassIsAnnotatedWithAuthority(method, rootClass)) {
-	// isValid = false;
-	// }
-	//
-	// if (!validateClassIsTopLevelOrStatic(method, enclosingElement, parentEnclosingElement)) {
-	// isValid = false;
-	// }
-	//
-	// if (ElementUtils.isClass(enclosingElement) && !validateClassHasDefaultConstructor(enclosingElement)) {
-	// isValid = false;
-	// }
-	//
-	// return isValid;
-	// }
+            final TypeMirror parameterType = parameterElement.asType();
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private boolean validateParameterAnnotation(VariableElement parameterElement, Class annotationClass,
-	        TypeMirror parameterType, TypeMirror requiredType, List<Class<?>> accumulatedAnnotations) {
+            isValid = validateParameterAnnotation(parameterElement, Projection.class, parameterType,
+                    mArrayOfStringsType, accumulatedAnnotations);
+            isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
+                    mArrayOfStringsType, accumulatedAnnotations);
+            isValid = validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
+                    accumulatedAnnotations);
+            isValid = validateParameterAnnotation(parameterElement, ContentValuesRef.class, parameterType,
+                    mContentValuesType, accumulatedAnnotations);
+            isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
+                    accumulatedAnnotations);
 
-		boolean isValid = true;
+            isValid = validatePathParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
+            isValid = validateQueryParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
+        }
 
-		if (parameterElement.getAnnotation(annotationClass) != null) {
+        return isValid;
+    }
 
-			mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-			        annotationClass.getSimpleName(), parameterElement));
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private boolean validateParameterAnnotation(VariableElement parameterElement, Class annotationClass,
+            TypeMirror parameterType, TypeMirror requiredType, List<Class<?>> accumulatedAnnotations) {
 
-			accumulatedAnnotations.add(annotationClass);
+        boolean isValid = true;
 
-			if (accumulatedAnnotations.size() > 1) {
+        if (parameterElement.getAnnotation(annotationClass) != null) {
 
-				isValid = false;
+            mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
+                    annotationClass.getSimpleName(), parameterElement));
 
-				mLogger.trace(String
-				        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
-				mLogger.error(
-				        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
-				        parameterElement);
-			}
+            accumulatedAnnotations.add(annotationClass);
 
-			if (!mTtypeUtils.isSameType(parameterType, requiredType)) {
+            if (accumulatedAnnotations.size() > 1) {
 
-				isValid = false;
+                isValid = false;
 
-				mLogger.trace(String.format("        Parameter is not of expected type. Signaling compilatoin error.",
-				        annotationClass.getSimpleName(), parameterElement));
-				mLogger.error(
-				        String.format("Parameters annotated with @%s must be of type %s.",
-				                annotationClass.getSimpleName(), requiredType), parameterElement);
-			}
-		}
+                mLogger.trace(String
+                        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
+                mLogger.error(
+                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                        parameterElement);
+            }
 
-		return isValid;
-	}
+            if (!mTtypeUtils.isSameType(parameterType, requiredType)) {
 
-	private boolean validatePathParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
-	        List<Class<?>> accumulatedAnnotations) {
+                isValid = false;
 
-		boolean isValid = true;
+                mLogger.trace(String.format("        Parameter is not of expected type. Signaling compilatoin error.",
+                        annotationClass.getSimpleName(), parameterElement));
+                mLogger.error(
+                        String.format("Parameters annotated with @%s must be of type %s.",
+                                annotationClass.getSimpleName(), requiredType), parameterElement);
+            }
+        }
 
-		final PathParam annotation = parameterElement.getAnnotation(PathParam.class);
+        return isValid;
+    }
 
-		if (annotation != null) {
+    private boolean validatePathParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
+            List<Class<?>> accumulatedAnnotations) {
 
-			mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-			        PathParam.class.getSimpleName(), parameterElement));
+        boolean isValid = true;
 
-			String placeholderName = annotation.value();
-			final String uriPathAndQuery = query.value();
+        final PathParam annotation = parameterElement.getAnnotation(PathParam.class);
 
-			accumulatedAnnotations.add(PathParam.class);
+        if (annotation != null) {
 
-			if (accumulatedAnnotations.size() > 1) {
+            mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
+                    PathParam.class.getSimpleName(), parameterElement));
 
-				isValid = false;
+            String placeholderName = annotation.value();
+            final String uriPathAndQuery = query.value();
 
-				mLogger.trace(String
-				        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
-				mLogger.error(
-				        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
-				        parameterElement);
-			}
+            accumulatedAnnotations.add(PathParam.class);
 
-			if (!uri.containsPathPlaceholder(placeholderName)) {
+            if (accumulatedAnnotations.size() > 1) {
 
-				mLogger.trace(String.format(
-				        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
-				        placeholderName));
-				mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
-				        uriPathAndQuery), parameterElement);
+                isValid = false;
 
-				isValid = false;
-			}
-		}
+                mLogger.trace(String
+                        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
+                mLogger.error(
+                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                        parameterElement);
+            }
 
-		return isValid;
-	}
+            if (!uri.containsPathPlaceholder(placeholderName)) {
 
-	private boolean validateQueryParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
-	        List<Class<?>> accumulatedAnnotations) {
+                mLogger.trace(String.format(
+                        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
+                        placeholderName));
+                mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
+                        uriPathAndQuery), parameterElement);
 
-		boolean isValid = true;
+                isValid = false;
+            }
+        }
 
-		final QueryParam annotation = parameterElement.getAnnotation(QueryParam.class);
+        return isValid;
+    }
 
-		if (annotation != null) {
+    private boolean validateQueryParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
+            List<Class<?>> accumulatedAnnotations) {
 
-			mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-			        QueryParam.class.getSimpleName(), parameterElement));
-			String placeholderName = annotation.value();
-			final String uriPathAndQuery = query.value();
+        boolean isValid = true;
 
-			accumulatedAnnotations.add(QueryParam.class);
+        final QueryParam annotation = parameterElement.getAnnotation(QueryParam.class);
 
-			if (accumulatedAnnotations.size() > 1) {
+        if (annotation != null) {
 
-				isValid = false;
+            mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
+                    QueryParam.class.getSimpleName(), parameterElement));
+            String placeholderName = annotation.value();
+            final String uriPathAndQuery = query.value();
 
-				mLogger.trace(String
-				        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
-				mLogger.error(
-				        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
-				        parameterElement);
-			}
+            accumulatedAnnotations.add(QueryParam.class);
 
-			if (!uri.containsQueryPlaceholder(placeholderName)) {
+            if (accumulatedAnnotations.size() > 1) {
 
-				mLogger.trace(String.format(
-				        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
-				        placeholderName));
-				mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
-				        uriPathAndQuery), parameterElement);
+                isValid = false;
 
-				isValid = false;
-			}
-		}
+                mLogger.trace(String
+                        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
+                mLogger.error(
+                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                        parameterElement);
+            }
 
-		return isValid;
-	}
+            if (!uri.containsQueryPlaceholder(placeholderName)) {
 
-	// private boolean validateQueryElement(TypeElement rootClass, ExecutableElement method) {
-	//
-	// boolean isValid = true;
-	// Element enclosingElement = method.getEnclosingElement();
-	// Element parentEnclosingElement = enclosingElement.getEnclosingElement();
-	//
-	// if (!validateClassIsAnnotatedWithAuthority(method, rootClass)) {
-	// isValid = false;
-	// }
-	//
-	// if (!validateClassIsTopLevelOrStatic(method, enclosingElement, parentEnclosingElement)) {
-	// isValid = false;
-	// }
-	//
-	// if (ElementUtils.isClass(enclosingElement) && !validateClassHasDefaultConstructor(enclosingElement)) {
-	// isValid = false;
-	// }
-	//
-	// return isValid;
-	// }
+                mLogger.trace(String.format(
+                        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
+                        placeholderName));
+                mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
+                        uriPathAndQuery), parameterElement);
+
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
 }

@@ -7,7 +7,7 @@ import javax.lang.model.element.ExecutableElement;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class DuplicatePathException extends RuntimeException {
+public class DuplicatePathException extends IllegalUriPathException {
 
 	private static final long serialVersionUID = -4364782083955709261L;
 	private ExecutableElement mOriginalMethod;

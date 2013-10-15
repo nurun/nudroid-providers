@@ -42,7 +42,7 @@ class ContentProviderDelegateAnnotationProcessor {
 	 *            The annotation metadata for the processor.
 	 */
 	@SuppressWarnings("unchecked")
-	void processContentProviderDelegateAnnotations(RoundEnvironment roundEnv, Metadata metadata) {
+	void process(RoundEnvironment roundEnv, Metadata metadata) {
 
 		Set<? extends TypeElement> delegateClassTypes = (Set<? extends TypeElement>) roundEnv
 		        .getElementsAnnotatedWith(ContentProviderDelegate.class);
@@ -102,7 +102,7 @@ class ContentProviderDelegateAnnotationProcessor {
 
 		mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
 		        authorityName));
-		metadata.registernewDelegateClass(authorityName, delegateClassType);
+		metadata.registerNewDelegateClass(authorityName, delegateClassType);
 	}
 
 	private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {

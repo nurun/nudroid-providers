@@ -15,9 +15,6 @@ import javax.tools.Diagnostic.Kind;
  */
 public class LoggingUtils {
 
-    /**
-     * 
-     */
     private static final String LOG_PATTERN = "%7s - %s";
     private Messager messager;
     private LogLevel logLevel;

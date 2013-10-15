@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 
+import com.google.common.collect.Lists;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -24,13 +24,14 @@ import com.nudroid.annotation.provider.delegate.Update;
  */
 public class DelegateMethod {
 
+    private DelegateClass delegateClass;
     private String name;
     private List<Parameter> parameters = new ArrayList<Parameter>();
     private Set<String> pathPlaceholderNames = new HashSet<String>();
     private Set<String> queryStringParameterNames = new HashSet<String>();
     private DelegateUri uri;
     private ExecutableElement executableElement;
-    private List<Element> interceptorElements = new ArrayList<Element>();
+    private List<Interceptor> interceptorElements = new ArrayList<Interceptor>();
 
     /**
      * Creates an instance of this class.
@@ -48,12 +49,88 @@ public class DelegateMethod {
     }
 
     /**
+     * Adds a parameter definition to the list of parameters this method accepts. Parameters added to this method are
+     * not checked for validity (ex: duplicate names).
+     * 
+     * @param parameter
+     *            The parameter to add.
+     */
+    public void addParameter(Parameter parameter) {
+
+        this.parameters.add(parameter);
+    }
+
+    /**
+     * Adds a path placeholder name to the list of path placeholders of this method. This method is idempotent.
+     * 
+     * @param placehorderName
+     *            The name of the path placeholder.
+     */
+    public void addPathPlaceholder(String placehorderName) {
+
+        pathPlaceholderNames.add(placehorderName);
+    }
+
+    /**
+     * Adds an interceptor type to this method.
+     * 
+     * @param interceptor
+     *            The interceptor type to add.
+     */
+    public void addInterceptor(Interceptor interceptor) {
+
+        this.interceptorElements.add(interceptor);
+        this.getDelegateClass().registerInterceptor(interceptor);
+    }
+
+    /**
+     * Sets the query parameter names for the URI mapped to this method.
+     * 
+     * @param queryParameterNames
+     *            The set of query parameter names.
+     */
+    public void setQueryParameterNames(Set<String> queryParameterNames) {
+
+        this.queryStringParameterNames = queryParameterNames;
+    }
+
+    /**
+     * Gets this method's delegate class.
+     * 
+     * @return The delegate class this method is declared in.
+     */
+    public DelegateClass getDelegateClass() {
+        return delegateClass;
+    }
+
+    /**
+     * Gets the {@link ExecutableElement} representation of the method represented by this class.
+     * 
+     * @return The {@link ExecutableElement} representation of the method represented by this class.
+     */
+    public ExecutableElement getExecutableElement() {
+
+        return executableElement;
+    }
+
+    /**
+     * Get's the URI id assigned to this method's URI in an Android <a
+     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
+     * 
+     * @return the URI id assigned to this method's URI.
+     */
+    public int getUriId() {
+
+        return uri.getmId();
+    }
+
+    /**
      * Gets the name of the method (i.e. method name without return type nor oarameter).
      * 
      * @return The method name.
      */
     public String getName() {
-    	
+
         return name;
     }
 
@@ -63,7 +140,7 @@ public class DelegateMethod {
      * @return List of parameters this method accepts.
      */
     public List<Parameter> getParameters() {
-    	
+
         return Collections.unmodifiableList(parameters);
     }
 
@@ -88,37 +165,30 @@ public class DelegateMethod {
     }
 
     /**
-     * Adds a parameter definition to the list of parameters this method accepts. Parameters added to this method are
-     * not checked for validity (ex: duplicate names).
+     * Gets the list of interceptors for this delegate method, in the order they are executed before the delegate
+     * invocation.
      * 
-     * @param parameter
-     *            The parameter to add.
+     * @return The list of interceptors for this delegate method.
      */
-    public void addParameter(Parameter parameter) {
+    public List<Interceptor> getBeforeInterceptorList() {
 
-        this.parameters.add(parameter);
+        return Collections.unmodifiableList(interceptorElements);
     }
 
     /**
-     * Get's the URI id assigned to this method's URI in an Android <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
+     * Gets the list of interceptors for this delegate method, in the order they are executed after the delegate
+     * Invocation.
      * 
-     * @return the URI id assigned to this method's URI.
+     * @return The list of interceptors for this delegate method.
      */
-    public int getUriId() {
+    public List<Interceptor> getAfterInterceptorList() {
 
-        return uri.getmId();
+        return Collections.unmodifiableList(Lists.reverse(interceptorElements));
     }
 
-    /**
-     * Adds a path placeholder name to the list of path placeholders of this method. This method is idempotent.
-     * 
-     * @param placehorderName
-     *            The name of the path placeholder.
-     */
-    public void addPathPlaceholder(String placehorderName) {
-
-        pathPlaceholderNames.add(placehorderName);
+    @Override
+    public String toString() {
+        return "DelegateMethod [name=" + name + ", parameters=" + parameters + "]";
     }
 
     /**
@@ -134,36 +204,11 @@ public class DelegateMethod {
     }
 
     /**
-     * Sets the query parameter names for the URI mapped to this method.
+     * Sets this method delegate class.
      * 
-     * @param queryParameterNames
-     *            The set of query parameter names.
+     * @param delegateClass
      */
-    public void setQueryParameterNames(Set<String> queryParameterNames) {
-
-        this.queryStringParameterNames = queryParameterNames;
-    }
-
-    public ExecutableElement getExecutableElement() {
-
-        return executableElement;
-    }
-
-    /**
-     * @param interceptorElements
-     */
-    public void addInterceptors(List<Element> interceptorElements) {
-
-        this.interceptorElements.addAll(interceptorElements);
-    }
-
-    public List<Element> getInterceptorElements() {
-
-        return Collections.unmodifiableList(interceptorElements);
-    }
-
-    @Override
-    public String toString() {
-        return "DelegateMethod [name=" + name + ", parameters=" + parameters + "]";
+    void setDelegateClass(DelegateClass delegateClass) {
+        this.delegateClass = delegateClass;
     }
 }

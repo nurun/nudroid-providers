@@ -20,172 +20,211 @@ import com.nudroid.annotation.processor.DuplicatePathException;
  */
 public class DelegateClass {
 
-	private static final String ROUTER_SUFFIX = "Router";
-	private String mQualifiedName;
-	private String mSimpleName;
-	private Authority mAuthority;
-	private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
-	private Map<Integer, Set<DelegateMethod>> mUriIdToDelegateMethodsRegistry = new HashMap<Integer, Set<DelegateMethod>>();
-	private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
-	private int mMatcherUriIdCount = 0;
+    private static final String ROUTER_SUFFIX = "Router";
+    private String mQualifiedName;
+    private String mSimpleName;
+    private Authority mAuthority;
+    private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
+    private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
+    private Set<Interceptor> mRegisteredInterceptors = new HashSet<Interceptor>();
+    private Map<Integer, Set<DelegateMethod>> mUriIdToDelegateMethodsRegistry = new HashMap<Integer, Set<DelegateMethod>>();
+    private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
+    private int mMatcherUriIdCount = 0;
 
-	/**
-	 * Creates an instance of this class.
-	 * 
-	 * @param authorityName
-	 *            The authority name being handled by the delegate class.
-	 * 
-	 * @param element
-	 *            The {@link TypeElement} for the delegate class as provided by a round environment.
-	 */
-	public DelegateClass(String authorityName, TypeElement element) {
+    /**
+     * Creates an instance of this class.
+     * 
+     * @param authorityName
+     *            The authority name being handled by the delegate class.
+     * 
+     * @param element
+     *            The {@link TypeElement} for the delegate class as provided by a round environment.
+     */
+    public DelegateClass(String authorityName, TypeElement element) {
 
-		this.mQualifiedName = element.toString();
-		this.mSimpleName = element.getSimpleName().toString();
-		this.mAuthority = new Authority(authorityName);
-	}
+        this.mQualifiedName = element.toString();
+        this.mSimpleName = element.getSimpleName().toString();
+        this.mAuthority = new Authority(authorityName);
+    }
 
-	/**
-	 * Adds a delegate method to this class.
-	 * 
-	 * @param delegateMethod
-	 *            The method to be added.
-	 */
-	public void addMethod(DelegateMethod delegateMethod) {
+    /**
+     * Adds a delegate method to this class.
+     * 
+     * @param delegateMethod
+     *            The method to be added.
+     */
+    public void addMethod(DelegateMethod delegateMethod) {
 
-		Set<DelegateMethod> setForUriId = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
+        mDelegateMethods.add(delegateMethod);
+        delegateMethod.setDelegateClass(this);
+        Set<DelegateMethod> setForUriId = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
 
-		if (setForUriId == null) {
+        if (setForUriId == null) {
 
-			setForUriId = new HashSet<DelegateMethod>();
-			setForUriId.add(delegateMethod);
-			mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), setForUriId);
-		} else {
+            setForUriId = new HashSet<DelegateMethod>();
+            setForUriId.add(delegateMethod);
+            mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), setForUriId);
+        } else {
 
-			setForUriId.add(delegateMethod);
-		}
-	}
+            setForUriId.add(delegateMethod);
+        }
+    }
 
-	/**
-	 * Registers a path to be matched by the content provider uri matcher.
-	 * 
-	 * @param queryMethodElement
-	 *            The method the path appears on.
-	 * 
-	 * @param pathAndQuery
-	 *            The path to register.
-	 */
-	public DelegateUri registerPath(ExecutableElement queryMethodElement, String pathAndQuery) {
+    /**
+     * Registers a path to be matched by the content provider uri matcher.
+     * 
+     * @param queryMethodElement
+     *            The method the path appears on.
+     * 
+     * @param pathAndQuery
+     *            The path to register.
+     */
+    public DelegateUri registerPath(ExecutableElement queryMethodElement, String pathAndQuery) {
 
-		MatcherUri matcherUri = new MatcherUri(mAuthority, pathAndQuery);
+        MatcherUri matcherUri = new MatcherUri(mAuthority, pathAndQuery);
 
-		if (!mMactherUris.contains(matcherUri)) {
-			matcherUri.setId(++mMatcherUriIdCount);
-			mMactherUris.add(matcherUri);
-		}
+        if (!mMactherUris.contains(matcherUri)) {
+            matcherUri.setId(++mMatcherUriIdCount);
+            mMactherUris.add(matcherUri);
+        }
 
-		DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
+        DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
 
-		ExecutableElement existingDelegateMethod = mDelegateUris.get(delegateUri);
+        ExecutableElement existingDelegateMethod = mDelegateUris.get(delegateUri);
 
-		if (existingDelegateMethod != null) {
+        if (existingDelegateMethod != null) {
 
-			throw new DuplicatePathException(existingDelegateMethod, pathAndQuery);
-		}
+            throw new DuplicatePathException(existingDelegateMethod, pathAndQuery);
+        }
 
-		mDelegateUris.put(delegateUri, queryMethodElement);
+        mDelegateUris.put(delegateUri, queryMethodElement);
 
-		return delegateUri;
-	}
+        return delegateUri;
+    }
 
-	/**
-	 * Gets the fully qualified name of the delegate class.
-	 * 
-	 * @return The fully qualified name of the delegate class.
-	 */
-	public String getQualifiedName() {
+    /**
+     * Registers an interceptor for this class.
+     * 
+     * @param interceptor
+     *            The interceptor to register.
+     */
+    public void registerInterceptor(Interceptor interceptor) {
 
-		return mQualifiedName;
-	}
+        mRegisteredInterceptors.add(interceptor);
+    }
 
-	/**
-	 * Gets the simple name of the delegate class (i.e. without the package name).
-	 * 
-	 * @return The qualified name of the delegate class (i.e. without the package name).
-	 */
-	public String getSimpleName() {
-		return mSimpleName;
-	}
+    /**
+     * Gets the fully qualified name of the delegate class.
+     * 
+     * @return The fully qualified name of the delegate class.
+     */
+    public String getQualifiedName() {
 
-	/**
-	 * Gets the authority associated with this class.
-	 * 
-	 * @return The authority associated with this class.
-	 */
-	public Authority getAuthority() {
+        return mQualifiedName;
+    }
 
-		return mAuthority;
-	}
+    /**
+     * Gets the simple name of the delegate class (i.e. without the package name).
+     * 
+     * @return The qualified name of the delegate class (i.e. without the package name).
+     */
+    public String getSimpleName() {
+        return mSimpleName;
+    }
 
-	/**
-	 * Gets the URIs this delegate class handles.
-	 * 
-	 * @return The URIs this delegate class handles.
-	 */
-	public List<MatcherUri> getmMactherUris() {
+    /**
+     * Gets the authority associated with this class.
+     * 
+     * @return The authority associated with this class.
+     */
+    public Authority getAuthority() {
 
-		return Collections.unmodifiableList(mMactherUris);
-	}
+        return mAuthority;
+    }
 
-	/**
-	 * Gets the mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-	 * 
-	 * @return The mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-	 */
-	public Map<Integer, Set<DelegateMethod>> getUriIdToDelegateMethodRegistry() {
+    /**
+     * Gets the URIs this delegate class handles.
+     * 
+     * @return The URIs this delegate class handles.
+     */
+    public List<MatcherUri> getMactherUris() {
 
-		return Collections.unmodifiableMap(mUriIdToDelegateMethodsRegistry);
-	}
+        return Collections.unmodifiableList(mMactherUris);
+    }
 
-	/**
-	 * Gets all the URI ids this class is responsible to process.
-	 * 
-	 * @return All the URI ids this class is responsible to process.
-	 */
-	public Set<Integer> getUriIds() {
+    /**
+     * Gets the mapping of uri ids to the delegate methods responsible to process requests matching the uri.
+     * 
+     * @return The mapping of uri ids to the delegate methods responsible to process requests matching the uri.
+     */
+    public Map<Integer, Set<DelegateMethod>> getUriIdToDelegateMethodRegistry() {
 
-		return mUriIdToDelegateMethodsRegistry.keySet();
-	}
+        return Collections.unmodifiableMap(mUriIdToDelegateMethodsRegistry);
+    }
 
-	/**
-	 * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
-	 * the package name).
-	 * 
-	 * @return The simple name of the router class which will be created to route calls to the delegate class (i.e.
-	 *         without the package name).
-	 */
-	public String getRouterSimpleName() {
+    /**
+     * Gets all the URI ids this class is responsible to process.
+     * 
+     * @return All the URI ids this class is responsible to process.
+     */
+    public Set<Integer> getUriIds() {
 
-		return mSimpleName + ROUTER_SUFFIX;
-	}
+        return mUriIdToDelegateMethodsRegistry.keySet();
+    }
 
-	public String getContentProviderSimpleName() {
-		String delegateClassName = getSimpleName();
+    /**
+     * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
+     * the package name).
+     * 
+     * @return The simple name of the router class which will be created to route calls to the delegate class (i.e.
+     *         without the package name).
+     */
+    public String getRouterSimpleName() {
 
-		delegateClassName = delegateClassName.replaceAll("Delegate", "").replaceAll("ContentProvider", "");
-		delegateClassName = delegateClassName + "ContentProvider";
+        return mSimpleName + ROUTER_SUFFIX;
+    }
 
-		return delegateClassName;
-	}
+    /**
+     * Gets the simple name of this delegate's content provider (i.e. without the package name).
+     * 
+     * @return The simple name of this delegate's content provider.
+     */
+    public String getContentProviderSimpleName() {
+        String delegateClassName = getSimpleName();
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "DelegateClass [mQualifiedName=" + mQualifiedName + ", mSimpleName=" + mSimpleName
-		        + ", delegateMethods=" + mUriIdToDelegateMethodsRegistry + ", mMactherUris=" + mMactherUris
-		        + ", mDelegateUris=" + mDelegateUris + ", authority=" + mAuthority + ", mMatcherUriIdCount="
-		        + mMatcherUriIdCount + "]";
-	}
+        delegateClassName = delegateClassName.replaceAll("Delegate", "").replaceAll("ContentProvider", "");
+        delegateClassName = delegateClassName + "ContentProvider";
+
+        return delegateClassName;
+    }
+
+    /**
+     * Gets the set of delegate methods declared in this delegate class.
+     * 
+     * @return The set of delegate methods declared in this delegate class.
+     */
+    public Set<DelegateMethod> getDelegateMethods() {
+        return Collections.unmodifiableSet(mDelegateMethods);
+    }
+
+    /**
+     * Gets the registered interceptor on this class.
+     * 
+     * @return The registered interceptor on this class.
+     */
+    public Set<Interceptor> getRegisteredInterceptors() {
+        
+        return Collections.unmodifiableSet(mRegisteredInterceptors);
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "DelegateClass [mQualifiedName=" + mQualifiedName + ", mSimpleName=" + mSimpleName
+                + ", delegateMethods=" + mUriIdToDelegateMethodsRegistry + ", mMactherUris=" + mMactherUris
+                + ", mDelegateUris=" + mDelegateUris + ", authority=" + mAuthority + ", mMatcherUriIdCount="
+                + mMatcherUriIdCount + "]";
+    }
 }

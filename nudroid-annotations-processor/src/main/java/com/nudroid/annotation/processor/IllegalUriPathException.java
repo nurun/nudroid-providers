@@ -5,7 +5,7 @@ package com.nudroid.annotation.processor;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class IllegalUriPathException extends RuntimeException {
+public class IllegalUriPathException extends AnnotationProcessorException {
 
     private static final long serialVersionUID = -2659207723560471364L;
 
