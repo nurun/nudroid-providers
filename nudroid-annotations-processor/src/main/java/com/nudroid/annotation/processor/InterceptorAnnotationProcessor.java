@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,8 @@ import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
  * TODO: Add continuation for interceptors
  * <p/>
  * TODO: Check javadocs and necessary refactoring Processes interceptor annotations annotations on delegate methods.
+ * <p/>
+ * TODO: add validations and add interfaces for interceptors.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -49,12 +52,16 @@ class InterceptorAnnotationProcessor {
 	 *            The round environment to process.
 	 * @param metadata
 	 *            The annotation metadata for the processor.
+	 * @param continuation
+	 *            The continuation object for this processor.
 	 */
 	@SuppressWarnings("unchecked")
-	public void process(RoundEnvironment roundEnv, Metadata metadata) {
+	public void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
 
-		Set<TypeElement> interceptorAnnotations = (Set<TypeElement>) roundEnv
-		        .getElementsAnnotatedWith(ProviderInterceptorPoint.class);
+		Set<TypeElement> interceptorAnnotations = new HashSet<TypeElement>();
+		interceptorAnnotations.addAll((Collection<? extends TypeElement>) roundEnv
+		        .getElementsAnnotatedWith(ProviderInterceptorPoint.class));
+		interceptorAnnotations.addAll(continuation.getInterceptorAnnotations());
 
 		mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
 		mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
@@ -64,10 +71,12 @@ class InterceptorAnnotationProcessor {
 
 		for (TypeElement interceptorAnnotation : interceptorAnnotations) {
 
-			Set<? extends Element> elementsAnnotatedWithInterceptor = roundEnv
-			        .getElementsAnnotatedWith(interceptorAnnotation);
+			Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
+			        interceptorAnnotation, roundEnv);
 			Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
 
+			continuation.addInterceptorAnnotation(interceptorAnnotation);
+			continuation.addInterceptorClasses(interceptorClassSet);
 			mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
 			        interceptorClassSet));
 

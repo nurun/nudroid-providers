@@ -3,7 +3,6 @@ package com.nudroid.annotation.processor;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Completion;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -11,9 +10,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -44,121 +40,104 @@ import javax.lang.model.util.Types;
 @SupportedOptions({ "com.nudroid.annotation.processor.log.level", "com.nudroid.annotation.processor.continuation.file" })
 public class ProviderAnnotationProcessor extends AbstractProcessor {
 
-    private LoggingUtils mLogger;
+	private static final String CONTINUATION_FILE_PROPERTY_NAME = "com.nudroid.annotation.processor.continuation.file";
 
-    private Elements elementUtils;
-    private Types typeUtils;
-    private boolean initialized = false;
+	private static final String LOG_LEVEL_PROPERTY_NAME = "com.nudroid.annotation.processor.log.level";
 
-    private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
-    private QueryAnnotationProcessor queryAnnotationProcessor;
-    private InterceptorAnnotationProcessor interceptorAnnotationProcessor;
+	private LoggingUtils mLogger;
 
-    private SourceCodeGenerator sourceCodeGenerator;
+	private Elements elementUtils;
+	private Types typeUtils;
+	private boolean initialized = false;
 
-    private int mRound = 0;
+	private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
+	private QueryAnnotationProcessor queryAnnotationProcessor;
+	private InterceptorAnnotationProcessor interceptorAnnotationProcessor;
 
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
-     */
-    @Override
-    public synchronized void init(ProcessingEnvironment env) {
+	private SourceCodeGenerator sourceCodeGenerator;
 
-        super.init(env);
+	private int mRound = 0;
 
-        String logLevel = env.getOptions().get("com.nudroid.annotation.processor.log.level");
+	private Continuation mContinuation;
 
-        if (logLevel == null) {
-            logLevel = System.getProperty("com.nudroid.annotation.processor.log.level");
-        }
+	/**
+	 * <p/>
+	 * {@inheritDoc}
+	 * 
+	 * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
+	 */
+	@Override
+	public synchronized void init(ProcessingEnvironment env) {
 
-        mLogger = new LoggingUtils(env.getMessager(), logLevel);
+		super.init(env);
 
-        String continuationFile = env.getOptions().get("com.nudroid.annotation.processor.log.level");
+		String logLevel = env.getOptions().get(LOG_LEVEL_PROPERTY_NAME);
 
-        if (continuationFile == null) {
-            continuationFile = System.getProperty("com.nudroid.annotation.processor.log.level");
-        }
+		if (logLevel == null) {
+			logLevel = System.getProperty(LOG_LEVEL_PROPERTY_NAME);
+		}
 
-        Continuation continuation = new Continuation(continuationFile);
-        continuation.loadContinuation();
+		mLogger = new LoggingUtils(env.getMessager(), logLevel);
 
-        mLogger.debug("Initializing nudroid persistence annotation processor.");
+		String continuationFile = env.getOptions().get(CONTINUATION_FILE_PROPERTY_NAME);
 
-        elementUtils = env.getElementUtils();
-        typeUtils = env.getTypeUtils();
+		if (continuationFile == null) {
+			continuationFile = System.getProperty(CONTINUATION_FILE_PROPERTY_NAME);
+		}
 
-        try {
-            initialized = true;
-            mLogger.debug("Initialization complete.");
-        } catch (Exception e) {
-            mLogger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
-            throw new AnnotationProcessorException(e);
-        }
+		mLogger.debug("Initializing nudroid persistence annotation processor.");
 
-        final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger, continuation);
-        contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
-        queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
-        interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
-        sourceCodeGenerator = new SourceCodeGenerator(processorContext);
-    }
+		elementUtils = env.getElementUtils();
+		typeUtils = env.getTypeUtils();
 
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
-     *      javax.annotation.processing.RoundEnvironment)
-     */
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		try {
+			initialized = true;
+			mLogger.debug("Initialization complete.");
+		} catch (Exception e) {
+			mLogger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
+			throw new AnnotationProcessorException(e);
+		}
 
-        mLogger.info("Starting provider annotation processor round " + ++mRound);
-        mLogger.trace("    Target classes " + roundEnv.getRootElements());
+		final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
+		mContinuation = new Continuation(processorContext, continuationFile);
+		mContinuation.loadContinuation();
+		contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
+		queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
+		interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
+		sourceCodeGenerator = new SourceCodeGenerator(processorContext);
+	}
 
-        if (!initialized) {
+	/**
+	 * <p/>
+	 * {@inheritDoc}
+	 * 
+	 * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
+	 *      javax.annotation.processing.RoundEnvironment)
+	 */
+	@Override
+	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-            mLogger.error("Annotation processor not initialized. Aborting.");
+		mLogger.info("Starting provider annotation processor round " + ++mRound);
+		mLogger.trace("    Target classes " + roundEnv.getRootElements());
 
-            return false;
-        }
+		if (!initialized) {
 
-        Metadata metadata = new Metadata();
-        contentProviderDelegateAnnotationProcessor.process(roundEnv, metadata);
-        queryAnnotationProcessor.process(roundEnv, metadata);
-        interceptorAnnotationProcessor.process(roundEnv, metadata);
+			mLogger.error("Annotation processor not initialized. Aborting.");
 
-        sourceCodeGenerator.generateCompanionSourceCode(metadata);
+			return false;
+		}
 
-        return true;
-    }
+		Metadata metadata = new Metadata();
+		contentProviderDelegateAnnotationProcessor.process(roundEnv, metadata);
+		queryAnnotationProcessor.process(roundEnv, metadata);
+		interceptorAnnotationProcessor.process(roundEnv, metadata, mContinuation);
 
-    @Override
-    public Set<String> getSupportedOptions() {
-        // TODO Auto-generated method stub
-        return super.getSupportedOptions();
-    }
+		sourceCodeGenerator.generateCompanionSourceCode(metadata);
+		
+		if (roundEnv.processingOver()) {
+			mContinuation.saveContinuation();
+		}
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        // TODO Auto-generated method stub
-        return super.getSupportedAnnotationTypes();
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        // TODO Auto-generated method stub
-        return super.getSupportedSourceVersion();
-    }
-
-    @Override
-    public Iterable<? extends Completion> getCompletions(Element element, AnnotationMirror annotation,
-            ExecutableElement member, String userText) {
-        // TODO Auto-generated method stub
-        return super.getCompletions(element, annotation, member, userText);
-    }
-
+		return true;
+	}
 }
