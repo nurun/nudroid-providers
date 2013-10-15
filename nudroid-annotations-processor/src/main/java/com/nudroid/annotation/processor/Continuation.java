@@ -21,10 +21,11 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
 /**
- * Manages continuation information. On modern IDEs, compilation can be incremental (i.e. only the modified classes are
- * compiled on a round). Since the processor requires metadata extracted from other source files, which might not be
- * included in a particular compilation round on an IDE, not all information might be available. This continuation
- * utility class manages a store of processed elements from past compilations.
+ * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
+ * modified classes are compiled on a round). Since the processor requires metadata extracted from other source files,
+ * which might not be included in a particular compilation round on an IDE, not all information might be available to
+ * Nudroid's annotation processor. This continuation utility class manages a store of processed elements from past
+ * compilations.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -32,7 +33,7 @@ public class Continuation {
 
 	private static final String INTERCEPTOR_ANNOTTIONS_PROPERTY_KEY = "com.nudroid.annotation.processor.continuation.interceptor.annotations";
 	private static final String INTERCEPTOR_CLASSES_PROPERTY_KEY = "com.nudroid.annotation.processor.continuation.interceptor.classes";
-	private File mFile;
+	private File mContinuationFile;
 	private Set<TypeElement> mInterceptorAnnotationTypes = new HashSet<TypeElement>();
 	private Set<TypeElement> mInterceptorClassTypes = new HashSet<TypeElement>();
 	private LoggingUtils mLogger;
@@ -40,7 +41,7 @@ public class Continuation {
 	private Types mTypeUtils;
 
 	/**
-	 * Creates an instance of this class.
+	 * Creates a new continuation.
 	 * 
 	 * @param continuationFile
 	 *            The path for the continuation file.
@@ -48,7 +49,7 @@ public class Continuation {
 	public Continuation(ProcessorContext processorContext, String continuationFile) {
 
 		if (continuationFile != null) {
-			this.mFile = new File(continuationFile);
+			this.mContinuationFile = new File(continuationFile);
 		}
 
 		this.mLogger = processorContext.logger;
@@ -61,26 +62,35 @@ public class Continuation {
 	 */
 	public void loadContinuation() {
 
-		if (mFile == null) {
+		if (mContinuationFile == null) {
 
-			mLogger.debug(String.format("    Continuation file not ptovided. Skipping continuation.", mFile));
+			mLogger.debug(String
+			        .format("    Continuation file not ptovided. Skipping continuation.", mContinuationFile));
 			return;
 		}
 
-		if (!mFile.exists()) {
+		if (!mContinuationFile.exists()) {
 
-			mLogger.debug(String.format("    Continuation file not found. First compilation interation.", mFile));
+			mLogger.debug(String.format("    Continuation file not found. First compilation interation.",
+			        mContinuationFile));
 			return;
 		}
 
-		mLogger.debug(String.format("    Continuation file found. Loading continuation information.", mFile));
+		mLogger.debug(String
+		        .format("    Continuation file found. Loading continuation information.", mContinuationFile));
 
 		Properties continuationProperties = new Properties();
 
+		FileReader fileReader = null;
+
 		try {
-			continuationProperties.load(new FileReader(mFile));
+			fileReader = new FileReader(mContinuationFile);
+			continuationProperties.load(fileReader);
 		} catch (IOException e) {
-			throw new IllegalStateException(String.format("Error while loading continuation file '%s'.", mFile), e);
+			throw new IllegalStateException(String.format("Error while loading continuation file '%s'.",
+			        mContinuationFile), e);
+		} finally {
+			FileUtils.close(fileReader);
 		}
 
 		Splitter splitter = Splitter.on(",").omitEmptyStrings().trimResults();
@@ -132,31 +142,35 @@ public class Continuation {
 	 */
 	public void saveContinuation() {
 
-		if (mFile == null) {
+		if (mContinuationFile == null) {
 
-			mLogger.debug(String.format("    Continuation file not ptovided. Skipping continuation.", mFile));
+			mLogger.debug(String
+			        .format("    Continuation file not ptovided. Skipping continuation.", mContinuationFile));
 			return;
 		}
+
+		FileWriter fileWriter = null;
 
 		try {
 
 			mLogger.trace("    Checking for presence of existing continuation files.");
-			if (mFile.exists()) {
+			if (mContinuationFile.exists()) {
 
-				boolean wasDeleted = mFile.delete();
+				boolean wasDeleted = mContinuationFile.delete();
 
 				if (!wasDeleted) {
 
-					throw new IOException(String.format("Unable to delete existing continuation file '%s'", mFile));
+					throw new IOException(String.format("Unable to delete existing continuation file '%s'",
+					        mContinuationFile));
 				}
 
 				mLogger.trace("    File existed and has been successfully deleted.");
 			}
 
-			if (mFile.getParentFile() != null) {
+			if (mContinuationFile.getParentFile() != null) {
 
 				mLogger.trace("    Creating continuation file parent dirs.");
-				mFile.getParentFile().mkdirs();
+				mContinuationFile.getParentFile().mkdirs();
 				mLogger.trace("    Done.");
 			}
 
@@ -182,11 +196,14 @@ public class Continuation {
 			continuationProperties.put(INTERCEPTOR_ANNOTTIONS_PROPERTY_KEY, joiner.join(interceptorAnnotationNames));
 			continuationProperties.put(INTERCEPTOR_CLASSES_PROPERTY_KEY, joiner.join(interceptorClassNames));
 
-			continuationProperties.store(new FileWriter(mFile), "");
+			fileWriter = new FileWriter(mContinuationFile);
+			continuationProperties.store(fileWriter, "");
 		} catch (Exception e) {
 
-			mLogger.error(String.format("    Error processing continuation index file %s'", mFile));
+			mLogger.error(String.format("    Error processing continuation index file %s'", mContinuationFile));
 			throw new AnnotationProcessorException(e);
+		} finally {
+			FileUtils.close(fileWriter);
 		}
 	}
 
