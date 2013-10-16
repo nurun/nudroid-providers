@@ -1,11 +1,19 @@
 /*
  * =================================================================================================================
+ * Configures the dependencies for the build script itself.
+ */
+buildscript {
+    repositories { mavenCentral() }
+
+    dependencies { classpath 'com.android.tools.build:gradle:0.6.1' }
+}
+
+/*
+ * =================================================================================================================
  * subprojects
  * Base configuration for all projects.
  */
-allprojects {
-	apply plugin: 'eclipse'
-}
+allprojects { apply plugin: 'eclipse' }
 
 /*
  * =================================================================================================================
@@ -14,37 +22,49 @@ allprojects {
  */
 subprojects {
 
-	apply plugin: "java"
-	apply plugin: 'maven'
-	apply from:   '../emma.gradle'
+    apply plugin: "java"
+    apply plugin: 'maven'
+    apply from:   '../emma.gradle'
 
-	version = '1.0-SNAPSHOT'
-	group = 'com.nudroid.persistence'
-	sourceCompatibility = JavaVersion.VERSION_1_6
-	targetCompatibility = JavaVersion.VERSION_1_6
-	
-	configurations { compileOnly }
+    version = '1.0-SNAPSHOT'
+    group = 'com.nudroid.persistence'
+    sourceCompatibility = JavaVersion.VERSION_1_6
+    targetCompatibility = JavaVersion.VERSION_1_6
 
-	repositories {
-    	mavenCentral()
-    	maven {
-        	url 'http://repo.springsource.org/libs-release'
-        	url 'http://repo.springsource.org/libs-milestone'
-    	}
-	}
+    configurations { compileOnly }
 
-	dependencies {
-    	testCompile 'org.testng:testng:6.8.5'
-    	testCompile 'org.mockito:mockito-all:1.9.5'
-	}
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://repo.springsource.org/libs-release'
+            url 'http://repo.springsource.org/libs-milestone'
+        }
+    }
 
-	test { useTestNG() }
-	
-	sourceSets.main.compileClasspath += configurations.compileOnly
-    
-    eclipse.classpath.plusConfigurations += [ configurations.compileOnly ]
+    dependencies {
+        testCompile 'org.testng:testng:6.8.5'
+        testCompile 'org.mockito:mockito-all:1.9.5'
+    }
+
+    test { useTestNG() }
+
+    sourceSets.main.compileClasspath += configurations.compileOnly
+
+    eclipse.classpath.plusConfigurations += [configurations.compileOnly]
 }
+/*
+ * =================================================================================================================
+ * nudroid-provider-interceptors
+ * Configuration for nudroid-provider-interceptors
+ */
+project(':nudroid-provider-interceptors') {
 
+    dependencies {
+        compile project(':nudroid-annotations')
+        compileOnly 'com.google.android:android:2.2.1'
+    }
+    
+}
 /*
  * =================================================================================================================
  * nudroid-annotations-processor
@@ -53,7 +73,7 @@ subprojects {
 project(':nudroid-annotations-processor') {
 
     dependencies {
-    	compile project(':nudroid-annotations')
+        compile project(':nudroid-annotations')
         compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.apache.velocity:velocity:1.7'
     }
@@ -63,15 +83,19 @@ project(':nudroid-annotations-processor') {
  * nudroid-annotations-processor-all
  * Configuration for nudroid-annotations-processor-all.
  */
-project(':nudroid-annotations-processor:nudroid-annotations-processor-all') {
+project(':nudroid-annotations-processor-all') {
 
     dependencies {
         compileOnly project(':nudroid-annotations-processor')
         compileOnly 'org.apache.velocity:velocity:1.7'
         compileOnly 'com.google.guava:guava:15.0'
     }
-    
+
     jar {
-        from { configurations.compileOnly.collect { it.isDirectory() ? it : zipTree(it) } }
+        from {
+            configurations.compileOnly.collect {
+                it.isDirectory() ? it : zipTree(it)
+            }
+        }
     }
 }

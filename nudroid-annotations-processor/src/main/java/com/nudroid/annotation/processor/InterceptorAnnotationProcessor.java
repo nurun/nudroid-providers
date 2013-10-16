@@ -20,8 +20,6 @@ import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 
 /**
- * TODO: Add continuation for interceptors
- * <p/>
  * TODO: Check javadocs and necessary refactoring Processes interceptor annotations annotations on delegate methods.
  * <p/>
  * TODO: add validations and add interfaces for interceptors.
