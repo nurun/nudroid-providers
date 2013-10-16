@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * Flags which parameter from a content provider delegate method will be passed the reference for the selection String
  * provided to the original content provider method.
  * <p/>
- * This annotation can only be used in conjunction with {@link Query}, {@link Update} or {@link Delete} annotated
+ * This annotation bears meaning only on {@link Query}, {@link Update} or {@link Delete} annotated
  * methods.
  * 
  * <p/>

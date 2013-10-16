@@ -30,6 +30,7 @@ public class DelegateClass {
     private Map<Integer, Set<DelegateMethod>> mUriIdToDelegateMethodsRegistry = new HashMap<Integer, Set<DelegateMethod>>();
     private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
     private int mMatcherUriIdCount = 0;
+    private TypeElement mTypeElement;
 
     /**
      * Creates an instance of this class.
@@ -42,6 +43,7 @@ public class DelegateClass {
      */
     public DelegateClass(String authorityName, TypeElement element) {
 
+        this.mTypeElement = element;
         this.mQualifiedName = element.toString();
         this.mSimpleName = element.getSimpleName().toString();
         this.mAuthority = new Authority(authorityName);
@@ -111,6 +113,15 @@ public class DelegateClass {
     public void registerInterceptor(Interceptor interceptor) {
 
         mRegisteredInterceptors.add(interceptor);
+    }
+
+    /**
+     * Gets the {@link TypeElement} mapped by this class.
+     * 
+     * @return The {@link TypeElement} mapped by this class.
+     */
+    public TypeElement getTypeElement() {
+        return mTypeElement;
     }
 
     /**
@@ -213,7 +224,7 @@ public class DelegateClass {
      * @return The registered interceptor on this class.
      */
     public Set<Interceptor> getRegisteredInterceptors() {
-        
+
         return Collections.unmodifiableSet(mRegisteredInterceptors);
     }
 

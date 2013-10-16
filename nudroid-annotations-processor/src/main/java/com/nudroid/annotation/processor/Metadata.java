@@ -32,7 +32,7 @@ class Metadata {
      * @param delegateClassType
      *            The delegate class responsible for handling the authority.
      */
-    public void registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
+    void registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
 
         final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
         mRegisteredAuthorities.put(authorityName, delegateClass);
@@ -48,7 +48,7 @@ class Metadata {
      * @param delagateMethod
      *            The delegate method.
      */
-    public void registerDelegateMethod(ExecutableElement executableElement, DelegateMethod delagateMethod) {
+    void registerDelegateMethod(ExecutableElement executableElement, DelegateMethod delagateMethod) {
 
         mRegisteredDelegateMethods.put(executableElement, delagateMethod);
     }
@@ -58,7 +58,7 @@ class Metadata {
      * 
      * @return The set of delegate classes to generate source code to.
      */
-    public Set<DelegateClass> getDelegateClasses() {
+    Set<DelegateClass> getDelegateClasses() {
 
         return Collections.unmodifiableSet(mDelegateClasses);
     }
@@ -72,7 +72,7 @@ class Metadata {
      * @return The {@link DelegateClass} responsible for handling the given authority. <tt>null</tt> if the authority
      *         name has not yet been registered.
      */
-    public DelegateClass getDelegateClassForAuthority(String authorityName) {
+    DelegateClass getDelegateClassForAuthority(String authorityName) {
 
         return mRegisteredAuthorities.get(authorityName);
     }
@@ -86,7 +86,7 @@ class Metadata {
      * @return The {@link DelegateClass} for the {@link TypeElement}, or <tt>null</tt> the type element is not a
      *         delegate class.
      */
-    public DelegateClass getDelegateClassForTypeElement(TypeElement typeElement) {
+    DelegateClass getDelegateClassForTypeElement(TypeElement typeElement) {
 
         return mRegisteredDelegateClasses.get(typeElement);
     }
@@ -99,7 +99,7 @@ class Metadata {
      * @return The {@link DelegateMethod} for the {@link ExecutableElement}, or <tt>null</tt> if the executable element
      *         is not a delegate method.
      */
-    public DelegateMethod getDelegateMethodForElement(ExecutableElement executableElement) {
+    DelegateMethod getDelegateMethodForElement(ExecutableElement executableElement) {
 
         return mRegisteredDelegateMethods.get(executableElement);
     }

@@ -4,8 +4,6 @@
  */
 buildscript {
     repositories { mavenCentral() }
-
-    dependencies { classpath 'com.android.tools.build:gradle:0.6.1' }
 }
 
 /*
@@ -26,8 +24,8 @@ subprojects {
     apply plugin: 'maven'
     apply from:   '../emma.gradle'
 
-    version = '1.0-SNAPSHOT'
-    group = 'com.nudroid.persistence'
+    version = '2.0-MILESTONE-1-SNAPSHOT'
+    group = 'com.nudroid'
     sourceCompatibility = JavaVersion.VERSION_1_6
     targetCompatibility = JavaVersion.VERSION_1_6
 
@@ -52,19 +50,28 @@ subprojects {
 
     eclipse.classpath.plusConfigurations += [configurations.compileOnly]
 }
+
+/*
+ * =================================================================================================================
+ * nudroid-provider-interceptors
+ * Configuration for nudroid-provider-interceptors
+ */
+project(':nudroid-annotations') {
+}
+
 /*
  * =================================================================================================================
  * nudroid-provider-interceptors
  * Configuration for nudroid-provider-interceptors
  */
 project(':nudroid-provider-interceptors') {
-
     dependencies {
         compile project(':nudroid-annotations')
         compileOnly 'com.google.android:android:2.2.1'
     }
     
 }
+
 /*
  * =================================================================================================================
  * nudroid-annotations-processor
@@ -78,6 +85,7 @@ project(':nudroid-annotations-processor') {
         compileOnly 'org.apache.velocity:velocity:1.7'
     }
 }
+
 /*
  * =================================================================================================================
  * nudroid-annotations-processor-all

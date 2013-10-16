@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
  * Flags which parameter from a content provider delegate method will be passed the reference for the Uri provided to
  * the original content provider method.
  * <p/>
- * This annotation can only be used in conjunction with {@link Query}, {@link Update}, {@link Insert} or {@link Delete}
- * annotated methods.
+ * This annotation bears meaning only on {@link Query}, {@link Update}, {@link Insert} or {@link Delete} annotated
+ * methods.
  * 
  * <p/>
  * Example usage:

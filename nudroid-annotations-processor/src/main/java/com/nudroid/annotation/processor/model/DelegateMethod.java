@@ -121,7 +121,7 @@ public class DelegateMethod {
      */
     public int getUriId() {
 
-        return uri.getmId();
+        return uri.getId();
     }
 
     /**

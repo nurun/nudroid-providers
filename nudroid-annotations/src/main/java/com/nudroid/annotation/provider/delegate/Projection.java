@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * Flags which parameter from a content provider delegate method will be passed the reference for the String array
  * instance containing the projection provided to the original content provider method.
  * <p/>
- * This annotation can only be used in conjunction with {@link Query} annotated methods.
+ * This annotation bears meaning only on {@link Query} annotated methods.
  * 
  * <p/>
  * Example usage:

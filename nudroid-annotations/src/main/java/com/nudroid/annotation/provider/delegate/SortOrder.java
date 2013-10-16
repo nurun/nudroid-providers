@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * Flags which parameter from a content provider delegate method will be passed the sort order provided to the original
  * content provider method.
  * <p/>
- * This annotation can only be used in conjunction with {@link Query} annotated methods.
+ * This annotation bears meaning only on {@link Query} annotated methods.
  * 
  * <p/>
  * Example usage:

@@ -5,7 +5,7 @@ import java.net.URI;
 import com.nudroid.annotation.processor.IllegalUriPathException;
 
 /**
- * Represents a URI mapped to be by a UriMatcher.
+ * Represents a URI to be mapped by a UriMatcher.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -121,6 +121,12 @@ public class MatcherUri {
 		return true;
 	}
 
+	/**
+	 * 
+	 * <p/>
+	 * {@inheritDoc}
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return "MatcherUri [id=" + id + ", mAuthority=" + mAuthority + ", mPath=" + mPath + "]";

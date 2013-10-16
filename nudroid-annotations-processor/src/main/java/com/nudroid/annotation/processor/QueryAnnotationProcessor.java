@@ -17,7 +17,6 @@ import com.nudroid.annotation.processor.model.DelegateUri;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
 import com.nudroid.annotation.provider.delegate.ContentUri;
-import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -37,7 +36,6 @@ class QueryAnnotationProcessor {
 
     private TypeMirror mStringType;
     private TypeMirror mArrayOfStringsType;
-    private TypeMirror mContentValuesType;
     private TypeMirror mUriType;
     private Types mTtypeUtils;
 
@@ -54,7 +52,6 @@ class QueryAnnotationProcessor {
 
         mStringType = processorContext.elementUtils.getTypeElement("java.lang.String").asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-        mContentValuesType = processorContext.elementUtils.getTypeElement("android.content.ContentValues").asType();
         mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
     }
 
@@ -67,7 +64,7 @@ class QueryAnnotationProcessor {
      *            The annotation metadata for the processor.
      */
     @SuppressWarnings("unchecked")
-    public void process(RoundEnvironment roundEnv, Metadata metadata) {
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         Set<ExecutableElement> queryMethods = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(Query.class);
 
@@ -152,7 +149,6 @@ class QueryAnnotationProcessor {
             if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
             if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
             if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
-            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
             if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
             if (mTtypeUtils.isSameType(methodParameter.asType(), mStringType)) parameter.setString(true);
 
@@ -202,8 +198,6 @@ class QueryAnnotationProcessor {
                     mArrayOfStringsType, accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, ContentValuesRef.class, parameterType,
-                    mContentValuesType, accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
                     accumulatedAnnotations);
 

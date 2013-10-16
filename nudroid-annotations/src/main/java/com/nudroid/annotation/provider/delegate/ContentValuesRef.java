@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * Flags which parameter from a content provider delegate method will be passed the reference for the ContentValues
  * instance provided to the original content provider method.
  * <p/>
- * This annotation can only be used in conjunction with {@link Update} or {@link Insert} annotated methods.
+ * This annotation bears meaning only on {@link Update} or {@link Insert} annotated methods.
  * 
  * <p/>
  * Example usage:
