@@ -1,6 +1,5 @@
 package com.nudroid.annotation.processor;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,12 +51,16 @@ class InterceptorAnnotationProcessor {
      * @param continuation
      *            The continuation object for this processor.
      */
-    @SuppressWarnings("unchecked")
     void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
 
-        Set<TypeElement> interceptorAnnotations = new HashSet<TypeElement>();
-        interceptorAnnotations.addAll((Collection<? extends TypeElement>) roundEnv
-                .getElementsAnnotatedWith(ProviderInterceptorPoint.class));
+        /*
+         * Do not assume that because the @ProviderInterceptorPoint annotation can only be applied to annotation types,
+         * only TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation
+         * is applied to other elements even if it is correctly applied to a class, causing a class cast exception in
+         * the for loop below.
+         */
+        Set<Element> interceptorAnnotations = new HashSet<Element>();
+        interceptorAnnotations.addAll(roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class));
         interceptorAnnotations.addAll(continuation.getInterceptorAnnotations());
 
         mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
@@ -66,35 +69,39 @@ class InterceptorAnnotationProcessor {
 
         Set<Interceptor> interceptors = new HashSet<Interceptor>();
 
-        for (TypeElement interceptorAnnotation : interceptorAnnotations) {
+        for (Element interceptorAnnotation : interceptorAnnotations) {
 
-            Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
-                    interceptorAnnotation, roundEnv);
-            Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
+            if (interceptorAnnotation instanceof TypeElement) {
 
-            continuation.addInterceptorAnnotation(interceptorAnnotation);
-            continuation.addInterceptorClasses(interceptorClassSet);
-            mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
-                    interceptorClassSet));
+                Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
+                        (TypeElement) interceptorAnnotation, roundEnv);
+                Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
 
-            if (interceptorClassSet.size() > 1) {
-                mLogger.trace(String.format(
-                        "    Multiple interceptors for annotation %s. Signaling compilatoin error.",
-                        interceptorAnnotation));
+                continuation.addInterceptorAnnotation((TypeElement) interceptorAnnotation);
+                continuation.addInterceptorClasses(interceptorClassSet);
+                mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
+                        interceptorClassSet));
 
-                for (TypeElement interceptorClass : interceptorClassSet) {
+                if (interceptorClassSet.size() > 1) {
+                    mLogger.trace(String.format(
+                            "    Multiple interceptors for annotation %s. Signaling compilatoin error.",
+                            interceptorAnnotation));
 
-                    mLogger.error(String.format("    Only one interceptor class for annotation %s is supported."
-                            + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
-                            interceptorClass);
+                    for (TypeElement interceptorClass : interceptorClassSet) {
+
+                        mLogger.error(String.format("    Only one interceptor class for annotation %s is supported."
+                                + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
+                                interceptorClass);
+                    }
+
+                    continue;
                 }
 
-                continue;
-            }
+                if (interceptorClassSet.size() == 1) {
 
-            if (interceptorClassSet.size() == 1) {
-
-                interceptors.add(new Interceptor(interceptorAnnotation, interceptorClassSet.iterator().next()));
+                    interceptors.add(new Interceptor((TypeElement) interceptorAnnotation, interceptorClassSet
+                            .iterator().next()));
+                }
             }
         }
 
