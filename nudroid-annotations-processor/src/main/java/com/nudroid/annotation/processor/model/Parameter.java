@@ -2,6 +2,7 @@ package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
+import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.QueryParam;
@@ -16,6 +17,7 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
  */
 public class Parameter {
 
+    private boolean mContext;
     private boolean mProjection;
     private boolean mSelection;
     private boolean mSelectionArgs;
@@ -27,6 +29,15 @@ public class Parameter {
     private boolean mQueryParam;
     private String mPathParamPosition;
     private String mQueryParameterName;
+
+    /**
+     * The parameter is annotated with {@link ContextRef}.
+     * 
+     * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
+     */
+    public boolean isContext() {
+        return mContext;
+    }
 
     /**
      * The parameter is annotated with {@link Projection}.
@@ -74,15 +85,15 @@ public class Parameter {
     }
 
     /**
-	 * The parameter is a annotated with {@link ContentUri}.
-	 * 
-	 * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
-	 */
-	public boolean isContentUri() {
-	    return mContentUri;
-	}
+     * The parameter is a annotated with {@link ContentUri}.
+     * 
+     * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
+     */
+    public boolean isContentUri() {
+        return mContentUri;
+    }
 
-	/**
+    /**
      * The parameter is of type {@link String}.
      * 
      * @return <tt>true</tt> if {@link String}, <tt>false</tt> otherwise.
@@ -128,6 +139,17 @@ public class Parameter {
     }
 
     /**
+     * Sets if this parameter is annotated with {@link ContextRef}.
+     * 
+     * @param projection
+     *            If the parameter is annotated or not.
+     */
+    public void setContext(boolean context) {
+
+        this.mContext = context;
+    }
+
+    /**
      * Sets if this parameter is annotated with {@link Projection}.
      * 
      * @param projection
@@ -163,7 +185,7 @@ public class Parameter {
      * @param mProjection
      *            If the parameter is annotated or not.
      */
-	public void setSortOrder(boolean sortOrder) {
+    public void setSortOrder(boolean sortOrder) {
         this.mSortOrder = sortOrder;
     }
 
@@ -178,16 +200,16 @@ public class Parameter {
     }
 
     /**
-	 * Sets if this parameter is annotated with {@link ContentUri}.
-	 * 
-	 * @param mProjection
-	 *            If the parameter is annotated or not.
-	 */
-	public void setContentUri(boolean contentUri) {
-	    this.mContentUri = contentUri;
-	}
+     * Sets if this parameter is annotated with {@link ContentUri}.
+     * 
+     * @param mProjection
+     *            If the parameter is annotated or not.
+     */
+    public void setContentUri(boolean contentUri) {
+        this.mContentUri = contentUri;
+    }
 
-	/**
+    /**
      * Sets if this parameter is of type {@link String}.
      * 
      * @param mProjection
@@ -238,15 +260,18 @@ public class Parameter {
     }
 
     /**
+     * 
+     * <p/>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "Parameter [projection=" + mProjection + ", selection=" + mSelection + ", selectionArgs=" + mSelectionArgs
-                + ", sortOrder=" + mSortOrder + ", contentValues=" + mContentValues + ", contentUri=" + mContentUri
-                + ", string=" + mString + ", pathParam=" + mPathParam + ", queryParam=" + mQueryParam
-                + ", pathParamPosition=" + mPathParamPosition + ", queryParameterName=" + mQueryParameterName + "]";
+        return "Parameter [mContext=" + mContext + ", mProjection=" + mProjection + ", mSelection=" + mSelection
+                + ", mSelectionArgs=" + mSelectionArgs + ", mSortOrder=" + mSortOrder + ", mContentValues="
+                + mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mPathParam="
+                + mPathParam + ", mQueryParam=" + mQueryParam + ", mPathParamPosition=" + mPathParamPosition
+                + ", mQueryParameterName=" + mQueryParameterName + "]";
     }
 }

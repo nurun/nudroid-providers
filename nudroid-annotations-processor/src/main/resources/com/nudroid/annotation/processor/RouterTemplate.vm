@@ -34,7 +34,9 @@ queryParameterNames.size() == $methodParameterNames.size()##
 ##-----------------------------------------------------------------
 #macro( generateParamsList $paramaters )
 #foreach( $parameter in $paramaters )
-#if(     $parameter.isProjection() )
+#if(     $parameter.isContext() )
+context#delimiterIfNeeded( $velocityCount $paramaters ", " )
+#elseif(     $parameter.isProjection() )
 projection#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isSelection() )
 selection#delimiterIfNeeded( $velocityCount $paramaters ", " )
@@ -68,6 +70,7 @@ uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $
 ##
 package com.nudroid.provider;
 
+import android.content.Context;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -109,7 +112,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
      *      java.lang.String, java.lang.String[], java.lang.String)
      */]]#
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(Context context, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
         java.util.Set<String> queryParameterNames = uri.getQueryParameterNames();
     
@@ -150,7 +153,7 @@ public class ${delegateClass.getSimpleName()}Router {
 #[[    /**
      * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
      */]]#
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(Context context, Uri uri, ContentValues values) {
 
         return null;
     }
@@ -159,7 +162,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
      *      java.lang.String, java.lang.String[])
      */]]#
-    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+    public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -168,7 +171,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
      *      java.lang.String[])
      */]]#
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
+    public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -176,7 +179,7 @@ public class ${delegateClass.getSimpleName()}Router {
 #[[    /**
      * @see     android.content.ContentProvider#getType(android.net.Uri)
      */]]#
-    public String getType(Uri uri) {
+    public String getType(Context context, Uri uri) {
 
         return null;
     }

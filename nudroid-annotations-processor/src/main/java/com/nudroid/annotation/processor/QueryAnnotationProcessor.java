@@ -11,6 +11,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import android.content.Context;
 import android.net.Uri;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
@@ -19,6 +20,7 @@ import com.nudroid.annotation.processor.model.DelegateUri;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
+import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -36,6 +38,7 @@ class QueryAnnotationProcessor {
 
     private LoggingUtils mLogger;
 
+    private TypeMirror mContextType;
     private TypeMirror mStringType;
     private TypeMirror mArrayOfStringsType;
     private TypeMirror mUriType;
@@ -52,6 +55,7 @@ class QueryAnnotationProcessor {
         this.mTtypeUtils = processorContext.typeUtils;
         this.mLogger = processorContext.logger;
 
+        mContextType = processorContext.elementUtils.getTypeElement(Context.class.getName()).asType();
         mStringType = processorContext.elementUtils.getTypeElement(String.class.getName()).asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
         mUriType = processorContext.elementUtils.getTypeElement(Uri.class.getName()).asType();
@@ -76,14 +80,13 @@ class QueryAnnotationProcessor {
         for (ExecutableElement queryMethod : queryMethods) {
 
             TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
-            ContentProvider contentProviderDelegateAnnotation = enclosingClass
-                    .getAnnotation(ContentProvider.class);
+            ContentProvider contentProviderDelegateAnnotation = enclosingClass.getAnnotation(ContentProvider.class);
 
             if (contentProviderDelegateAnnotation == null) {
 
                 mLogger.error(
-                        String.format("Enclosing class must be annotated with @%s",
-                                ContentProvider.class.getName()), queryMethod);
+                        String.format("Enclosing class must be annotated with @%s", ContentProvider.class.getName()),
+                        queryMethod);
                 continue;
             }
 
@@ -147,6 +150,7 @@ class QueryAnnotationProcessor {
 
             Parameter parameter = new Parameter();
 
+            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext(true);
             if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
             if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
             if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
@@ -192,6 +196,8 @@ class QueryAnnotationProcessor {
 
             final TypeMirror parameterType = parameterElement.asType();
 
+            isValid = validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
+                    accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, Projection.class, parameterType,
                     mArrayOfStringsType, accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,

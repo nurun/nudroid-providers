@@ -62,16 +62,18 @@ class Continuation {
      */
     void loadContinuation() {
 
+        mLogger.trace("Loading continuation file.");
+        
         if (mContinuationFile == null) {
 
             mLogger.debug(String
-                    .format("    Continuation file not ptovided. Skipping continuation.", mContinuationFile));
+                    .format("Continuation file not ptovided. Skipping continuation.", mContinuationFile));
             return;
         }
 
         if (!mContinuationFile.exists()) {
 
-            mLogger.debug(String.format("    Continuation file not found. First compilation interation.",
+            mLogger.debug(String.format("Continuation file not found. First compilation interation.",
                     mContinuationFile));
             return;
         }
@@ -147,7 +149,7 @@ class Continuation {
         if (mContinuationFile == null) {
 
             mLogger.debug(String
-                    .format("    Continuation file not provided. Skipping continuation.", mContinuationFile));
+                    .format("Continuation file not provided. Skipping continuation.", mContinuationFile));
             return;
         }
 
