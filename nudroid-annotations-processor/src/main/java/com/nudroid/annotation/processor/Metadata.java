@@ -104,6 +104,10 @@ class Metadata {
         return mRegisteredDelegateMethods.get(executableElement);
     }
 
+    /**
+     * {@inheritDoc}
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         return "Metadata [\nmRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="

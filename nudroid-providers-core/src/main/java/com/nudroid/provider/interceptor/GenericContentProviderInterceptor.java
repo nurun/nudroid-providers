@@ -5,15 +5,33 @@ import android.database.Cursor;
 import android.net.Uri;
 
 /**
+ * A generic interceptor which can apply the same aspect to all types of delegate methods.
+ * <p/>
+ * Extending classes only need to implement the generic required abstract methods before and after.
+ * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public abstract class GenericContentProviderInterceptor implements ContentProviderInterceptor {
 
+    /**
+     * Called before target delegate method.
+     * 
+     * @param context
+     *            A parameter object with all parameters that are to be passed to the delegate method.
+     */
     public abstract <T> void before(ContentProviderContext<T> context);
 
-    public abstract <T> T after(ContentProviderContext<T> context);
+    /**
+     * Called after target delegate method.
+     * 
+     * @param result
+     *            The result returned by the target delegate method.
+     * @return The original result or a new result to replace the returned value.
+     */
+    public abstract <T> T after(T result);
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -27,21 +45,20 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(android.database.Cursor,
-     *      android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(android.database.Cursor)
      */
     @Override
-    public Cursor afterQuery(Cursor result, Uri uri, String[] projection, String selection, String[] selectionArgs,
-            String sortOrder) {
+    public Cursor afterQuery(Cursor result) {
 
-        return after(new ContentProviderContext<Cursor>(result, uri, projection, selection, selectionArgs, sortOrder,
-                null));
+        return after(null);
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -55,19 +72,20 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(int, android.net.Uri,
-     *      android.content.ContentValues, java.lang.String, java.lang.String[])
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(int)
      */
     @Override
-    public int afterUpdate(int result, Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int afterUpdate(int result) {
 
-        return after(new ContentProviderContext<Integer>(result, uri, null, selection, selectionArgs, null, values));
+        return after(null);
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -81,19 +99,20 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(android.net.Uri, android.net.Uri,
-     *      android.content.ContentValues)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(android.net.Uri)
      */
     @Override
-    public Uri afterInsert(Uri result, Uri uri, ContentValues values) {
+    public Uri afterInsert(Uri result) {
 
-        return after(new ContentProviderContext<Uri>(result, uri, null, null, null, null, values));
+        return after(null);
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -107,39 +126,15 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(int, android.net.Uri,
-     *      java.lang.String, java.lang.String[])
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(int)
      */
     @Override
-    public int afterDelete(int result, Uri uri, String selection, String[] selectionArgs) {
+    public int afterDelete(int result) {
 
-        return after(new ContentProviderContext<Integer>(result, uri, null, selection, selectionArgs, null, null));
-    }
-
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeGetType(android.net.Uri)
-     */
-    @Override
-    public void beforeGetType(Uri uri) {
-
-        before(new ContentProviderContext<Void>(null, uri, null, null, null, null, null));
-    }
-
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterGetType(java.lang.String, android.net.Uri)
-     */
-    @Override
-    public String afterGetType(String result, Uri uri) {
-
-        return after(new ContentProviderContext<String>(result, uri, null, null, null, null, null));
+        return after(null);
     }
 }

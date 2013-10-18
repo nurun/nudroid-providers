@@ -11,7 +11,9 @@ buildscript {
  * subprojects
  * Base configuration for all projects.
  */
-allprojects { apply plugin: 'eclipse' }
+allprojects {
+    apply plugin: 'eclipse'
+}
 
 /*
  * =================================================================================================================
@@ -49,6 +51,21 @@ subprojects {
     sourceSets.main.compileClasspath += configurations.compileOnly
 
     eclipse.classpath.plusConfigurations += [configurations.compileOnly]
+    
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+    
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+    
+    artifacts {
+        archives sourceJar
+        archives javadocJar
+    }
 }
 
 /*
@@ -64,12 +81,11 @@ project(':nudroid-annotations') {
  * nudroid-provider-interceptors
  * Configuration for nudroid-provider-interceptors
  */
-project(':nudroid-provider-interceptors') {
+project(':nudroid-providers-core') {
     dependencies {
         compile project(':nudroid-annotations')
         compileOnly 'com.google.android:android:2.2.1'
     }
-    
 }
 
 /*
