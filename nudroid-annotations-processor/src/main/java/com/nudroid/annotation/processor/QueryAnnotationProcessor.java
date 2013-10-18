@@ -11,11 +11,13 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import android.net.Uri;
+
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
 import com.nudroid.annotation.processor.model.Parameter;
-import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
@@ -50,9 +52,9 @@ class QueryAnnotationProcessor {
         this.mTtypeUtils = processorContext.typeUtils;
         this.mLogger = processorContext.logger;
 
-        mStringType = processorContext.elementUtils.getTypeElement("java.lang.String").asType();
+        mStringType = processorContext.elementUtils.getTypeElement(String.class.getName()).asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
+        mUriType = processorContext.elementUtils.getTypeElement(Uri.class.getName()).asType();
     }
 
     /**
@@ -74,14 +76,14 @@ class QueryAnnotationProcessor {
         for (ExecutableElement queryMethod : queryMethods) {
 
             TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
-            ContentProviderDelegate contentProviderDelegateAnnotation = enclosingClass
-                    .getAnnotation(ContentProviderDelegate.class);
+            ContentProvider contentProviderDelegateAnnotation = enclosingClass
+                    .getAnnotation(ContentProvider.class);
 
             if (contentProviderDelegateAnnotation == null) {
 
                 mLogger.error(
                         String.format("Enclosing class must be annotated with @%s",
-                                ContentProviderDelegate.class.getName()), queryMethod);
+                                ContentProvider.class.getName()), queryMethod);
                 continue;
             }
 

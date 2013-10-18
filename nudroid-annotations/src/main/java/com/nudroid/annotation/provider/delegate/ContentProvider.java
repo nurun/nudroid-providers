@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.SOURCE)
 @Documented
-public @interface ContentProviderDelegate {
+public @interface ContentProvider {
 
     /**
      * The name of the authority to be handled by the generated ContentProvider.

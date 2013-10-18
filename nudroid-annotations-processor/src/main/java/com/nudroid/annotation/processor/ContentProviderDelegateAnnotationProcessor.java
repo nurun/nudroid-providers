@@ -8,19 +8,21 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.provider.delegate.ContentProviderDelegate;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 /**
- * Processes the {@link ContentProviderDelegate} annotation on a {@link TypeElement}.
+ * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class ContentProviderDelegateAnnotationProcessor {
 
     private LoggingUtils mLogger;
+    private TypeMirror mDelegateType;
 
     /**
      * Creates an instance of this class.
@@ -31,10 +33,12 @@ class ContentProviderDelegateAnnotationProcessor {
     ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
+        mDelegateType = processorContext.elementUtils.getTypeElement(
+                com.nudroid.provider.delegate.ContentProviderDelegate.class.getName()).asType();
     }
 
     /**
-     * Process the {@link ContentProviderDelegate} annotations on this round.
+     * Process the {@link ContentProvider} annotations on this round.
      * 
      * @param roundEnv
      *            The round environment to process.
@@ -49,11 +53,11 @@ class ContentProviderDelegateAnnotationProcessor {
          * applied to other elements even if it is correctly applied to a class, causing a class cast exception in the
          * for loop below.
          */
-        Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProviderDelegate.class);
+        Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
 
-        mLogger.info(String.format("Start processing @%s annotations.", ContentProviderDelegate.class.getSimpleName()));
+        mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
         mLogger.trace(String.format("    Classes annotated with @%s for the round: %s ",
-                ContentProviderDelegate.class.getSimpleName(), delegateClassTypes));
+                ContentProvider.class.getSimpleName(), delegateClassTypes));
 
         for (Element delegateClassType : delegateClassTypes) {
 
@@ -64,34 +68,34 @@ class ContentProviderDelegateAnnotationProcessor {
             }
         }
 
-        mLogger.info(String.format("Done processing @%s annotations.", ContentProviderDelegate.class.getSimpleName()));
+        mLogger.info(String.format("Done processing @%s annotations.", ContentProvider.class.getSimpleName()));
     }
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        ContentProviderDelegate contentProviderDelegateAnnotation = delegateClassType
-                .getAnnotation(ContentProviderDelegate.class);
+        ContentProvider contentProviderDelegateAnnotation = delegateClassType
+                .getAnnotation(ContentProvider.class);
 
         if (ElementUtils.isAbstract(delegateClassType)) {
 
             mLogger.trace("        Class is abstract. Signaling compilatoin error.");
             mLogger.error(
                     String.format("@%s annotations are only allowed on concrete classes",
-                            ContentProviderDelegate.class.getSimpleName()), delegateClassType);
+                            ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
 
             mLogger.trace("        Class is not top level nor static. Signaling compilatoin error.");
             mLogger.error(String.format("@%s annotations can only appear on top level or static classes",
-                    ContentProviderDelegate.class.getSimpleName()), delegateClassType);
+                    ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassHasPublicDefaultConstructor(delegateClassType)) {
 
             mLogger.trace("        Class does not have a public default constructor. Signaling compilatoin error.");
             mLogger.error(String.format("Classes annotated with @%s must have a public default constructor",
-                    ContentProviderDelegate.class.getSimpleName()), delegateClassType);
+                    ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         final String authorityName = contentProviderDelegateAnnotation.authority();
@@ -110,7 +114,24 @@ class ContentProviderDelegateAnnotationProcessor {
 
         mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
                 authorityName));
+
         metadata.registerNewDelegateClass(authorityName, delegateClassType);
+
+        delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
+
+        mLogger.trace(String.format("        Looking for interface %s in delegate class on %s.", mDelegateType,
+                delegateClassType.getInterfaces()));
+
+        if (delegateClassType.getInterfaces().contains(mDelegateType)) {
+
+            mLogger.trace(String.format("        Class implements %s.", mDelegateType));
+            delegateClassForAuthority.setImplementDelegateInterface(true);
+        } else {
+
+            mLogger.trace(String.format("        Class does not implement %s.", mDelegateType));
+            delegateClassForAuthority.setImplementDelegateInterface(false);
+        }
+
     }
 
     private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {

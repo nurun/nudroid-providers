@@ -12,6 +12,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
 import com.nudroid.annotation.processor.DuplicatePathException;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 /**
  * Holds information about the delegate class for a content provider.
@@ -31,6 +32,7 @@ public class DelegateClass {
     private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
+    private boolean doesImplementDelegateInterface;
 
     /**
      * Creates an instance of this class.
@@ -113,6 +115,17 @@ public class DelegateClass {
     public void registerInterceptor(Interceptor interceptor) {
 
         mRegisteredInterceptors.add(interceptor);
+    }
+
+    /**
+     * Sets if the delegate class implements the delegate interface.
+     * 
+     * @param doesImplementDelegateInterface
+     *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface,
+     *            <tt>false</tt> otherwise.
+     */
+    public void setImplementDelegateInterface(boolean doesImplementDelegateInterface) {
+        this.doesImplementDelegateInterface = doesImplementDelegateInterface;
     }
 
     /**
@@ -226,6 +239,17 @@ public class DelegateClass {
     public Set<Interceptor> getRegisteredInterceptors() {
 
         return Collections.unmodifiableSet(mRegisteredInterceptors);
+    }
+
+    /**
+     * Checks if the delegate class implements the {@link ContentProvider} interface.
+     * 
+     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface,
+     *         <tt>false</tt> otherwise.
+     */
+    public boolean doesImplementDelegateInterface() {
+
+        return doesImplementDelegateInterface;
     }
 
     /**

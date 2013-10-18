@@ -5,7 +5,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-
+#if (${delegateClass.doesImplementDelegateInterface()})
+import com.nudroid.provider.delegate.ContentProviderDelegate;
+#end
 import ${delegateClass.getQualifiedName()};
 import com.nudroid.provider.${delegateClass.getSimpleName()}Router;
 
@@ -37,7 +39,12 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
     public boolean onCreate() {
 
         mContentProviderRouter = new ${delegateClass.getSimpleName()}Router(new ${delegateClass.getSimpleName()}());
+
+#if (${delegateClass.doesImplementDelegateInterface()})
+        return ((ContentProviderDelegate) mContentProviderRouter).onCreate();
+#else
         return true;
+#end
     }
 
 #[[    /**
