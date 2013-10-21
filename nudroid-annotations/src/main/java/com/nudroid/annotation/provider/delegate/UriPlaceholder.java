@@ -7,15 +7,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Binds a path URL placeholder to one of the parameters on the delegate method.
+ * Binds a URI placeholder to one of the parameters on the delegate method.
  * <p/>
  * Example usage:
  * 
  * <pre>
  * &#064;Authority(&quot;com.example.userscontentprovider&quot;)
  * public class UsersContentProviderDelegate {
- *     &#064;Delete(&quot;/users/{user_id}&quot;)
- *     public int deleteUser(@PathParam(&quot;user_id&quot;) String userId) {
+ *     &#064;Delete(&quot;/users/{user_id}?filter={filter_type}&quot;)
+ *     public int deleteUser(@UriPlaceholder(&quot;user_id&quot;) String userId, @UriPlaceholder(&quot;filter_type&quot;) String filterType) {
  * 
  *         ...
  *     }
