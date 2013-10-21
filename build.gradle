@@ -112,10 +112,11 @@ project(':nudroid-annotations-processor') {
 project(':nudroid-annotations-processor-all') {
 
     dependencies {
+        compile project(':nudroid-annotations')
+        compile project(':nudroid-providers-core')
         compileOnly project(':nudroid-annotations-processor')
         compileOnly 'org.apache.velocity:velocity:1.7'
         compileOnly 'com.google.guava:guava:15.0'
-        compileOnly 'com.google.android:android:2.2.1'
     }
 
     jar {
