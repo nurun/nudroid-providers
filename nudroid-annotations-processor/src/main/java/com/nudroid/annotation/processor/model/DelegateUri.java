@@ -1,10 +1,10 @@
 package com.nudroid.annotation.processor.model;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,9 +27,7 @@ public class DelegateUri {
     private String mAuthority;
     private String mPath;
     private String queryString;
-    private List<PathPlaceholderParameter> placeholders = new ArrayList<PathPlaceholderParameter>();
-    private List<PathPlaceholderParameter> pathPlaceholders = new ArrayList<PathPlaceholderParameter>();
-    private List<PathPlaceholderParameter> queryPlaceholders = new ArrayList<PathPlaceholderParameter>();
+    private Map<String, UriPlaceholderParameter> placeholders = new HashMap<String, UriPlaceholderParameter>();
     private Set<String> queryParameterNames = new HashSet<String>();
 
     private String originalPathAndQuery;
@@ -90,27 +88,9 @@ public class DelegateUri {
      * 
      * @return <tt>true</tt> if this URI has a path placeholder named as parameterName, <tt>false</tt> otherwise.
      */
-    public boolean containsPathPlaceholder(String parameterName) {
+    public boolean containsPlaceholder(String parameterName) {
 
-        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(parameterName, 0);
-
-        return pathPlaceholders.contains(pathParam);
-    }
-
-    /**
-     * Checks if this URI has the provided named query string placeholder.
-     * 
-     * @param parameterName
-     *            The name of the placeholder to check.
-     * 
-     * @return <tt>true</tt> if this URI has a query string placeholder named as parameterName, <tt>false</tt>
-     *         otherwise.
-     */
-    public boolean containsQueryPlaceholder(String parameterName) {
-
-        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(parameterName, 0);
-
-        return queryPlaceholders.contains(pathParam);
+        return placeholders.containsKey(parameterName);
     }
 
     /**
@@ -124,29 +104,11 @@ public class DelegateUri {
      * @throws NullPointerException
      *             if this URI does not have the provided path parameter.
      */
-    public String getPathParameterPosition(String name) {
+    public String getParameterPosition(String name) {
 
-        PathPlaceholderParameter pathParam = new PathPlaceholderParameter(name, 0);
+        UriPlaceholderParameter placeholder = placeholders.get(name);
 
-        return pathPlaceholders.get(pathPlaceholders.indexOf(pathParam)).getKey();
-    }
-
-    /**
-     * Gets a string representation of the name of the query string parameter name this parameter appears in this URI's
-     * query string.
-     * 
-     * @param name
-     *            The name of the path placeholder to check.
-     * 
-     * @return The query string parameter name this parameter appears in this URI's query string.
-     * 
-     * @throws NullPointerException
-     *             if this URI does not have the provided query string parameter.
-     */
-    public String getQueryParameterPlaceholderName(String name) {
-
-        PathPlaceholderParameter queryParam = new PathPlaceholderParameter(name, 0);
-        return queryPlaceholders.get(queryPlaceholders.indexOf(queryParam)).getKey();
+        return placeholder != null ? placeholder.getKey() : null;
     }
 
     /**
@@ -157,6 +119,19 @@ public class DelegateUri {
     public Set<String> getQueryParameterNames() {
 
         return Collections.unmodifiableSet(queryParameterNames);
+    }
+
+    /**
+     * Gets the placeholder type associated with the given placeholder name.
+     * 
+     * @param placeholderName
+     *            The name of the placeholder.
+     * 
+     * @return The type of placeholder associated to the given placeholder name.
+     */
+    public UriPlaceholderType getUriPlaceholderType(String placeholderName) {
+
+        return placeholders.get(placeholderName).getUriPlaceholderType();
     }
 
     private void parsePlaceholders(String pathAndQuery) {
@@ -222,30 +197,26 @@ public class DelegateUri {
 
     private void addPathPlaceholder(String placeholderName, int position) {
 
-        PathPlaceholderParameter pathPlaceholder = new PathPlaceholderParameter(placeholderName, position);
+        if (placeholders.containsKey(placeholderName)) {
 
-        if (placeholders.contains(pathPlaceholder)) {
-
-            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(
-                    placeholders.indexOf(pathPlaceholder)).getKey(), Integer.toString(position));
+            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(placeholderName).getKey(),
+                    Integer.toString(position));
         }
 
-        placeholders.add(pathPlaceholder);
-        pathPlaceholders.add(pathPlaceholder);
+        UriPlaceholderParameter pathPlaceholder = new UriPlaceholderParameter(placeholderName, position);
+        placeholders.put(placeholderName, pathPlaceholder);
     }
 
     private void addQueryPlaceholder(String placeholderName, String queryParameterName) {
 
-        PathPlaceholderParameter queryPlaceholder = new PathPlaceholderParameter(placeholderName, queryParameterName);
+        if (placeholders.containsKey(placeholderName)) {
 
-        if (placeholders.contains(queryPlaceholder)) {
-
-            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(
-                    placeholders.indexOf(queryPlaceholder)).getKey(), queryParameterName);
+            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(placeholderName).getKey(),
+                    queryParameterName);
         }
 
-        placeholders.add(queryPlaceholder);
-        queryPlaceholders.add(queryPlaceholder);
+        UriPlaceholderParameter queryPlaceholder = new UriPlaceholderParameter(placeholderName, queryParameterName);
+        placeholders.put(placeholderName, queryPlaceholder);
     }
 
     /**
@@ -296,8 +267,7 @@ public class DelegateUri {
     @Override
     public String toString() {
         return "DelegateUri [mId=" + mId + ", mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString="
-                + queryString + ", placeholders=" + placeholders + ", pathPlaceholders=" + pathPlaceholders
-                + ", queryPlaceholders=" + queryPlaceholders + ", queryParameterNames=" + queryParameterNames
+                + queryString + ", placeholders=" + placeholders + ", queryParameterNames=" + queryParameterNames
                 + ", originalPathAndQuery=" + originalPathAndQuery + "]";
     }
 }

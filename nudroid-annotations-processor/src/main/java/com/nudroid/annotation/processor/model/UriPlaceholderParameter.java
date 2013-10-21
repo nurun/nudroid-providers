@@ -6,10 +6,11 @@ package com.nudroid.annotation.processor.model;
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class PathPlaceholderParameter {
+class UriPlaceholderParameter {
 
-    private String key;
-    private String name;
+    private final String mKey;
+    private final String mName;
+    private final UriPlaceholderType mUriPlaceholderType;
 
     /**
      * Creates an instance of this class for a path placeholder.
@@ -19,11 +20,12 @@ class PathPlaceholderParameter {
      * @param position
      *            The position it appears on the URI path.
      */
-    PathPlaceholderParameter(String name, int position) {
+    UriPlaceholderParameter(String name, int position) {
 
         super();
-        this.name = name;
-        this.key = Integer.toString(position);
+        this.mName = name;
+        this.mKey = Integer.toString(position);
+        this.mUriPlaceholderType = UriPlaceholderType.PATH_PARAM;
     }
 
     /**
@@ -34,11 +36,12 @@ class PathPlaceholderParameter {
      * @param queryParameterName
      *            The name of the query string parameter it appears on the URI query string.
      */
-    PathPlaceholderParameter(String name, String queryParameterName) {
+    UriPlaceholderParameter(String name, String queryParameterName) {
 
         super();
-        this.key = queryParameterName;
-        this.name = name;
+        this.mKey = queryParameterName;
+        this.mName = name;
+        this.mUriPlaceholderType = UriPlaceholderType.QUERY_PARAM;
     }
 
     /**
@@ -49,12 +52,22 @@ class PathPlaceholderParameter {
      */
     String getKey() {
 
-        return key;
+        return mKey;
+    }
+
+    /**
+     * Gets the type of this placeholder.
+     * 
+     * @return The type of this placeholder.
+     */
+    UriPlaceholderType getUriPlaceholderType() {
+        return mUriPlaceholderType;
     }
 
     /**
      * <p/>
      * {@inheritDoc}
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -62,13 +75,14 @@ class PathPlaceholderParameter {
 
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((mName == null) ? 0 : mName.hashCode());
         return result;
     }
 
     /**
      * <p/>
      * {@inheritDoc}
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -77,20 +91,21 @@ class PathPlaceholderParameter {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        PathPlaceholderParameter other = (PathPlaceholderParameter) obj;
-        if (name == null) {
-            if (other.name != null) return false;
-        } else if (!name.equals(other.name)) return false;
+        UriPlaceholderParameter other = (UriPlaceholderParameter) obj;
+        if (mName == null) {
+            if (other.mName != null) return false;
+        } else if (!mName.equals(other.mName)) return false;
         return true;
     }
 
     /**
      * <p/>
      * {@inheritDoc}
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "UriPlaceholderParameter [key=" + key + ", name=" + name + "]";
+        return "UriPlaceholderParameter [key=" + mKey + ", name=" + mName + "]";
     }
 }

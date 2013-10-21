@@ -50,15 +50,15 @@ contentValues#delimiterIfNeeded( $velocityCount $paramaters ", " )
 uri#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isPathParameter() )
 #if( $parameter.isString())
-pathSegments.get($parameter.getPathParamPosition())#delimiterIfNeeded( $velocityCount $paramaters ", " )
+pathSegments.get($parameter.getKeyName())#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #else
-pathSegments.get($parameter.getPathParamPosition())#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
+pathSegments.get($parameter.getKeyName())#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
 #end##if $parameter.isPathParameter()
 #elseif( $parameter.isQueryParameter() )
 #if( $parameter.isString())
-uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $velocityCount $paramaters ", " )
+uri.getQueryParameter("${parameter.getKeyName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #else
-uri.getQueryParameter("$parameter.getQueryParameterName()")#delimiterIfNeeded( $velocityCount $paramaters ", " )
+uri.getQueryParameter("${parameter.getKeyName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
 #end##if $parameter.isPathParameter()
 #else
     null#delimiterIfNeeded( $velocityCount $paramaters ", " )

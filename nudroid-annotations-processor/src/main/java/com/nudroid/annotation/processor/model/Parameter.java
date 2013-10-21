@@ -3,12 +3,11 @@ package com.nudroid.annotation.processor.model;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
-import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
-import com.nudroid.annotation.provider.delegate.QueryParam;
 import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
+import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
  * Represents a parameter accepted by a delegate method.
@@ -25,10 +24,8 @@ public class Parameter {
     private boolean mContentValues;
     private boolean mContentUri;
     private boolean mString;
-    private boolean mPathParam;
-    private boolean mQueryParam;
-    private String mPathParamPosition;
-    private String mQueryParameterName;
+    private String mKeyName;
+    private UriPlaceholderType mUriPlaceholderType;
 
     /**
      * The parameter is annotated with {@link ContextRef}.
@@ -103,12 +100,12 @@ public class Parameter {
     }
 
     /**
-     * The parameter is a annotated with {@link PathParam}.
+     * The parameter is a annotated with {@link UriPlaceholder}.
      * 
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isPathParameter() {
-        return mPathParam;
+        return mUriPlaceholderType == UriPlaceholderType.PATH_PARAM;
     }
 
     /**
@@ -117,7 +114,7 @@ public class Parameter {
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isQueryParameter() {
-        return mQueryParam;
+        return mUriPlaceholderType == UriPlaceholderType.QUERY_PARAM;
     }
 
     /**
@@ -125,17 +122,8 @@ public class Parameter {
      * 
      * @return The position in the URI path this parameter maps to.
      */
-    public String getPathParamPosition() {
-        return mPathParamPosition;
-    }
-
-    /**
-     * For query parameters, gets the query parameter name in the URI query string this parameter maps to.
-     * 
-     * @return The query parameter name in the URI query string this parameter maps to.
-     */
-    public String getQueryParameterName() {
-        return mQueryParameterName;
+    public String getKeyName() {
+        return mKeyName;
     }
 
     /**
@@ -220,47 +208,26 @@ public class Parameter {
     }
 
     /**
-     * Sets if this parameter is annotated with {@link PathParam}.
-     * 
-     * @param mProjection
-     *            If the parameter is annotated or not.
-     */
-    public void setPathParameter(boolean pathParam) {
-        this.mPathParam = pathParam;
-    }
-
-    /**
-     * Sets if this parameter is annotated with {@link QueryParam}.
-     * 
-     * @param mProjection
-     *            If the parameter is annotated or not.
-     */
-    public void setQueryParameter(boolean queryParam) {
-        this.mQueryParam = queryParam;
-    }
-
-    /**
      * Sets the path placeholder position in the URI this parameter maps to.
      * 
-     * @param pathParamPosition
+     * @param keyName
      *            The position in the URI's path.
      */
-    public void setPathParamPosition(String pathParamPosition) {
-        this.mPathParamPosition = pathParamPosition;
+    public void setKeyName(String keyName) {
+        this.mKeyName = keyName;
     }
 
     /**
-     * Sets the parameter name in the URI's query string this parameter maps to.
+     * Sets the type of placeholder for this parameter.
      * 
-     * @param queryParameterName
-     *            The name of the parameter in the URI's query string.
+     * @param placeholderType
+     *            The type of placeholder.
      */
-    public void setQueryParameterName(String queryParameterName) {
-        this.mQueryParameterName = queryParameterName;
+    public void setUriPlaceholderType(UriPlaceholderType placeholderType) {
+        this.mUriPlaceholderType = placeholderType;
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -270,8 +237,8 @@ public class Parameter {
     public String toString() {
         return "Parameter [mContext=" + mContext + ", mProjection=" + mProjection + ", mSelection=" + mSelection
                 + ", mSelectionArgs=" + mSelectionArgs + ", mSortOrder=" + mSortOrder + ", mContentValues="
-                + mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mPathParam="
-                + mPathParam + ", mQueryParam=" + mQueryParam + ", mPathParamPosition=" + mPathParamPosition
-                + ", mQueryParameterName=" + mQueryParameterName + "]";
+                + mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mKeyName=" + mKeyName
+                + ", mParamType=" + mUriPlaceholderType + "]";
     }
+
 }

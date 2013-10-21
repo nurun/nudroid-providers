@@ -31,11 +31,14 @@ import javax.lang.model.util.Types;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 // @f[off]
-@SupportedAnnotationTypes({ "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
-        "com.nudroid.annotation.provider.delegate.Delete", "com.nudroid.annotation.provider.delegate.Insert",
-        "com.nudroid.annotation.provider.delegate.Query", "com.nudroid.annotation.provider.delegate.Update",
+@SupportedAnnotationTypes({
+    "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
+    "com.nudroid.annotation.provider.delegate.Delete",
+    "com.nudroid.annotation.provider.delegate.Insert",
+    "com.nudroid.annotation.provider.delegate.Query",
+    "com.nudroid.annotation.provider.delegate.Update",
 
-        "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
+    "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
 // @f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "com.nudroid.annotation.processor.log.level", "com.nudroid.annotation.processor.continuation.file" })

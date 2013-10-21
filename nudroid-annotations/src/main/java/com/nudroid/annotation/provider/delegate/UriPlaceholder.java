@@ -7,15 +7,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Binds a query string placeholder to one of the parameters on the delegate method.
+ * Binds a path URL placeholder to one of the parameters on the delegate method.
  * <p/>
  * Example usage:
  * 
  * <pre>
  * &#064;Authority(&quot;com.example.userscontentprovider&quot;)
  * public class UsersContentProviderDelegate {
- *     &#064;Delete(&quot;/users?userId={user_id}&quot;)
- *     public int deleteUser(@QueryParam(&quot;user_id&quot;) String userId) {
+ *     &#064;Delete(&quot;/users/{user_id}&quot;)
+ *     public int deleteUser(@PathParam(&quot;user_id&quot;) String userId) {
  * 
  *         ...
  *     }
@@ -27,10 +27,10 @@ import java.lang.annotation.Target;
 @Target({ ElementType.PARAMETER })
 @Retention(RetentionPolicy.SOURCE)
 @Documented
-public @interface QueryParam {
+public @interface UriPlaceholder {
 
     /**
-     * Mandatory. The name of the placeholder in the query string.
+     * Mandatory. The name of the placeholder in the path URL.
      */
     String value();
 }

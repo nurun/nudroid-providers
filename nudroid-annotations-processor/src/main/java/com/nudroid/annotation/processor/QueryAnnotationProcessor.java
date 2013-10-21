@@ -21,13 +21,12 @@ import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContextRef;
-import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.QueryParam;
 import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
+import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
  * Processes the Query annotations on a class.
@@ -158,22 +157,13 @@ class QueryAnnotationProcessor {
             if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
             if (mTtypeUtils.isSameType(methodParameter.asType(), mStringType)) parameter.setString(true);
 
-            final PathParam pathParamAnnotation = methodParameter.getAnnotation(PathParam.class);
+            final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 
-            if (pathParamAnnotation != null) {
+            if (uriPlaceholder != null) {
 
-                parameter.setPathParameter(true);
-                parameter.setPathParamPosition(delegateUri.getPathParameterPosition(pathParamAnnotation.value()));
-                delegateMethod.addPathPlaceholder(pathParamAnnotation.value());
-            }
-
-            final QueryParam queryParamAnnotation = methodParameter.getAnnotation(QueryParam.class);
-
-            if (queryParamAnnotation != null) {
-
-                parameter.setQueryParameter(true);
-                parameter.setQueryParameterName(delegateUri.getQueryParameterPlaceholderName(queryParamAnnotation
-                        .value()));
+                parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
+                parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
+                delegateMethod.addPathPlaceholder(uriPlaceholder.value());
             }
 
             delegateMethod.addParameter(parameter);
@@ -209,8 +199,7 @@ class QueryAnnotationProcessor {
             isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
                     accumulatedAnnotations);
 
-            isValid = validatePathParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
-            isValid = validateQueryParamAnnotation(parameterElement, query, uri, accumulatedAnnotations);
+            isValid = validateUriPlaceholderAnnotation(parameterElement, query, uri, accumulatedAnnotations);
         }
 
         return isValid;
@@ -255,22 +244,22 @@ class QueryAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validatePathParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
             List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
-        final PathParam annotation = parameterElement.getAnnotation(PathParam.class);
+        final UriPlaceholder annotation = parameterElement.getAnnotation(UriPlaceholder.class);
 
         if (annotation != null) {
 
             mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-                    PathParam.class.getSimpleName(), parameterElement));
+                    UriPlaceholder.class.getSimpleName(), parameterElement));
 
             String placeholderName = annotation.value();
             final String uriPathAndQuery = query.value();
 
-            accumulatedAnnotations.add(PathParam.class);
+            accumulatedAnnotations.add(UriPlaceholder.class);
 
             if (accumulatedAnnotations.size() > 1) {
 
@@ -283,49 +272,7 @@ class QueryAnnotationProcessor {
                         parameterElement);
             }
 
-            if (!uri.containsPathPlaceholder(placeholderName)) {
-
-                mLogger.trace(String.format(
-                        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
-                        placeholderName));
-                mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
-                        uriPathAndQuery), parameterElement);
-
-                isValid = false;
-            }
-        }
-
-        return isValid;
-    }
-
-    private boolean validateQueryParamAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
-            List<Class<?>> accumulatedAnnotations) {
-
-        boolean isValid = true;
-
-        final QueryParam annotation = parameterElement.getAnnotation(QueryParam.class);
-
-        if (annotation != null) {
-
-            mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-                    QueryParam.class.getSimpleName(), parameterElement));
-            String placeholderName = annotation.value();
-            final String uriPathAndQuery = query.value();
-
-            accumulatedAnnotations.add(QueryParam.class);
-
-            if (accumulatedAnnotations.size() > 1) {
-
-                isValid = false;
-
-                mLogger.trace(String
-                        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
-                mLogger.error(
-                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
-                        parameterElement);
-            }
-
-            if (!uri.containsQueryPlaceholder(placeholderName)) {
+            if (!uri.containsPlaceholder(placeholderName)) {
 
                 mLogger.trace(String.format(
                         "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
