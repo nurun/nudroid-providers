@@ -123,10 +123,6 @@ public class ${delegateClass.getSimpleName()}Router {
 
     private $delegateClass.getSimpleName() mDelegate;
     
-#foreach($interceptor in $delegateClass.getRegisteredInterceptors())
-    private ${interceptor.getSimpleName()} m${interceptor.getSimpleName()} = new ${interceptor.getSimpleName()}();
-#end
-    
     public ${delegateClass.getSimpleName()}Router($delegateClass.getSimpleName() delegate) {
     
         this.mDelegate = delegate;
@@ -154,14 +150,17 @@ public class ${delegateClass.getSimpleName()}Router {
                         selection, selectionArgs, sortOrder, null);
                 #populateContextPlaceholder($delegateMethod.getPathPlaceholderParameters())
                 #populateContextPlaceholder($delegateMethod.getQueryStringPlaceholderParameters())
+                
 #foreach($interceptor in $delegateMethod.getBeforeInterceptorList())
-                m${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
+                ${interceptor.getSimpleName()} l${interceptor.getSimpleName()} = new ${interceptor.getSimpleName()}();
+                l${interceptor.getSimpleName()}.onCreate(context, openHelper);
+                l${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
 #end
 
                 Cursor result = mDelegate.${delegateMethod.getName()}(#generateParamsList($delegateMethod.getParameters()));
 
 #foreach($interceptor in $delegateMethod.getAfterInterceptorList())
-                result = m${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);
+                result = l${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);
 #end
                 return result;
             }

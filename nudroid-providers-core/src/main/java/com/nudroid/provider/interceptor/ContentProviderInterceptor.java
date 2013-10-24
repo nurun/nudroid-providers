@@ -1,6 +1,8 @@
 package com.nudroid.provider.interceptor;
 
+import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 import com.nudroid.annotation.provider.delegate.Delete;
@@ -8,6 +10,7 @@ import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.provider.delegate.ContentProviderContext;
+import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 /**
  * A provider interceptor wraps invocations to content provider delegate methods and allows code to be executed before
@@ -16,6 +19,17 @@ import com.nudroid.provider.delegate.ContentProviderContext;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public interface ContentProviderInterceptor {
+
+    /**
+     * Called when the insterceptor is instantiated.
+     * 
+     * @param context
+     *            The content provider context.
+     * @param openHelper
+     *            The {@link SQLiteOpenHelper} instance returned by
+     *            {@link ContentProviderDelegate#onCreateOpenHelper(Context)}
+     */
+    public void onCreate(Context context, SQLiteOpenHelper openHelper);
 
     /**
      * Called before {@link Query} target method is executed.
@@ -75,7 +89,7 @@ public interface ContentProviderInterceptor {
      * 
      * @param result
      *            The Uri returned by the target method.
-     *            
+     * 
      * @return The original result or a new Uri to replace the returned value.
      */
     public Uri afterInsert(ContentProviderContext contentProviderContext, Uri result);
@@ -96,7 +110,7 @@ public interface ContentProviderInterceptor {
      * 
      * @param result
      *            The integer returned by the target method.
-     *            
+     * 
      * @return The original result or a new integer to replace the returned value.
      */
     public int afterDelete(ContentProviderContext contentProviderContext, int result);
