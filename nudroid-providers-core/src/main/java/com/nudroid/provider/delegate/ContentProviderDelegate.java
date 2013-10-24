@@ -1,9 +1,10 @@
 package com.nudroid.provider.delegate;
 
-import com.nudroid.annotation.provider.delegate.ContextRef;
-
 import android.content.ContentProvider;
 import android.content.Context;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import com.nudroid.annotation.provider.delegate.ContextRef;
 
 /**
  * Optional interface which can be applied to a content provider delegate. If the content provider delegate implements
@@ -27,4 +28,14 @@ public interface ContentProviderDelegate {
      *         platform.
      */
     public boolean onCreate(Context context);
+
+    /**
+     * Implement this delegate to return the {@link SQLiteOpenHelper} instance to be used by the content provider.
+     * 
+     * @param context
+     *            The content provider's context.
+     *            
+     * @return The helper instance the content provider should use.
+     */
+    public SQLiteOpenHelper onCreateOpenHelper(Context context);
 }

@@ -11,9 +11,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
-import android.content.Context;
-import android.net.Uri;
-
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
@@ -54,10 +51,10 @@ class QueryAnnotationProcessor {
         this.mTtypeUtils = processorContext.typeUtils;
         this.mLogger = processorContext.logger;
 
-        mContextType = processorContext.elementUtils.getTypeElement(Context.class.getName()).asType();
+        mContextType = processorContext.elementUtils.getTypeElement("android.content.Context").asType();
         mStringType = processorContext.elementUtils.getTypeElement(String.class.getName()).asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-        mUriType = processorContext.elementUtils.getTypeElement(Uri.class.getName()).asType();
+        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
     }
 
     /**
@@ -161,9 +158,9 @@ class QueryAnnotationProcessor {
 
             if (uriPlaceholder != null) {
 
+                parameter.setPlaceholderName(uriPlaceholder.value());
                 parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
                 parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
-                delegateMethod.addPathPlaceholder(uriPlaceholder.value());
             }
 
             delegateMethod.addParameter(parameter);

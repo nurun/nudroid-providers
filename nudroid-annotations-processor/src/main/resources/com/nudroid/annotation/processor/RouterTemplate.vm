@@ -1,4 +1,16 @@
 ##-----------------------------------------------------------------
+## Adds a new line followed by a string.
+##
+## Param: $index      - pass in $velocityCount
+## Param: $list       - pass in your velocity list variable
+## Param: $string - The string to be written after a new line.
+##-----------------------------------------------------------------
+#macro( newline $index $list $string )
+#set ( $lastone = $list.size() - 1 )
+#if( $index <= $lastone )${newline}${string}#else${newline}#end
+#end
+##(End Macro delimiterIfNeeded)------------------------------------
+##-----------------------------------------------------------------
 ## Add delimiters in a delimiter separated list to all items but the last
 ##
 ## Param: $index      - pass in $velocityCount
@@ -28,6 +40,22 @@ queryParameterNames.size() == $methodParameterNames.size()##
 ##
 ##
 ##-----------------------------------------------------------------
+## Populates the content provider context placeholder map
+##
+## Param: $paramaters - the list of path of query placeholder parameters
+##-----------------------------------------------------------------
+#macro( populateContextPlaceholder $paramaters )
+#foreach( $parameter in $paramaters )
+#if( $parameter.isPathParameter() )
+contentProviderContext.placeholders.put("${parameter.getPlaceholderName()}", pathSegments.get(${parameter.getKeyName()}));#newline($velocityCount $paramaters "                ")                
+#elseif( $parameter.isQueryParameter() )
+contentProviderContext.placeholders.put("${parameter.getPlaceholderName()}", uri.getQueryParameter("${parameter.getKeyName()}"));#newline($velocityCount $paramaters "                ")
+#end##if $parameter.isPathParameter()
+#end##for each $parameter in $paramaters
+#end##macro
+##(End Macro generateParamsList)-----------------------------------
+##
+##-----------------------------------------------------------------
 ## Generates the parameter list for the delegate method invokation
 ##
 ## Param: $paramaters - the list of Parameter objects for the method invokation
@@ -35,31 +63,25 @@ queryParameterNames.size() == $methodParameterNames.size()##
 #macro( generateParamsList $paramaters )
 #foreach( $parameter in $paramaters )
 #if(     $parameter.isContext() )
-context#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.context#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif(     $parameter.isProjection() )
-projection#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.projection#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isSelection() )
-selection#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.selection#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isSelectionArgs() )
-selectionArgs#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.selectionArgs#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isSortOrder() )
-sortOrder#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.sortOrder#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isContentValues() )
-contentValues#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.contentValues#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #elseif( $parameter.isContentUri() )
-uri#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#elseif( $parameter.isPathParameter() )
+contentProviderContext.uri#delimiterIfNeeded( $velocityCount $paramaters ", " )
+#elseif( $parameter.isPathParameter() || $parameter.isQueryParameter() )
 #if( $parameter.isString())
-pathSegments.get($parameter.getKeyName())#delimiterIfNeeded( $velocityCount $paramaters ", " )
+contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #else
-pathSegments.get($parameter.getKeyName())#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
-#end##if $parameter.isPathParameter()
-#elseif( $parameter.isQueryParameter() )
-#if( $parameter.isString())
-uri.getQueryParameter("${parameter.getKeyName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )
-#else
-uri.getQueryParameter("${parameter.getKeyName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " ) ##This will be reoplaced by conversion later on.
-#end##if $parameter.isPathParameter()
+contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )##This will be reoplaced by conversion later on.
+#end##if $parameter.isString()
 #else
     null#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #end##if $parameter.isProjection()
@@ -73,10 +95,12 @@ package com.nudroid.provider;
 import android.content.Context;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.content.UriMatcher;
 
 import ${delegateClass.getQualifiedName()};
+import com.nudroid.provider.delegate.ContentProviderContext;
 
 #foreach($interceptor in $delegateClass.getRegisteredInterceptors())
 import $interceptor.getFullyQualifiedName();
@@ -112,7 +136,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
      *      java.lang.String, java.lang.String[], java.lang.String)
      */]]#
-    public Cursor query(Context context, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(Context context, SQLiteOpenHelper openHelper, Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
         java.util.Set<String> queryParameterNames = uri.getQueryParameterNames();
     
@@ -123,17 +147,21 @@ public class ${delegateClass.getSimpleName()}Router {
 #foreach( $delegateMethod in $delegateClass.getUriIdToDelegateMethodRegistry().get($uriId) )            
             if (#generateQueryParameterNamesMatcher($delegateMethod.getQueryStringParameterNames())) {
 
-#foreach($interceptor in $delegateMethod.getBeforeInterceptorList())
-                m${interceptor.getSimpleName()}.beforeQuery(uri, projection, selection, selectionArgs, sortOrder);
-#end
-
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
 #end
+                ContentProviderContext contentProviderContext = new ContentProviderContext(context, openHelper, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+                #populateContextPlaceholder($delegateMethod.getPathPlaceholderParameters())
+                #populateContextPlaceholder($delegateMethod.getQueryStringPlaceholderParameters())
+#foreach($interceptor in $delegateMethod.getBeforeInterceptorList())
+                m${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
+#end
+
                 Cursor result = mDelegate.${delegateMethod.getName()}(#generateParamsList($delegateMethod.getParameters()));
 
 #foreach($interceptor in $delegateMethod.getAfterInterceptorList())
-                result = m${interceptor.getSimpleName()}.afterQuery(result, uri, projection, selection, selectionArgs, sortOrder);
+                result = m${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);
 #end
                 return result;
             }
@@ -153,7 +181,7 @@ public class ${delegateClass.getSimpleName()}Router {
 #[[    /**
      * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
      */]]#
-    public Uri insert(Context context, Uri uri, ContentValues values) {
+    public Uri insert(Context context, SQLiteOpenHelper openHelper, Uri uri, ContentValues values) {
 
         return null;
     }
@@ -162,7 +190,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
      *      java.lang.String, java.lang.String[])
      */]]#
-    public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+    public int update(Context context, SQLiteOpenHelper openHelper, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -171,7 +199,7 @@ public class ${delegateClass.getSimpleName()}Router {
      * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
      *      java.lang.String[])
      */]]#
-    public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
+    public int delete(Context context, SQLiteOpenHelper openHelper, Uri uri, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -179,7 +207,7 @@ public class ${delegateClass.getSimpleName()}Router {
 #[[    /**
      * @see     android.content.ContentProvider#getType(android.net.Uri)
      */]]#
-    public String getType(Context context, Uri uri) {
+    public String getType(Context context, SQLiteOpenHelper openHelper, Uri uri) {
 
         return null;
     }

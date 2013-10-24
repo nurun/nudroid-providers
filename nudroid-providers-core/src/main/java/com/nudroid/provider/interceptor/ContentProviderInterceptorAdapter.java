@@ -1,6 +1,7 @@
 package com.nudroid.provider.interceptor;
 
-import android.content.ContentValues;
+import com.nudroid.provider.delegate.ContentProviderContext;
+
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -12,93 +13,97 @@ import android.net.Uri;
 public abstract class ContentProviderInterceptorAdapter implements ContentProviderInterceptor {
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(com.nudroid.provider.delegate.ContentProviderContext)
      */
     @Override
-    public void beforeQuery(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public void beforeQuery(ContentProviderContext contentProviderContext) {
 
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(android.database.Cursor)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(com.nudroid.provider.delegate.ContentProviderContext,
+     *      android.database.Cursor)
      */
     @Override
-    public Cursor afterQuery(Cursor result) {
+    public Cursor afterQuery(ContentProviderContext contentProviderContext, Cursor result) {
 
         return result;
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[])
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(com.nudroid.provider.delegate.ContentProviderContext)
      */
     @Override
-    public void beforeUpdate(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public void beforeUpdate(ContentProviderContext contentProviderContext) {
 
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(int)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(com.nudroid.provider.delegate.ContentProviderContext,
+     *      int)
      */
     @Override
-    public int afterUpdate(int result) {
+    public int afterUpdate(ContentProviderContext contentProviderContext, int result) {
 
         return result;
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(android.net.Uri, android.content.ContentValues)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(com.nudroid.provider.delegate.ContentProviderContext)
      */
     @Override
-    public void beforeInsert(Uri uri, ContentValues values) {
+    public void beforeInsert(ContentProviderContext contentProviderContext) {
 
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(android.net.Uri)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(com.nudroid.provider.delegate.ContentProviderContext,
+     *      android.net.Uri)
      */
     @Override
-    public Uri afterInsert(Uri result) {
+    public Uri afterInsert(ContentProviderContext contentProviderContext, Uri result) {
 
         return result;
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(android.net.Uri, java.lang.String, java.lang.String[])
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(com.nudroid.provider.delegate.ContentProviderContext)
      */
     @Override
-    public void beforeDelete(Uri uri, String selection, String[] selectionArgs) {
+    public void beforeDelete(ContentProviderContext contentProviderContext) {
 
     }
 
     /**
-     * 
      * <p/>
      * {@inheritDoc}
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(int)
+     * 
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(com.nudroid.provider.delegate.ContentProviderContext,
+     *      int)
      */
     @Override
-    public int afterDelete(int result) {
+    public int afterDelete(ContentProviderContext contentProviderContext, int result) {
 
         return result;
     }

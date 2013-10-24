@@ -25,6 +25,7 @@ public class Parameter {
     private boolean mContentUri;
     private boolean mString;
     private String mKeyName;
+    private String mPlaceholderName;
     private UriPlaceholderType mUriPlaceholderType;
 
     /**
@@ -127,6 +128,15 @@ public class Parameter {
     }
 
     /**
+     * Returns the placeholder name for this parameter.
+     * 
+     * @return The placeholder name.
+     */
+    public String getPlaceholderName() {
+        return mPlaceholderName;
+    }
+
+    /**
      * Sets if this parameter is annotated with {@link ContextRef}.
      * 
      * @param projection
@@ -215,6 +225,16 @@ public class Parameter {
      */
     public void setKeyName(String keyName) {
         this.mKeyName = keyName;
+    }
+
+    /**
+     * Sets this parameter placeholder name.
+     * 
+     * @param mPlaceholderName
+     *            the placeholder name to set.
+     */
+    public void setPlaceholderName(String mPlaceholderName) {
+        this.mPlaceholderName = mPlaceholderName;
     }
 
     /**

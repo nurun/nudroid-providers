@@ -68,6 +68,7 @@ class SourceCodeGenerator {
             Velocity.init(p);
             VelocityContext context = new VelocityContext();
             context.put("delegateClass", delegateClass);
+            context.put("newline", "\n");
 
             Template template = null;
 
@@ -103,6 +104,7 @@ class SourceCodeGenerator {
             Velocity.init(p);
             VelocityContext context = new VelocityContext();
             context.put("delegateClass", delegateClass);
+            context.put("newline", "\n");
 
             Template template = null;
 

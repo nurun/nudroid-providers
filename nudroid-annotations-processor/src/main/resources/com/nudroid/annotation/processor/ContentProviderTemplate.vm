@@ -3,6 +3,7 @@ package com.nudroid.provider;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 #if (${delegateClass.doesImplementDelegateInterface()})
@@ -29,6 +30,7 @@ import com.nudroid.provider.${delegateClass.getSimpleName()}Router;
 public class ${delegateClass.getContentProviderSimpleName()} extends ContentProvider {
 
     private ${delegateClass.getSimpleName()}Router mContentProviderRouter;
+    private SQLiteOpenHelper mOpenHelper;
 
 #[[    /**
      * Creates the router to this class delegate.
@@ -38,10 +40,13 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
     @Override
     public boolean onCreate() {
 
-        mContentProviderRouter = new ${delegateClass.getSimpleName()}Router(new ${delegateClass.getSimpleName()}());
+        final UsersContentProviderDelegate delegate = new ${delegateClass.getSimpleName()}();
+        mContentProviderRouter = new ${delegateClass.getSimpleName()}Router(delegate);
 
 #if (${delegateClass.doesImplementDelegateInterface()})
-        return ((ContentProviderDelegate) mContentProviderRouter).onCreate(getContext());
+        boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());
+        mOpenHelper = ((ContentProviderDelegate) delegate).onCreateOpenHelper(getContext());
+        return result;
 #else
         return true;
 #end
@@ -56,7 +61,7 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
     @Override
     public Cursor query(Uri contentUri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
-        return mContentProviderRouter.query(getContext(), contentUri, projection, selection, selectionArgs, sortOrder);
+        return mContentProviderRouter.query(getContext(), mOpenHelper, contentUri, projection, selection, selectionArgs, sortOrder);
     }
 
 #[[    /**
@@ -67,7 +72,7 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
     @Override
     public Uri insert(Uri contentUri, ContentValues contentValues) {
 
-        return mContentProviderRouter.insert(getContext(), contentUri, contentValues);
+        return mContentProviderRouter.insert(getContext(), mOpenHelper, contentUri, contentValues);
     }
 
 #[[    /**
@@ -78,7 +83,7 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
      */]]#
     @Override
     public int update(Uri contentUri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return mContentProviderRouter.update(getContext(), contentUri, contentValues, selection, selectionArgs);
+        return mContentProviderRouter.update(getContext(), mOpenHelper, contentUri, contentValues, selection, selectionArgs);
     }
 
 #[[    /**
@@ -88,7 +93,7 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
      */]]#
     @Override
     public int delete(Uri contentUri, String selection, String[] selectionArgs) {
-        return mContentProviderRouter.delete(getContext(), contentUri, selection, selectionArgs);
+        return mContentProviderRouter.delete(getContext(), mOpenHelper, contentUri, selection, selectionArgs);
     }
 
 #[[    /**
@@ -98,6 +103,6 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
      */]]#
     @Override
     public String getType(Uri contentUri) {
-        return mContentProviderRouter.getType(getContext(), contentUri);
+        return mContentProviderRouter.getType(getContext(), mOpenHelper, contentUri);
     }
 }

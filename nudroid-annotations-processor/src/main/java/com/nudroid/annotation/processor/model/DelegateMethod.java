@@ -24,14 +24,15 @@ import com.nudroid.annotation.provider.delegate.Update;
  */
 public class DelegateMethod {
 
-    private DelegateClass delegateClass;
-    private String name;
-    private List<Parameter> parameters = new ArrayList<Parameter>();
-    private Set<String> pathPlaceholderNames = new HashSet<String>();
-    private Set<String> queryStringParameterNames = new HashSet<String>();
-    private DelegateUri uri;
-    private ExecutableElement executableElement;
-    private List<Interceptor> interceptorElements = new ArrayList<Interceptor>();
+    private DelegateClass mDelegateClass;
+    private String mName;
+    private List<Parameter> mParameters = new ArrayList<Parameter>();
+    private List<Parameter> mPathPlaceholderParameters = new ArrayList<Parameter>();
+    private List<Parameter> mQueryStringPlaceholderParameters = new ArrayList<Parameter>();
+    private Set<String> mQueryStringParameterNames = new HashSet<String>();
+    private DelegateUri mUri;
+    private ExecutableElement mExecutableElement;
+    private List<Interceptor> mInterceptorElements = new ArrayList<Interceptor>();
 
     /**
      * Creates an instance of this class.
@@ -43,9 +44,9 @@ public class DelegateMethod {
      */
     public DelegateMethod(ExecutableElement element, DelegateUri uri) {
 
-        this.uri = uri;
-        this.name = element.getSimpleName().toString();
-        this.executableElement = element;
+        this.mUri = uri;
+        this.mName = element.getSimpleName().toString();
+        this.mExecutableElement = element;
     }
 
     /**
@@ -57,18 +58,15 @@ public class DelegateMethod {
      */
     public void addParameter(Parameter parameter) {
 
-        this.parameters.add(parameter);
-    }
-
-    /**
-     * Adds a path placeholder name to the list of path placeholders of this method. This method is idempotent.
-     * 
-     * @param placehorderName
-     *            The name of the path placeholder.
-     */
-    public void addPathPlaceholder(String placehorderName) {
-
-        pathPlaceholderNames.add(placehorderName);
+        this.mParameters.add(parameter);
+        
+        if (parameter.isPathParameter()) {
+            mPathPlaceholderParameters.add(parameter);
+        }
+        
+        if (parameter.isQueryParameter()) {
+            mQueryStringPlaceholderParameters.add(parameter);
+        }
     }
 
     /**
@@ -79,7 +77,7 @@ public class DelegateMethod {
      */
     public void addInterceptor(Interceptor interceptor) {
 
-        this.interceptorElements.add(interceptor);
+        this.mInterceptorElements.add(interceptor);
         this.getDelegateClass().registerInterceptor(interceptor);
     }
 
@@ -91,7 +89,7 @@ public class DelegateMethod {
      */
     public void setQueryParameterNames(Set<String> queryParameterNames) {
 
-        this.queryStringParameterNames = queryParameterNames;
+        this.mQueryStringParameterNames = queryParameterNames;
     }
 
     /**
@@ -100,7 +98,7 @@ public class DelegateMethod {
      * @return The delegate class this method is declared in.
      */
     public DelegateClass getDelegateClass() {
-        return delegateClass;
+        return mDelegateClass;
     }
 
     /**
@@ -110,7 +108,7 @@ public class DelegateMethod {
      */
     public ExecutableElement getExecutableElement() {
 
-        return executableElement;
+        return mExecutableElement;
     }
 
     /**
@@ -121,7 +119,7 @@ public class DelegateMethod {
      */
     public int getUriId() {
 
-        return uri.getId();
+        return mUri.getId();
     }
 
     /**
@@ -131,7 +129,7 @@ public class DelegateMethod {
      */
     public String getName() {
 
-        return name;
+        return mName;
     }
 
     /**
@@ -141,7 +139,27 @@ public class DelegateMethod {
      */
     public List<Parameter> getParameters() {
 
-        return Collections.unmodifiableList(parameters);
+        return Collections.unmodifiableList(mParameters);
+    }
+
+    /**
+     * Gets the list of parameters this method accepts.
+     * 
+     * @return List of parameters this method accepts.
+     */
+    public List<Parameter> getPathPlaceholderParameters() {
+
+        return Collections.unmodifiableList(mPathPlaceholderParameters);
+    }
+
+    /**
+     * Gets the list of parameters this method accepts.
+     * 
+     * @return List of parameters this method accepts.
+     */
+    public List<Parameter> getQueryStringPlaceholderParameters() {
+
+        return Collections.unmodifiableList(mQueryStringPlaceholderParameters);
     }
 
     /**
@@ -151,7 +169,7 @@ public class DelegateMethod {
      */
     public Set<String> getQueryStringParameterNames() {
 
-        return Collections.unmodifiableSet(queryStringParameterNames);
+        return Collections.unmodifiableSet(mQueryStringParameterNames);
     }
 
     /**
@@ -161,7 +179,7 @@ public class DelegateMethod {
      */
     public boolean hasUriPlaceholders() {
 
-        return pathPlaceholderNames.size() > 0;
+        return mPathPlaceholderParameters.size() > 0;
     }
 
     /**
@@ -172,7 +190,7 @@ public class DelegateMethod {
      */
     public List<Interceptor> getBeforeInterceptorList() {
 
-        return Collections.unmodifiableList(interceptorElements);
+        return Collections.unmodifiableList(mInterceptorElements);
     }
 
     /**
@@ -183,12 +201,12 @@ public class DelegateMethod {
      */
     public List<Interceptor> getAfterInterceptorList() {
 
-        return Collections.unmodifiableList(Lists.reverse(interceptorElements));
+        return Collections.unmodifiableList(Lists.reverse(mInterceptorElements));
     }
 
     @Override
     public String toString() {
-        return "DelegateMethod [name=" + name + ", parameters=" + parameters + "]";
+        return "DelegateMethod [name=" + mName + ", parameters=" + mParameters + "]";
     }
 
     /**
@@ -200,7 +218,7 @@ public class DelegateMethod {
      */
     void addQueryStringParameter(String queryStringParameterName) {
 
-        queryStringParameterNames.add(queryStringParameterName);
+        mQueryStringParameterNames.add(queryStringParameterName);
     }
 
     /**
@@ -209,6 +227,6 @@ public class DelegateMethod {
      * @param delegateClass
      */
     void setDelegateClass(DelegateClass delegateClass) {
-        this.delegateClass = delegateClass;
+        this.mDelegateClass = delegateClass;
     }
 }

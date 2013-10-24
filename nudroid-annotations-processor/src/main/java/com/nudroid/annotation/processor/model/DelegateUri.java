@@ -20,8 +20,16 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
  */
 public class DelegateUri {
 
-    private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
-    private static String LEADING_SLASH_REGEXP = "^\\/";
+    private static final String AMPERSAND = "\\&";
+    private static final String LEADING_AMPERSANDS = "^\\&+";
+    private static final String INTERROGATION_MARK = "\\?";
+    private static final String LEADING_INTERROGATION_MARKS = "^\\?+";
+    private static final String SLASH = "/";
+    private static final String LEADING_SLASH = "^\\/";
+    private static final String EMPTY_STRING = "";
+    private static final String EQUALS_SIGN = "\\=";
+
+    private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
 
     private int mId;
     private String mAuthority;
@@ -45,7 +53,7 @@ public class DelegateUri {
         this.originalPathAndQuery = pathAndQuery;
 
         parsePlaceholders(pathAndQuery);
-        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*").replaceAll(LEADING_SLASH_REGEXP, "");
+        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*").replaceAll(LEADING_SLASH, EMPTY_STRING);
         URI uri;
 
         try {
@@ -138,7 +146,7 @@ public class DelegateUri {
 
         Pattern placeholderPattern = Pattern.compile(PLACEHOLDER_REGEXP);
 
-        String[] pathAndQueryString = pathAndQuery.split("\\?");
+        String[] pathAndQueryString = pathAndQuery.split(INTERROGATION_MARK);
 
         if (pathAndQueryString.length > 2) {
 
@@ -148,8 +156,9 @@ public class DelegateUri {
         if (pathAndQueryString.length >= 1) {
 
             String pathSection = pathAndQueryString[0];
+            pathSection = pathSection.replaceAll(LEADING_SLASH, EMPTY_STRING);
 
-            String[] pathElements = pathSection.split("/");
+            String[] pathElements = pathSection.split(SLASH);
 
             for (int position = 0; position < pathElements.length; position++) {
 
@@ -158,23 +167,23 @@ public class DelegateUri {
                 if (m.find()) {
 
                     String placeholderName = m.group(1);
-                    addPathPlaceholder(placeholderName, position - 1);
+                    addPathPlaceholder(placeholderName, position);
                 }
             }
         }
-
+        
         if (pathAndQueryString.length == 2) {
 
             String querySection = pathAndQueryString[1];
 
-            querySection = querySection.replaceAll("^\\?+", "");
-            querySection = querySection.replaceAll("^\\&+", "");
+            querySection = querySection.replaceAll(LEADING_INTERROGATION_MARKS, EMPTY_STRING);
+            querySection = querySection.replaceAll(LEADING_AMPERSANDS, EMPTY_STRING);
 
-            String[] queryVars = querySection.split("\\&");
+            String[] queryVars = querySection.split(AMPERSAND);
 
             for (int position = 0; position < queryVars.length; position++) {
 
-                String[] nameAndValue = queryVars[position].split("\\=");
+                String[] nameAndValue = queryVars[position].split(EQUALS_SIGN);
 
                 if (nameAndValue.length != 2) {
 
