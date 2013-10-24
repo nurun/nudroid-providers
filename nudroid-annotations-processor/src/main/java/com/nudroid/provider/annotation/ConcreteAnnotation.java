@@ -1,4 +1,4 @@
-package com.nudroid.annotation.processor;
+package com.nudroid.provider.annotation;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
