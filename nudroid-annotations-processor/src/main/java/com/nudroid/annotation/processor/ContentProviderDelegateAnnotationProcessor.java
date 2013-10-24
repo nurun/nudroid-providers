@@ -73,8 +73,7 @@ class ContentProviderDelegateAnnotationProcessor {
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        ContentProvider contentProviderDelegateAnnotation = delegateClassType
-                .getAnnotation(ContentProvider.class);
+        ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
 
         if (ElementUtils.isAbstract(delegateClassType)) {
 
@@ -131,6 +130,10 @@ class ContentProviderDelegateAnnotationProcessor {
             mLogger.trace(String.format("        Class does not implement %s.", mDelegateType));
             delegateClassForAuthority.setImplementDelegateInterface(false);
         }
+
+        //TODO Refactor this
+        delegateClassForAuthority.setProviderPackageBaseName(delegateClassType.getQualifiedName().toString()
+                .replaceAll("\\." + delegateClassType.getSimpleName().toString() + "$", ""));
 
     }
 

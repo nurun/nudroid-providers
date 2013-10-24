@@ -33,6 +33,7 @@ public class DelegateClass {
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
     private boolean doesImplementDelegateInterface;
+    private String mBasePackageName;
 
     /**
      * Creates an instance of this class.
@@ -121,11 +122,22 @@ public class DelegateClass {
      * Sets if the delegate class implements the delegate interface.
      * 
      * @param doesImplementDelegateInterface
-     *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface,
-     *            <tt>false</tt> otherwise.
+     *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *            otherwise.
      */
     public void setImplementDelegateInterface(boolean doesImplementDelegateInterface) {
         this.doesImplementDelegateInterface = doesImplementDelegateInterface;
+    }
+
+    /**
+     * Sets the base package name for the generated source files.
+     * 
+     * @param baseName
+     *            the base name of the package the file will be created on.
+     */
+    public void setProviderPackageBaseName(String baseName) {
+
+        this.mBasePackageName = baseName;
     }
 
     /**
@@ -244,12 +256,22 @@ public class DelegateClass {
     /**
      * Checks if the delegate class implements the {@link ContentProvider} interface.
      * 
-     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface,
-     *         <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *         otherwise.
      */
     public boolean doesImplementDelegateInterface() {
 
         return doesImplementDelegateInterface;
+    }
+
+    /**
+     * Gets the base package name for the generated class files.
+     * 
+     * @return The base package name for the generated source files.
+     */
+    public String getProviderPackageBaseName() {
+
+        return mBasePackageName;
     }
 
     /**

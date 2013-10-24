@@ -1,34 +1,62 @@
-package com.nudroid.provider.annotation;
+##-----------------------------------------------------------------
+## Add delimiters in a delimiter separated list to all items but the last
+##
+## Param: $index      - pass in $velocityCount
+## Param: $list       - pass in your velocity list variable
+## Param: $delimiter  - the delimiter to use. This method will not add spaces by itself
+##                      so provide the necessary space for this argument. For example: ", "
+##-----------------------------------------------------------------
+#macro( delimiterIfNeeded $index $list $delimiter )
+#set ( $lastone = $list.size() - 1 )
+#if( $index <= $lastone )$delimiter#else#end
+#end
+##
+##-----------------------------------------------------------------
+## Generates the parameter list for the annotation constructor
+##
+## Param: $attributes - the list of attributes of the annotation
+##-----------------------------------------------------------------
+#macro( generateConstructorParameters $attributes )
+#foreach( $attribute in $attributes )
+${attrybute.type()} ${attribute.name()}#delimiterIfNeeded( $velocityCount $attributes ", " )
+#end##for each $attribute in $attributes
+#end##macro
+##(End Macro generateParamsList)-----------------------------------
+package ${annotation.packageName()}.concrete;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import com.nudroid.annotation.provider.delegate.Delete;
+import $annotation.qualifiedName();
 
 @SuppressWarnings("serial")
-public class ConcreteAnnotation implements Annotation, Serializable, Delete {
+public class Concrete${annotation.simpleName()}Annotation implements Annotation, Serializable, ${annotation.simpleName()} {
 
-    private String mValue;
+#foreach ( $attribute in $annotation.attributes() ) 
+    private ${attribute.type()} m${attribute.capitalizedName()};
+#end
 
-    public ConcreteAnnotation(String value) {
-        
-        this.mValue = value;
+    public ConcreteAnnotation(#generateConstructorParameters($annotation.attributes())) {
+    
+#foreach ( $attribute in $annotation.attributes() ) 
+        this.m${attribute.capitalizedName()} = ${attribute.name()};
+#end
     }
     
-    /**
-     * <p/>
-     * {@inheritDoc}
-     * @see com.nudroid.annotation.provider.delegate.Delete#value()
+#foreach ( $attribute in $annotation.attributes() )
+#[[    /**
+     * {@inheritDoc}]]#
+     * @see $annotation.qualifiedName()
      */
     @Override
-    public String value() {
-        return mValue;
+    public ${attribute.type()} ${attribute.name()}() {
+        return this.m${attribute.capitalizedName()};
     }
+#end
     
-    /**
-     * <p/>
+#[[    /**
      * {@inheritDoc}
      * 
      * @see java.lang.annotation.Annotation#annotationType()
@@ -36,12 +64,12 @@ public class ConcreteAnnotation implements Annotation, Serializable, Delete {
     public Class<? extends Annotation> annotationType() {
         return Delete.class;
     }
+]]#
 
-    /**
-     * <p/>
+#[[    /**
      * {@inheritDoc}
      * @see java.lang.Object#equals(java.lang.Object)
-     */
+     */]]#
     @Override
     public boolean equals(Object other) {
 
@@ -83,11 +111,10 @@ public class ConcreteAnnotation implements Annotation, Serializable, Delete {
         return false;
     }
 
-    /**
-     * <p/>
+#[[    /**
      * {@inheritDoc}
      * @see java.lang.Object#hashCode()
-     */
+     */]]#
     @Override
     public int hashCode() {
 
@@ -135,11 +162,10 @@ public class ConcreteAnnotation implements Annotation, Serializable, Delete {
         return hashCode;
     }
 
-    /**
-     * <p/>
+#[[    /**
      * {@inheritDoc}
      * @see java.lang.Object#toString()
-     */
+     */]]#
     @Override
     public String toString() {
         Method[] methods = annotationType().getDeclaredMethods();

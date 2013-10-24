@@ -24,7 +24,6 @@ class SourceCodeGenerator {
     private LoggingUtils mLogger;
     private Filer mFiler;
 
-    static final String GENERATED_CODE_BASE_PACKAGE = "com.nudroid.provider";
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.vm";
     private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.vm";
 
@@ -75,7 +74,7 @@ class SourceCodeGenerator {
             try {
                 template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
                 JavaFileObject jfoContentUriRegistry = mFiler.createSourceFile(String.format("%s.%s",
-                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getRouterSimpleName()));
+                        delegateClass.getProviderPackageBaseName(), delegateClass.getRouterSimpleName()));
                 Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
 
                 template.merge(context, writerContentUriRegistry);
@@ -111,7 +110,7 @@ class SourceCodeGenerator {
             try {
                 template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
                 JavaFileObject jfoContentUriRegistry = mFiler.createSourceFile(String.format("%s.%s",
-                        GENERATED_CODE_BASE_PACKAGE, delegateClass.getContentProviderSimpleName()));
+                        delegateClass.getProviderPackageBaseName(), delegateClass.getContentProviderSimpleName()));
                 Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
 
                 template.merge(context, writerContentUriRegistry);

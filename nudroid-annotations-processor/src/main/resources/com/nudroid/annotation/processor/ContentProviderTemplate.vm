@@ -1,4 +1,4 @@
-package com.nudroid.provider;
+package ${delegateClass.getProviderPackageBaseName()};
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -10,12 +10,12 @@ import android.net.Uri;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 #end
 import ${delegateClass.getQualifiedName()};
-import com.nudroid.provider.${delegateClass.getSimpleName()}Router;
+import ${delegateClass.getProviderPackageBaseName()}.${delegateClass.getSimpleName()}Router;
 
 #[[/*]]#
  * This is the basic XML you can use to configure this content provider in AndroidManifest.xml
  * <provider
- * android:name="com.nudroid.provider.${delegateClass.getContentProviderSimpleName()}"
+ * android:name="${delegateClass.getPackageName()}.${delegateClass.getContentProviderSimpleName()}"
  * android:authorities="${delegateClass.getAuthority().getName()}"
  * android:exported="<true|false>"
  * android:grantUriPermissions="<true|false>"

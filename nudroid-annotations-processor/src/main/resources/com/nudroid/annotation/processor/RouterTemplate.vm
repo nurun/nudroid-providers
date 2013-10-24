@@ -90,7 +90,7 @@ contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}")#del
 ##(End Macro generateParamsList)-----------------------------------
 ##
 ##
-package com.nudroid.provider;
+package ${delegateClass.getProviderPackageBaseName()};
 
 import android.content.Context;
 import android.content.ContentValues;
