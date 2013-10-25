@@ -17,7 +17,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 /**
- * Information about delegate method interceptors.
+ * TODO This class needs major rethinking. Check switch cases below. Information about delegate method interceptors.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -125,13 +125,13 @@ public class Interceptor {
         final TypeKind kind = attribute.getReturnType().getKind();
 
         System.out.println("**** Type is " + kind);
+        System.out.println("**** Value is " + attributeValue);
 
         switch (kind) {
         case ARRAY:
 
             ArrayType typeMirror = (ArrayType) attribute.getReturnType();
 
-            System.out.println("**** Array type is " + typeMirror.getComponentType().getKind());
             switch (typeMirror.getComponentType().getKind()) {
             case CHAR:
 
@@ -169,9 +169,10 @@ public class Interceptor {
                 } else {
 
                     final Element asElement = typeUtils.asElement(typeMirror.getComponentType());
-                    
+
                     if (asElement.getKind() == ElementKind.ENUM) {
-                        mConcreteAnnotationConstructorArguments.add(String.format("new %s[] {%s}", asElement, attributeValue.getValue()));
+                        mConcreteAnnotationConstructorArguments.add(String.format("new %s[] {%s}", asElement,
+                                attributeValue.getValue()));
                     }
                 }
 
@@ -204,9 +205,10 @@ public class Interceptor {
             } else {
 
                 final Element asElement = typeUtils.asElement(attribute.getReturnType());
-                
+
                 if (asElement.getKind() == ElementKind.ENUM) {
-                    mConcreteAnnotationConstructorArguments.add(String.format("%s.%s", asElement, attributeValue.getValue()));
+                    mConcreteAnnotationConstructorArguments.add(String.format("%s.%s", asElement,
+                            attributeValue.getValue()));
                 }
             }
 
@@ -228,9 +230,13 @@ public class Interceptor {
     }
 
     /**
-     * TODO Finishs javadoc
+     * TODO Finishs javadoc<br>
      * 
      * @return
+     */
+    /*
+     * Important. Velocity call this method each time it needs to iterate the array, creating a new unmodifiable
+     * instance everytime. Change this here and in other methods.
      */
     public List<String> getConcreteAnnotationConstructorArgumentLiterals() {
 
