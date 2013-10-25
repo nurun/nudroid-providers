@@ -22,10 +22,12 @@ public class ConcreteAnnotation {
     private String mSimpleName;
     private String mConcretePackageName;
     private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
+    private TypeElement mTypeElement;
 
     // TODO Finish javadoc
     public ConcreteAnnotation(TypeElement typeElement) {
 
+        this.mTypeElement = typeElement;
         this.mQualifiedName = typeElement.getQualifiedName().toString();
         this.mSimpleName = typeElement.getSimpleName().toString();
 
@@ -36,6 +38,14 @@ public class ConcreteAnnotation {
     public void addAttribute(AnnotationAttribute attribute) {
 
         this.mAttributes.add(attribute);
+    }
+
+    /**
+     * TODO Finish javadoc
+     * @return the mTypeElement
+     */
+    public TypeElement getTypeElement() {
+        return mTypeElement;
     }
 
     /**

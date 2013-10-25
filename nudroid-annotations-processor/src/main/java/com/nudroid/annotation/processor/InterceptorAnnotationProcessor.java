@@ -2,14 +2,17 @@ package com.nudroid.annotation.processor;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
@@ -30,6 +33,7 @@ class InterceptorAnnotationProcessor {
 
     private LoggingUtils mLogger;
     private Types mTypeUtils;
+    private Elements mElementUtils;
 
     /**
      * Creates an instance of this class.
@@ -41,6 +45,7 @@ class InterceptorAnnotationProcessor {
 
         this.mLogger = processorContext.logger;
         this.mTypeUtils = processorContext.typeUtils;
+        this.mElementUtils = processorContext.elementUtils;
     }
 
     /**
@@ -69,8 +74,6 @@ class InterceptorAnnotationProcessor {
         mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
                 ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations));
 
-        Set<Interceptor> interceptors = new HashSet<Interceptor>();
-
         for (Element interceptorAnnotation : roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class)) {
 
             createAnnotationMetadata(interceptorAnnotation, metadata);
@@ -83,9 +86,9 @@ class InterceptorAnnotationProcessor {
                 Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
                         (TypeElement) interceptorAnnotation, roundEnv);
                 Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
-
                 continuation.addInterceptorAnnotation((TypeElement) interceptorAnnotation);
                 continuation.addInterceptorClasses(interceptorClassSet);
+
                 mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
                         interceptorClassSet));
 
@@ -96,7 +99,7 @@ class InterceptorAnnotationProcessor {
 
                     for (TypeElement interceptorClass : interceptorClassSet) {
 
-                        mLogger.error(String.format("    Only one interceptor class for annotation %s is supported."
+                        mLogger.error(String.format("Only one interceptor class for annotation %s is supported."
                                 + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
                                 interceptorClass);
                     }
@@ -106,13 +109,13 @@ class InterceptorAnnotationProcessor {
 
                 if (interceptorClassSet.size() == 1) {
 
-                    interceptors.add(new Interceptor((TypeElement) interceptorAnnotation, interceptorClassSet
-                            .iterator().next()));
+                    final TypeElement interceptorClass = interceptorClassSet.iterator().next();
+
+                    processInterceptorAnnotation2(metadata, (TypeElement) interceptorAnnotation, interceptorClass);
                 }
             }
         }
 
-        processInterceptorAnnotation(interceptors, metadata);
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
     }
 
@@ -133,7 +136,8 @@ class InterceptorAnnotationProcessor {
         }
     }
 
-    private void processInterceptorAnnotation(Set<Interceptor> interceptors, Metadata metadata) {
+    private void processInterceptorAnnotation2(Metadata metadata, TypeElement interceptorAnnotation,
+            TypeElement interceptorClass) {
 
         for (DelegateClass delagateClass : metadata.getDelegateClasses()) {
 
@@ -142,20 +146,25 @@ class InterceptorAnnotationProcessor {
                 mLogger.trace("    Processing method " + delegateMethod.getName());
                 ExecutableElement executableElement = delegateMethod.getExecutableElement();
 
-                List<? extends AnnotationMirror> annotationMirrors = executableElement.getAnnotationMirrors();
-                mLogger.trace("        Annotations on method: " + annotationMirrors);
+                List<? extends AnnotationMirror> annotationsMirrors = executableElement.getAnnotationMirrors();
 
-                for (AnnotationMirror mirror : annotationMirrors) {
+                for (AnnotationMirror mirror : annotationsMirrors) {
 
-                    for (Interceptor interceptor : interceptors) {
+                    if (mTypeUtils.isSameType(mirror.getAnnotationType(), interceptorAnnotation.asType())) {
 
-                        if (mTypeUtils.asElement(mirror.getAnnotationType()).equals(
-                                interceptor.getInterceptorAnnotationElement())) {
+                        Interceptor interceptor = new Interceptor(interceptorAnnotation, interceptorClass, mTypeUtils,
+                                metadata.getConcreteAnnotation(interceptorAnnotation));
 
-                            mLogger.trace(String.format("        Added interceptor %s to method.",
-                                    interceptor.getSimpleName()));
-                            delegateMethod.addInterceptor(interceptor);
+                        Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = mElementUtils
+                                .getElementValuesWithDefaults(mirror);
+
+                        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationValues
+                                .entrySet()) {
+
+                            interceptor.addAnnotationValue(entry.getKey(), entry.getValue(), mElementUtils, mTypeUtils);
                         }
+
+                        delegateMethod.addInterceptor(interceptor);
                     }
                 }
 

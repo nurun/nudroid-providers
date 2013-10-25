@@ -23,8 +23,7 @@ class Metadata {
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
     private Map<ExecutableElement, DelegateMethod> mRegisteredDelegateMethods = new HashMap<ExecutableElement, DelegateMethod>();
-    private Set<DelegateClass> mDelegateClasses = new HashSet<DelegateClass>();
-    private Set<ConcreteAnnotation> mConcreteAnnotations = new HashSet<ConcreteAnnotation>();
+    private Map<TypeElement, ConcreteAnnotation> mConcreteAnnotations = new HashMap<TypeElement, ConcreteAnnotation>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
@@ -39,7 +38,6 @@ class Metadata {
         final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
         mRegisteredAuthorities.put(authorityName, delegateClass);
         mRegisteredDelegateClasses.put(delegateClassType, delegateClass);
-        mDelegateClasses.add(delegateClass);
     }
 
     /**
@@ -60,9 +58,9 @@ class Metadata {
      * 
      * @param annotation
      */
-    public void registerConcreteAnnotation(ConcreteAnnotation annotation) {
+    void registerConcreteAnnotation(ConcreteAnnotation annotation) {
 
-        this.mConcreteAnnotations.add(annotation);
+        this.mConcreteAnnotations.put(annotation.getTypeElement(), annotation);
     }
 
     /**
@@ -72,7 +70,10 @@ class Metadata {
      */
     Set<DelegateClass> getDelegateClasses() {
 
-        return Collections.unmodifiableSet(mDelegateClasses);
+        Set<DelegateClass> delegateClasses = new HashSet<DelegateClass>();
+        delegateClasses.addAll(mRegisteredDelegateClasses.values());
+
+        return Collections.unmodifiableSet(delegateClasses);
     }
 
     /**
@@ -122,7 +123,20 @@ class Metadata {
      * @return the mConcreteAnnotations
      */
     Set<ConcreteAnnotation> getConcreteAnnotations() {
-        return mConcreteAnnotations;
+
+        Set<ConcreteAnnotation> annotations = new HashSet<ConcreteAnnotation>();
+        annotations.addAll(mConcreteAnnotations.values());
+
+        return Collections.unmodifiableSet(annotations);
+    }
+
+    /**
+     * @param interceptorAnnotation
+     * @return
+     */
+    ConcreteAnnotation getConcreteAnnotation(TypeElement interceptorAnnotation) {
+
+        return mConcreteAnnotations.get(interceptorAnnotation);
     }
 
     /**
@@ -133,6 +147,6 @@ class Metadata {
     @Override
     public String toString() {
         return "Metadata [\nmRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="
-                + mRegisteredDelegateClasses + ", \nmDelegateClasses=" + mDelegateClasses + "]";
+                + mRegisteredDelegateClasses + "]";
     }
 }
