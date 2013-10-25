@@ -8,7 +8,8 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -113,40 +114,85 @@ public class Interceptor {
     }
 
     /**
-     * @param key
-     * @param annotationValue
+     * @param attribute
+     * @param attributeValue
      */
-    public void addAnnotationValue(ExecutableElement key, AnnotationValue annotationValue, Elements elementUtils,
+    public void addAnnotationValue(ExecutableElement attribute, AnnotationValue attributeValue, Elements elementUtils,
             Types typeUtils) {
 
-        TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
+        final TypeKind kind = attribute.getReturnType().getKind();
 
-        if (typeUtils.isSameType(stringType.asType(), key.getReturnType())) {
+        switch (kind) {
+        case ARRAY:
 
-            mConcreteAnnotationConstructorArguments.add(String.format("\"%s\"", annotationValue.getValue()));
-            return;
-        }
+            ArrayType typeMirror = (ArrayType) attribute.getReturnType();
 
-        if (key.getReturnType() instanceof PrimitiveType) {
-
-            switch (key.getReturnType().getKind()) {
+            switch (typeMirror.getComponentType().getKind()) {
             case CHAR:
-                mConcreteAnnotationConstructorArguments.add(String.format("'%s'", annotationValue.getValue()));
+
+                mConcreteAnnotationConstructorArguments
+                        .add(String.format("new char[] {%s}", attributeValue.getValue()));
                 break;
             case FLOAT:
-                mConcreteAnnotationConstructorArguments.add(String.format("%sf", annotationValue.getValue()));
 
+                mConcreteAnnotationConstructorArguments
+                        .add(String.format("new float[] {%s}", attributeValue.getValue()));
+                break;
+            case DOUBLE:
+
+                mConcreteAnnotationConstructorArguments.add(String.format("new double[] {%s}",
+                        attributeValue.getValue()));
+                break;
+            case INT:
+
+                mConcreteAnnotationConstructorArguments.add(String.format("new int[] {%s}", attributeValue.getValue()));
                 break;
             case LONG:
-                mConcreteAnnotationConstructorArguments.add(String.format("%sl", annotationValue.getValue()));
 
+                mConcreteAnnotationConstructorArguments
+                        .add(String.format("new long[] {%s}", attributeValue.getValue()));
                 break;
 
+            case DECLARED:
+
+                TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
+
+                if (typeUtils.isSameType(stringType.asType(), typeMirror.getComponentType())) {
+
+                    mConcreteAnnotationConstructorArguments.add(String.format("new String[] {%s}",
+                            attributeValue.getValue()));
+                    return;
+                }
             default:
-                mConcreteAnnotationConstructorArguments.add(String.format("%s", annotationValue.getValue()));
+                break;
             }
 
-            return;
+            break;
+        case CHAR:
+
+            mConcreteAnnotationConstructorArguments.add(String.format("'%s'", attributeValue.getValue()));
+            break;
+        case FLOAT:
+
+            mConcreteAnnotationConstructorArguments.add(String.format("%sf", attributeValue.getValue()));
+            break;
+        case LONG:
+
+            mConcreteAnnotationConstructorArguments.add(String.format("%sL", attributeValue.getValue()));
+            break;
+
+        case DECLARED:
+
+            TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
+
+            if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
+
+                mConcreteAnnotationConstructorArguments.add(String.format("\"%s\"", attributeValue.getValue()));
+                return;
+            }
+
+        default:
+            mConcreteAnnotationConstructorArguments.add(String.format("%s", attributeValue.getValue()));
         }
     }
 
@@ -167,6 +213,7 @@ public class Interceptor {
      */
     public List<String> getConcreteAnnotationConstructorArgumentLiterals() {
 
+        System.out.println(mConcreteAnnotationConstructorArguments);
         return Collections.unmodifiableList(mConcreteAnnotationConstructorArguments);
     }
 }
