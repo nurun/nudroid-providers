@@ -7,10 +7,12 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
+import com.nudroid.annotation.processor.model.ConcreteAnnotation;
 import com.nudroid.annotation.processor.model.DelegateClass;
 
 /**
@@ -26,6 +28,7 @@ class SourceCodeGenerator {
 
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.vm";
     private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.vm";
+    private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.vm";
 
     /**
      * Creates an instance of this class.
@@ -51,44 +54,9 @@ class SourceCodeGenerator {
      */
     void generateCompanionSourceCode(Metadata metadata) {
 
-        generateContentProviderRouterSourceCode(metadata);
         generateContentProviderSourceCode(metadata);
-    }
-
-    private void generateContentProviderRouterSourceCode(Metadata metadata) {
-
-        mLogger.trace("Generating router source code.");
-
-        for (DelegateClass delegateClass : metadata.getDelegateClasses()) {
-
-            mLogger.trace(String.format("    Generating router for class %s.", delegateClass.getTypeElement()));
-
-            Properties p = generateVelocityConfigurationProperties();
-            Velocity.init(p);
-            VelocityContext context = new VelocityContext();
-            context.put("delegateClass", delegateClass);
-            context.put("newline", "\n");
-
-            Template template = null;
-
-            try {
-                template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
-                JavaFileObject jfoContentUriRegistry = mFiler.createSourceFile(String.format("%s.%s",
-                        delegateClass.getProviderPackageBaseName(), delegateClass.getRouterSimpleName()));
-                Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
-
-                template.merge(context, writerContentUriRegistry);
-                writerContentUriRegistry.close();
-            } catch (Exception e) {
-                mLogger.error(String.format("Error processing velocity script '%s'",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
-                throw new AnnotationProcessorException(e);
-            }
-
-            mLogger.trace(String.format("    Done generating router for class %s.", delegateClass.getTypeElement()));
-        }
-
-        mLogger.trace("Done generating router source code.");
+        generateContentProviderRouterSourceCode(metadata);
+        generateConcreteAnnotationSourceCode(metadata);
     }
 
     private void generateContentProviderSourceCode(Metadata metadata) {
@@ -109,20 +77,117 @@ class SourceCodeGenerator {
 
             try {
                 template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
-                JavaFileObject jfoContentUriRegistry = mFiler.createSourceFile(String.format("%s.%s",
-                        delegateClass.getProviderPackageBaseName(), delegateClass.getContentProviderSimpleName()));
-                Writer writerContentUriRegistry = jfoContentUriRegistry.openWriter();
+
+                JavaFileObject javaFile = null;
+
+                if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+
+                    javaFile = mFiler.createSourceFile(delegateClass.getContentProviderSimpleName());
+                } else {
+
+                    javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+                            delegateClass.getContentProviderSimpleName()));
+                }
+
+                Writer writerContentUriRegistry = javaFile.openWriter();
 
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
             } catch (Exception e) {
                 mLogger.error(String.format("Error processing velocity script '%s'",
                         CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
-                throw new AnnotationProcessorException(e);
             }
         }
 
         mLogger.trace("Done generating ContentProvider source code.");
+    }
+
+    private void generateContentProviderRouterSourceCode(Metadata metadata) {
+
+        mLogger.trace("Generating router source code.");
+
+        for (DelegateClass delegateClass : metadata.getDelegateClasses()) {
+
+            mLogger.trace(String.format("    Generating router for class %s.", delegateClass.getTypeElement()));
+
+            Properties p = generateVelocityConfigurationProperties();
+            Velocity.init(p);
+            VelocityContext context = new VelocityContext();
+            context.put("delegateClass", delegateClass);
+            context.put("newline", "\n");
+
+            Template template = null;
+
+            try {
+                template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+
+                JavaFileObject javaFile = null;
+
+                if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+
+                    javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
+                } else {
+
+                    javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+                            delegateClass.getRouterSimpleName()));
+                }
+
+                Writer writerContentUriRegistry = javaFile.openWriter();
+
+                template.merge(context, writerContentUriRegistry);
+                writerContentUriRegistry.close();
+            } catch (Exception e) {
+                mLogger.error(String.format("Error processing velocity script '%s'",
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+            }
+
+            mLogger.trace(String.format("    Done generating router for class %s.", delegateClass.getTypeElement()));
+        }
+
+        mLogger.trace("Done generating router source code.");
+    }
+
+    private void generateConcreteAnnotationSourceCode(Metadata metadata) {
+
+        mLogger.trace("Generating concrete annotations source code.");
+
+        for (ConcreteAnnotation annotation : metadata.getConcreteAnnotations()) {
+
+            mLogger.trace(String.format("    Generating concrete annotation %s.", annotation.getQualifiedName()));
+
+            Properties p = generateVelocityConfigurationProperties();
+            Velocity.init(p);
+            VelocityContext context = new VelocityContext();
+            context.put("annotation", annotation);
+            context.put("newline", "\n");
+
+            Template template = null;
+
+            try {
+                template = Velocity.getTemplate(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
+
+                JavaFileObject javaFile = null;
+
+                if (StringUtils.isEmpty(annotation.getConcretePackageName())) {
+
+                    javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
+                } else {
+
+                    javaFile = mFiler.createSourceFile(String.format("%s.%s", annotation.getConcretePackageName(),
+                            annotation.getConcreteClassName()));
+                }
+
+                Writer writerContentUriRegistry = javaFile.openWriter();
+
+                template.merge(context, writerContentUriRegistry);
+                writerContentUriRegistry.close();
+            } catch (Exception e) {
+                mLogger.error(String.format("Error processing velocity script '%s'",
+                        CONCRETE_ANNOTATION_TEMPLATE_LOCATION));
+            }
+        }
+
+        mLogger.trace("Done generating concretea annotation source code.");
     }
 
     private Properties generateVelocityConfigurationProperties() {

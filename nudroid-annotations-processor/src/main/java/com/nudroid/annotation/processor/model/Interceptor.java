@@ -30,7 +30,7 @@ public class Interceptor {
      * 
      * @return The fully qualified name of the interceptor class.
      */
-    public String getFullyQualifiedName() {
+    public String getQualifiedName() {
 
         return mInterceptorClassElement.getQualifiedName().toString();
     }

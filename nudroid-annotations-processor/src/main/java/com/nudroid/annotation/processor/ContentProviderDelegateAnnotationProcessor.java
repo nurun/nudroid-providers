@@ -130,11 +130,6 @@ class ContentProviderDelegateAnnotationProcessor {
             mLogger.trace(String.format("        Class does not implement %s.", mDelegateType));
             delegateClassForAuthority.setImplementDelegateInterface(false);
         }
-
-        //TODO Refactor this
-        delegateClassForAuthority.setProviderPackageBaseName(delegateClassType.getQualifiedName().toString()
-                .replaceAll("\\." + delegateClassType.getSimpleName().toString() + "$", ""));
-
     }
 
     private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {

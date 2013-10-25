@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
+import com.nudroid.annotation.processor.model.ConcreteAnnotation;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 
@@ -23,6 +24,7 @@ class Metadata {
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
     private Map<ExecutableElement, DelegateMethod> mRegisteredDelegateMethods = new HashMap<ExecutableElement, DelegateMethod>();
     private Set<DelegateClass> mDelegateClasses = new HashSet<DelegateClass>();
+    private Set<ConcreteAnnotation> mConcreteAnnotations = new HashSet<ConcreteAnnotation>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
@@ -51,6 +53,16 @@ class Metadata {
     void registerDelegateMethod(ExecutableElement executableElement, DelegateMethod delagateMethod) {
 
         mRegisteredDelegateMethods.put(executableElement, delagateMethod);
+    }
+
+    /**
+     * TODO finish javadoc
+     * 
+     * @param annotation
+     */
+    public void registerConcreteAnnotation(ConcreteAnnotation annotation) {
+
+        this.mConcreteAnnotations.add(annotation);
     }
 
     /**
@@ -105,7 +117,17 @@ class Metadata {
     }
 
     /**
+     * TODO Finish javadoc
+     * 
+     * @return the mConcreteAnnotations
+     */
+    Set<ConcreteAnnotation> getConcreteAnnotations() {
+        return mConcreteAnnotations;
+    }
+
+    /**
      * {@inheritDoc}
+     * 
      * @see java.lang.Object#toString()
      */
     @Override

@@ -12,6 +12,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 
+import com.nudroid.annotation.processor.model.AnnotationAttribute;
+import com.nudroid.annotation.processor.model.ConcreteAnnotation;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.Interceptor;
@@ -69,6 +71,11 @@ class InterceptorAnnotationProcessor {
 
         Set<Interceptor> interceptors = new HashSet<Interceptor>();
 
+        for (Element interceptorAnnotation : roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class)) {
+
+            createAnnotationMetadata(interceptorAnnotation, metadata);
+        }
+
         for (Element interceptorAnnotation : interceptorAnnotations) {
 
             if (interceptorAnnotation instanceof TypeElement) {
@@ -107,6 +114,23 @@ class InterceptorAnnotationProcessor {
 
         processInterceptorAnnotation(interceptors, metadata);
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
+    }
+
+    private void createAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+
+        if (interceptorAnnotation instanceof TypeElement) {
+
+            ConcreteAnnotation annotation = new ConcreteAnnotation((TypeElement) interceptorAnnotation);
+
+            for (Element method : interceptorAnnotation.getEnclosedElements()) {
+
+                if (method instanceof ExecutableElement) {
+                    annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method));
+                }
+            }
+
+            metadata.registerConcreteAnnotation(annotation);
+        }
     }
 
     private void processInterceptorAnnotation(Set<Interceptor> interceptors, Metadata metadata) {

@@ -1,5 +1,7 @@
-package ${delegateClass.getProviderPackageBaseName()};
+#if ( ${delegateClass.getBasePackageName()} != "" )
+package ${delegateClass.getBasePackageName()};
 
+#end
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -9,13 +11,15 @@ import android.net.Uri;
 #if (${delegateClass.doesImplementDelegateInterface()})
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 #end
-import ${delegateClass.getQualifiedName()};
-import ${delegateClass.getProviderPackageBaseName()}.${delegateClass.getSimpleName()}Router;
 
 #[[/*]]#
  * This is the basic XML you can use to configure this content provider in AndroidManifest.xml
  * <provider
- * android:name="${delegateClass.getPackageName()}.${delegateClass.getContentProviderSimpleName()}"
+#if ( ${delegateClass.getBasePackageName()} != "" )    
+ * android:name="${delegateClass.getBasePackageName()}.${delegateClass.getContentProviderSimpleName()}"
+#else
+ * android:name="${delegateClass.getContentProviderSimpleName()}"
+#end
  * android:authorities="${delegateClass.getAuthority().getName()}"
  * android:exported="<true|false>"
  * android:grantUriPermissions="<true|false>"
@@ -29,7 +33,7 @@ import ${delegateClass.getProviderPackageBaseName()}.${delegateClass.getSimpleNa
  */]]#
 public class ${delegateClass.getContentProviderSimpleName()} extends ContentProvider {
 
-    private ${delegateClass.getSimpleName()}Router mContentProviderRouter;
+    private ${delegateClass.getRouterSimpleName()} mContentProviderRouter;
     private SQLiteOpenHelper mOpenHelper;
 
 #[[    /**
@@ -40,8 +44,8 @@ public class ${delegateClass.getContentProviderSimpleName()} extends ContentProv
     @Override
     public boolean onCreate() {
 
-        final UsersContentProviderDelegate delegate = new ${delegateClass.getSimpleName()}();
-        mContentProviderRouter = new ${delegateClass.getSimpleName()}Router(delegate);
+        final $delegateClass.getQualifiedName() delegate = new ${delegateClass.getQualifiedName()}();
+        mContentProviderRouter = new ${delegateClass.getRouterSimpleName()}(delegate);
 
 #if (${delegateClass.doesImplementDelegateInterface()})
         boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());

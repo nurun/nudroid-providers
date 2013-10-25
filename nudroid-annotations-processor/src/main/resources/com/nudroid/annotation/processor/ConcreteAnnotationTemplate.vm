@@ -18,41 +18,42 @@
 ##-----------------------------------------------------------------
 #macro( generateConstructorParameters $attributes )
 #foreach( $attribute in $attributes )
-${attrybute.type()} ${attribute.name()}#delimiterIfNeeded( $velocityCount $attributes ", " )
+${attribute.getType()} ${attribute.getName()}#delimiterIfNeeded( $velocityCount $attributes ", " )
 #end##for each $attribute in $attributes
 #end##macro
 ##(End Macro generateParamsList)-----------------------------------
-package ${annotation.packageName()}.concrete;
+#if ( ${annotation.getConcretePackageName()} != "" )
+package ${annotation.getConcretePackageName()};
 
+#end
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import $annotation.qualifiedName();
-
 @SuppressWarnings("serial")
-public class Concrete${annotation.simpleName()}Annotation implements Annotation, Serializable, ${annotation.simpleName()} {
+public class ${annotation.getConcreteClassName()} implements Annotation, Serializable, ${annotation.getQualifiedName()} {
 
-#foreach ( $attribute in $annotation.attributes() ) 
-    private ${attribute.type()} m${attribute.capitalizedName()};
+#foreach ( $attribute in $annotation.getAttributes() ) 
+    private ${attribute.getType()} m${attribute.getCapitalizedName()};
 #end
 
-    public ConcreteAnnotation(#generateConstructorParameters($annotation.attributes())) {
+    public ${annotation.getConcreteClassName()}(#generateConstructorParameters($annotation.getAttributes())) {
     
-#foreach ( $attribute in $annotation.attributes() ) 
-        this.m${attribute.capitalizedName()} = ${attribute.name()};
+#foreach ( $attribute in $annotation.getAttributes() ) 
+        this.m${attribute.getCapitalizedName()} = ${attribute.getName()};
 #end
     }
     
-#foreach ( $attribute in $annotation.attributes() )
+#foreach ( $attribute in $annotation.getAttributes() )
 #[[    /**
      * {@inheritDoc}]]#
-     * @see $annotation.qualifiedName()
+     * @see $annotation.getQualifiedName()
      */
     @Override
-    public ${attribute.type()} ${attribute.name()}() {
-        return this.m${attribute.capitalizedName()};
+    public ${attribute.getType()} ${attribute.getName()}() {
+    
+        return this.m${attribute.getCapitalizedName()};
     }
 #end
     
@@ -60,11 +61,10 @@ public class Concrete${annotation.simpleName()}Annotation implements Annotation,
      * {@inheritDoc}
      * 
      * @see java.lang.annotation.Annotation#annotationType()
-     */
+     */]]#
     public Class<? extends Annotation> annotationType() {
-        return Delete.class;
+        return ${annotation.getQualifiedName()}.class;
     }
-]]#
 
 #[[    /**
      * {@inheritDoc}

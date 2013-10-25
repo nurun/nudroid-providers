@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
@@ -21,7 +25,6 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
  */
 public class DelegateClass {
 
-    private static final String ROUTER_SUFFIX = "Router";
     private String mQualifiedName;
     private String mSimpleName;
     private Authority mAuthority;
@@ -34,6 +37,8 @@ public class DelegateClass {
     private TypeElement mTypeElement;
     private boolean doesImplementDelegateInterface;
     private String mBasePackageName;
+    private String mContentProviderSimpleName;
+    private String mRouterSimpleName;
 
     /**
      * Creates an instance of this class.
@@ -41,15 +46,41 @@ public class DelegateClass {
      * @param authorityName
      *            The authority name being handled by the delegate class.
      * 
-     * @param element
+     * @param typeElement
      *            The {@link TypeElement} for the delegate class as provided by a round environment.
      */
-    public DelegateClass(String authorityName, TypeElement element) {
+    public DelegateClass(String authorityName, TypeElement typeElement) {
 
-        this.mTypeElement = element;
-        this.mQualifiedName = element.toString();
-        this.mSimpleName = element.getSimpleName().toString();
+        this.mTypeElement = typeElement;
+        this.mQualifiedName = typeElement.toString();
+        this.mSimpleName = typeElement.getSimpleName().toString();
         this.mAuthority = new Authority(authorityName);
+
+        String baseName = this.mSimpleName;
+        baseName = baseName.replaceAll("(?i)Delegate", "").replaceAll("(?i)ContentProvider", "");
+
+        StringBuilder providerSimpleName = new StringBuilder(baseName);
+        StringBuilder routerSimpleName = new StringBuilder(this.mSimpleName);
+        Element element = typeElement.getEnclosingElement();
+
+        while (element != null && !element.getKind().equals(ElementKind.PACKAGE)) {
+
+            providerSimpleName.insert(0, "$").insert(0, element.getSimpleName());
+            routerSimpleName.insert(0, "$").insert(0, element.getSimpleName());
+            element = element.getEnclosingElement();
+        }
+
+        providerSimpleName.append("ContentProvider");
+        routerSimpleName.append("Router");
+
+        if (StringUtils.isEmpty(element.getSimpleName().toString())) {
+            this.mBasePackageName = "";
+        } else {
+            this.mBasePackageName = element.toString();
+        }
+
+        this.mRouterSimpleName = routerSimpleName.toString();
+        this.mContentProviderSimpleName = providerSimpleName.toString();
     }
 
     /**
@@ -130,17 +161,6 @@ public class DelegateClass {
     }
 
     /**
-     * Sets the base package name for the generated source files.
-     * 
-     * @param baseName
-     *            the base name of the package the file will be created on.
-     */
-    public void setProviderPackageBaseName(String baseName) {
-
-        this.mBasePackageName = baseName;
-    }
-
-    /**
      * Gets the {@link TypeElement} mapped by this class.
      * 
      * @return The {@link TypeElement} mapped by this class.
@@ -217,7 +237,7 @@ public class DelegateClass {
      */
     public String getRouterSimpleName() {
 
-        return mSimpleName + ROUTER_SUFFIX;
+        return mRouterSimpleName;
     }
 
     /**
@@ -226,12 +246,8 @@ public class DelegateClass {
      * @return The simple name of this delegate's content provider.
      */
     public String getContentProviderSimpleName() {
-        String delegateClassName = getSimpleName();
 
-        delegateClassName = delegateClassName.replaceAll("Delegate", "").replaceAll("ContentProvider", "");
-        delegateClassName = delegateClassName + "ContentProvider";
-
-        return delegateClassName;
+        return this.mContentProviderSimpleName;
     }
 
     /**
@@ -269,7 +285,7 @@ public class DelegateClass {
      * 
      * @return The base package name for the generated source files.
      */
-    public String getProviderPackageBaseName() {
+    public String getBasePackageName() {
 
         return mBasePackageName;
     }
