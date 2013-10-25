@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -122,11 +124,14 @@ public class Interceptor {
 
         final TypeKind kind = attribute.getReturnType().getKind();
 
+        System.out.println("**** Type is " + kind);
+
         switch (kind) {
         case ARRAY:
 
             ArrayType typeMirror = (ArrayType) attribute.getReturnType();
 
+            System.out.println("**** Array type is " + typeMirror.getComponentType().getKind());
             switch (typeMirror.getComponentType().getKind()) {
             case CHAR:
 
@@ -161,8 +166,16 @@ public class Interceptor {
 
                     mConcreteAnnotationConstructorArguments.add(String.format("new String[] {%s}",
                             attributeValue.getValue()));
-                    return;
+                } else {
+
+                    final Element asElement = typeUtils.asElement(typeMirror.getComponentType());
+                    
+                    if (asElement.getKind() == ElementKind.ENUM) {
+                        mConcreteAnnotationConstructorArguments.add(String.format("new %s[] {%s}", asElement, attributeValue.getValue()));
+                    }
                 }
+
+                break;
             default:
                 break;
             }
@@ -183,13 +196,21 @@ public class Interceptor {
 
         case DECLARED:
 
-            TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
+            TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
 
             if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
 
                 mConcreteAnnotationConstructorArguments.add(String.format("\"%s\"", attributeValue.getValue()));
-                return;
+            } else {
+
+                final Element asElement = typeUtils.asElement(attribute.getReturnType());
+                
+                if (asElement.getKind() == ElementKind.ENUM) {
+                    mConcreteAnnotationConstructorArguments.add(String.format("%s.%s", asElement, attributeValue.getValue()));
+                }
             }
+
+            break;
 
         default:
             mConcreteAnnotationConstructorArguments.add(String.format("%s", attributeValue.getValue()));
