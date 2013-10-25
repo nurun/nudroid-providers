@@ -11,6 +11,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
@@ -118,6 +120,14 @@ class ContentProviderDelegateAnnotationProcessor {
 
         delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
 
+        if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
+
+            mLogger.trace("        Class is in the default package. Signaling compilatoin error.");
+            mLogger.error(String.format("Content providers can not be created in the default package."
+                    + " Android will prefix the content provider name with the application name, making it unable to"
+                    + " find the correct class at runtime."), delegateClassType);
+        }
+
         mLogger.trace(String.format("        Looking for interface %s in delegate class on %s.", mDelegateType,
                 delegateClassType.getInterfaces()));
 
@@ -160,5 +170,10 @@ class ContentProviderDelegateAnnotationProcessor {
         }
 
         return false;
+    }
+
+    private boolean validateClassIsNotInDefaultPackage(DelegateClass delegateClass) {
+
+        return StringUtils.isEmpty(delegateClass.getBasePackageName()) == false;
     }
 }
