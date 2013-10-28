@@ -11,9 +11,8 @@ import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-
-import org.apache.commons.lang.StringUtils;
 
 import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
@@ -61,22 +60,24 @@ public class DelegateClass {
 
         StringBuilder providerSimpleName = new StringBuilder(baseName);
         StringBuilder routerSimpleName = new StringBuilder(this.mSimpleName);
-        Element element = typeElement.getEnclosingElement();
+        Element parentElement = typeElement.getEnclosingElement();
 
-        while (element != null && !element.getKind().equals(ElementKind.PACKAGE)) {
+        while (parentElement != null && !parentElement.getKind().equals(ElementKind.PACKAGE)) {
 
-            providerSimpleName.insert(0, "$").insert(0, element.getSimpleName());
-            routerSimpleName.insert(0, "$").insert(0, element.getSimpleName());
-            element = element.getEnclosingElement();
+            providerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
+            routerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
+            parentElement = parentElement.getEnclosingElement();
         }
 
         providerSimpleName.append("ContentProvider");
         routerSimpleName.append("Router");
 
-        if (StringUtils.isEmpty(element.getSimpleName().toString())) {
-            this.mBasePackageName = "";
+        if (parentElement != null && parentElement.getKind().equals(ElementKind.PACKAGE)) {
+
+            this.mBasePackageName = ((PackageElement) parentElement).getQualifiedName().toString();
         } else {
-            this.mBasePackageName = element.toString();
+            
+            this.mBasePackageName = "";
         }
 
         this.mRouterSimpleName = routerSimpleName.toString();

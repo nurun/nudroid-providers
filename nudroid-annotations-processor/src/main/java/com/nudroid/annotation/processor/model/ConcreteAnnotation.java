@@ -6,9 +6,8 @@ import java.util.List;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Represents a concrete annotation implementation that will be created.
@@ -42,6 +41,7 @@ public class ConcreteAnnotation {
 
     /**
      * TODO Finish javadoc
+     * 
      * @return the mTypeElement
      */
     public TypeElement getTypeElement() {
@@ -92,26 +92,28 @@ public class ConcreteAnnotation {
     public List<AnnotationAttribute> getAttributes() {
         return Collections.unmodifiableList(mAttributes);
     }
-    
+
     private void calculateConcreteClassAndPackageNames(TypeElement typeElement) {
-        
-        Element element = typeElement.getEnclosingElement();
+
+        Element parentElement = typeElement.getEnclosingElement();
         StringBuilder concreteSimpleName = new StringBuilder(typeElement.getSimpleName());
 
-        while (element != null && !element.getKind().equals(ElementKind.PACKAGE)) {
-            
-            concreteSimpleName.insert(0, "$").insert(0, element.getSimpleName());
-            element = element.getEnclosingElement();
+        while (parentElement != null && !parentElement.getKind().equals(ElementKind.PACKAGE)) {
+
+            concreteSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
+            parentElement = parentElement.getEnclosingElement();
         }
 
         concreteSimpleName.insert(0, "Concrete");
-        
-        if (StringUtils.isEmpty(element.getSimpleName().toString())) {
-            this.mConcretePackageName = "";
+
+        if (parentElement != null && parentElement.getKind().equals(ElementKind.PACKAGE)) {
+
+            this.mConcretePackageName = ((PackageElement) parentElement).getQualifiedName().toString();
         } else {
-            this.mConcretePackageName = element.toString();
+            
+            this.mConcretePackageName = "";
         }
-        
+
         this.mConcreteClassName = concreteSimpleName.toString();
     }
 }
