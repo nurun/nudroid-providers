@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -63,18 +62,17 @@ class Continuation {
     void loadContinuation() {
 
         mLogger.trace("Loading continuation file.");
-        
+
         if (mContinuationFile == null) {
 
-            mLogger.debug(String
-                    .format("Continuation file not ptovided. Skipping continuation.", mContinuationFile));
+            mLogger.debug(String.format("Continuation file not ptovided. Skipping continuation.", mContinuationFile));
             return;
         }
 
         if (!mContinuationFile.exists()) {
 
-            mLogger.debug(String.format("Continuation file not found. First compilation interation.",
-                    mContinuationFile));
+            mLogger.debug(String
+                    .format("Continuation file not found. First compilation interation.", mContinuationFile));
             return;
         }
 
@@ -148,8 +146,7 @@ class Continuation {
 
         if (mContinuationFile == null) {
 
-            mLogger.debug(String
-                    .format("Continuation file not provided. Skipping continuation.", mContinuationFile));
+            mLogger.debug(String.format("Continuation file not provided. Skipping continuation.", mContinuationFile));
             return;
         }
 
@@ -242,7 +239,7 @@ class Continuation {
      */
     Set<TypeElement> getInterceptorAnnotations() {
 
-        return Collections.unmodifiableSet(mInterceptorAnnotationTypes);
+        return mInterceptorAnnotationTypes;
     }
 
     /**
@@ -252,7 +249,7 @@ class Continuation {
      */
     Set<TypeElement> getInterceptorClasses() {
 
-        return Collections.unmodifiableSet(mInterceptorClassTypes);
+        return mInterceptorClassTypes;
     }
 
     /**

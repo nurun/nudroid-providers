@@ -1,7 +1,6 @@
 package com.nudroid.annotation.processor.model;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -126,7 +125,7 @@ public class DelegateUri {
      */
     public Set<String> getQueryParameterNames() {
 
-        return Collections.unmodifiableSet(queryParameterNames);
+        return queryParameterNames;
     }
 
     /**

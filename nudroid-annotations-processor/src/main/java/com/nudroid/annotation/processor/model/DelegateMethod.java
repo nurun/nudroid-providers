@@ -1,7 +1,6 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +32,7 @@ public class DelegateMethod {
     private DelegateUri mUri;
     private ExecutableElement mExecutableElement;
     private List<Interceptor> mInterceptorElements = new ArrayList<Interceptor>();
+    private List<Interceptor> mInverseInterceptorElements;
 
     /**
      * Creates an instance of this class.
@@ -59,11 +59,11 @@ public class DelegateMethod {
     public void addParameter(Parameter parameter) {
 
         this.mParameters.add(parameter);
-        
+
         if (parameter.isPathParameter()) {
             mPathPlaceholderParameters.add(parameter);
         }
-        
+
         if (parameter.isQueryParameter()) {
             mQueryStringPlaceholderParameters.add(parameter);
         }
@@ -139,7 +139,7 @@ public class DelegateMethod {
      */
     public List<Parameter> getParameters() {
 
-        return Collections.unmodifiableList(mParameters);
+        return mParameters;
     }
 
     /**
@@ -149,7 +149,7 @@ public class DelegateMethod {
      */
     public List<Parameter> getPathPlaceholderParameters() {
 
-        return Collections.unmodifiableList(mPathPlaceholderParameters);
+        return mPathPlaceholderParameters;
     }
 
     /**
@@ -159,7 +159,7 @@ public class DelegateMethod {
      */
     public List<Parameter> getQueryStringPlaceholderParameters() {
 
-        return Collections.unmodifiableList(mQueryStringPlaceholderParameters);
+        return mQueryStringPlaceholderParameters;
     }
 
     /**
@@ -169,7 +169,7 @@ public class DelegateMethod {
      */
     public Set<String> getQueryStringParameterNames() {
 
-        return Collections.unmodifiableSet(mQueryStringParameterNames);
+        return mQueryStringParameterNames;
     }
 
     /**
@@ -190,7 +190,7 @@ public class DelegateMethod {
      */
     public List<Interceptor> getBeforeInterceptorList() {
 
-        return Collections.unmodifiableList(mInterceptorElements);
+        return mInterceptorElements;
     }
 
     /**
@@ -201,7 +201,13 @@ public class DelegateMethod {
      */
     public List<Interceptor> getAfterInterceptorList() {
 
-        return Collections.unmodifiableList(Lists.reverse(mInterceptorElements));
+        if (mInverseInterceptorElements == null) {
+            
+            mInterceptorElements = new ArrayList<Interceptor>(mInterceptorElements.size());
+            mInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
+        }
+
+        return mInverseInterceptorElements;
     }
 
     @Override

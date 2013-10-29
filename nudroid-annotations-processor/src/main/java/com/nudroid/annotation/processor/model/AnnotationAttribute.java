@@ -14,9 +14,10 @@ public class AnnotationAttribute {
     private String mCapitalizedName;
 
     /**
-     * TODO complete javadoc
+     * Creates an instance of this class.
      * 
      * @param method
+     *            The annotation method for this particular attribute.
      */
     public AnnotationAttribute(ExecutableElement method) {
 
@@ -28,29 +29,32 @@ public class AnnotationAttribute {
     }
 
     /**
-     * TODO complete javadoc
+     * Gets the type of this attribute.
      * 
-     * @return the type
+     * @return The type of this attribute.
      */
     public String getType() {
+
         return mType;
     }
 
     /**
-     * TODO complete javadoc
+     * Gets the name of this attribute.
      * 
-     * @return the name
+     * @return The name of this attribute.
      */
     public String getName() {
+
         return mName;
     }
 
     /**
-     * TODO complete javadoc
+     * Gets the capitalized name of this attribute.
      * 
-     * @return the capitalizedName
+     * @return The capitalized name of this attribute.
      */
     public String getCapitalizedName() {
+        
         return mCapitalizedName;
     }
 }

@@ -1,7 +1,6 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -206,7 +205,7 @@ public class DelegateClass {
      */
     public List<MatcherUri> getMactherUris() {
 
-        return Collections.unmodifiableList(mMactherUris);
+        return mMactherUris;
     }
 
     /**
@@ -216,7 +215,7 @@ public class DelegateClass {
      */
     public Map<Integer, Set<DelegateMethod>> getUriIdToDelegateMethodRegistry() {
 
-        return Collections.unmodifiableMap(mUriIdToDelegateMethodsRegistry);
+        return mUriIdToDelegateMethodsRegistry;
     }
 
     /**
@@ -257,7 +256,8 @@ public class DelegateClass {
      * @return The set of delegate methods declared in this delegate class.
      */
     public Set<DelegateMethod> getDelegateMethods() {
-        return Collections.unmodifiableSet(mDelegateMethods);
+        
+        return mDelegateMethods;
     }
 
     /**
@@ -267,7 +267,7 @@ public class DelegateClass {
      */
     public Set<Interceptor> getRegisteredInterceptors() {
 
-        return Collections.unmodifiableSet(mRegisteredInterceptors);
+        return mRegisteredInterceptors;
     }
 
     /**

@@ -15,9 +15,6 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 /**
- * TODO: Add capability to hook up with a content provider life cycle.
- * TODO: Add capability to access the content provider context.
- * TODO: Add support to getType method.
  * Annotation processor creating the bindings necessary for Android content provider delegates.
  * 
  * <h1>Logging</h1> This processor can be configured to display log messages during the annotation processing rounds.

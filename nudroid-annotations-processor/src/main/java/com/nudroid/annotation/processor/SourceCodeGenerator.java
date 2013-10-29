@@ -153,7 +153,7 @@ class SourceCodeGenerator {
 
         for (ConcreteAnnotation annotation : metadata.getConcreteAnnotations()) {
 
-            mLogger.trace(String.format("    Generating concrete annotation %s.", annotation.getQualifiedName()));
+            mLogger.trace(String.format("    Generating concrete annotation %s.", annotation.getAnnotationQualifiedName()));
 
             Properties p = generateVelocityConfigurationProperties();
             Velocity.init(p);

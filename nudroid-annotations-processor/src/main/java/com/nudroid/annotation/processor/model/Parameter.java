@@ -110,9 +110,9 @@ public class Parameter {
     }
 
     /**
-     * The parameter is annotated with {@link QueryParam}.
+     * The parameter is a placeholder appearing in the query string of the URL.
      * 
-     * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if it is a query param, <tt>false</tt> otherwise.
      */
     public boolean isQueryParameter() {
         return mUriPlaceholderType == UriPlaceholderType.QUERY_PARAM;
@@ -139,82 +139,82 @@ public class Parameter {
     /**
      * Sets if this parameter is annotated with {@link ContextRef}.
      * 
-     * @param projection
+     * @param isContext
      *            If the parameter is annotated or not.
      */
-    public void setContext(boolean context) {
+    public void setContext(boolean isContext) {
 
-        this.mContext = context;
+        this.mContext = isContext;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Projection}.
      * 
-     * @param projection
+     * @param isProjection
      *            If the parameter is annotated or not.
      */
-    public void setProjection(boolean projection) {
-        this.mProjection = projection;
+    public void setProjection(boolean isProjection) {
+        this.mProjection = isProjection;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Selection}.
      * 
-     * @param mProjection
+     * @param isSelection
      *            If the parameter is annotated or not.
      */
-    public void setSelection(boolean selection) {
-        this.mSelection = selection;
+    public void setSelection(boolean isSelection) {
+        this.mSelection = isSelection;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SelectionArgs}.
      * 
-     * @param mProjection
+     * @param isSelectionArgs
      *            If the parameter is annotated or not.
      */
-    public void setSelectionArgs(boolean selectionArgs) {
-        this.mSelectionArgs = selectionArgs;
+    public void setSelectionArgs(boolean isSelectionArgs) {
+        this.mSelectionArgs = isSelectionArgs;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SortOrder}.
      * 
-     * @param mProjection
+     * @param isSortOrder
      *            If the parameter is annotated or not.
      */
-    public void setSortOrder(boolean sortOrder) {
-        this.mSortOrder = sortOrder;
+    public void setSortOrder(boolean isSortOrder) {
+        this.mSortOrder = isSortOrder;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
      * 
-     * @param mProjection
+     * @param isContentValues
      *            If the parameter is annotated or not.
      */
-    public void setContentValues(boolean contentValues) {
-        this.mContentValues = contentValues;
+    public void setContentValues(boolean isContentValues) {
+        this.mContentValues = isContentValues;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentUri}.
      * 
-     * @param mProjection
+     * @param isContentUri
      *            If the parameter is annotated or not.
      */
-    public void setContentUri(boolean contentUri) {
-        this.mContentUri = contentUri;
+    public void setContentUri(boolean isContentUri) {
+        this.mContentUri = isContentUri;
     }
 
     /**
      * Sets if this parameter is of type {@link String}.
      * 
-     * @param mProjection
+     * @param isString
      *            If the parameter is of type {@link String}.
      */
-    public void setString(boolean string) {
-        this.mString = string;
+    public void setString(boolean isString) {
+        this.mString = isString;
     }
 
     /**

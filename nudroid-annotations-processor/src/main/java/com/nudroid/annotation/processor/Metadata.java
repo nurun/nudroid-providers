@@ -1,6 +1,5 @@
 package com.nudroid.annotation.processor;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,6 +23,8 @@ class Metadata {
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
     private Map<ExecutableElement, DelegateMethod> mRegisteredDelegateMethods = new HashMap<ExecutableElement, DelegateMethod>();
     private Map<TypeElement, ConcreteAnnotation> mConcreteAnnotations = new HashMap<TypeElement, ConcreteAnnotation>();
+    private Set<ConcreteAnnotation> mConcreteAnnotationValues;
+    private Set<DelegateClass> mDelegateClassValues;
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
@@ -54,9 +55,10 @@ class Metadata {
     }
 
     /**
-     * TODO finish javadoc
+     * Stores a new concrete annotation metadata.
      * 
      * @param annotation
+     *            The concrete annotation bean to register.
      */
     void registerConcreteAnnotation(ConcreteAnnotation annotation) {
 
@@ -70,10 +72,13 @@ class Metadata {
      */
     Set<DelegateClass> getDelegateClasses() {
 
-        Set<DelegateClass> delegateClasses = new HashSet<DelegateClass>();
-        delegateClasses.addAll(mRegisteredDelegateClasses.values());
+        if (mDelegateClassValues == null) {
+            
+            mDelegateClassValues = new HashSet<DelegateClass>();
+            mDelegateClassValues.addAll(mRegisteredDelegateClasses.values());
+        }
 
-        return Collections.unmodifiableSet(delegateClasses);
+        return mDelegateClassValues;
     }
 
     /**
@@ -118,16 +123,19 @@ class Metadata {
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the set of registered concrete annotations.
      * 
-     * @return the mConcreteAnnotations
+     * @return The set of registered concrete annotations.
      */
     Set<ConcreteAnnotation> getConcreteAnnotations() {
 
-        Set<ConcreteAnnotation> annotations = new HashSet<ConcreteAnnotation>();
-        annotations.addAll(mConcreteAnnotations.values());
+        if (mConcreteAnnotationValues == null) {
+            
+            mConcreteAnnotationValues = new HashSet<ConcreteAnnotation>();
+            mConcreteAnnotationValues.addAll(mConcreteAnnotations.values());
+        }
 
-        return Collections.unmodifiableSet(annotations);
+        return mConcreteAnnotationValues;
     }
 
     /**

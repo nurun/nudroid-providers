@@ -49,6 +49,11 @@ subprojects {
     test { useTestNG() }
 
     sourceSets.main.compileClasspath += configurations.compileOnly
+    sourceSets.test.compileClasspath += configurations.compileOnly
+    
+    javadoc  {
+        classpath += configurations.compileOnly
+    } 
 
     eclipse.classpath.plusConfigurations += [configurations.compileOnly]
     

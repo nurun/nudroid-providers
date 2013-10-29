@@ -1,7 +1,6 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -16,81 +15,92 @@ import javax.lang.model.element.TypeElement;
  */
 public class ConcreteAnnotation {
 
-    private String mQualifiedName;
+    private String mAnnotationQualifiedName;
     private String mConcreteClassName;
-    private String mSimpleName;
+    private String mAnnotationSimpleName;
     private String mConcretePackageName;
     private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
     private TypeElement mTypeElement;
 
-    // TODO Finish javadoc
+    /**
+     * Creates a new bean.
+     * 
+     * @param typeElement
+     *            The {@link TypeElement} for the annotation this class represents.
+     */
     public ConcreteAnnotation(TypeElement typeElement) {
 
         this.mTypeElement = typeElement;
-        this.mQualifiedName = typeElement.getQualifiedName().toString();
-        this.mSimpleName = typeElement.getSimpleName().toString();
+        this.mAnnotationQualifiedName = typeElement.getQualifiedName().toString();
+        this.mAnnotationSimpleName = typeElement.getSimpleName().toString();
 
         calculateConcreteClassAndPackageNames(typeElement);
     }
 
-    // TODO Finish javadoc
+    /**
+     * Adds an attribute to this annotation representation.
+     * 
+     * @param attribute
+     *            The attribute to add.
+     */
     public void addAttribute(AnnotationAttribute attribute) {
 
         this.mAttributes.add(attribute);
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the {@link TypeElement} of the annotation.
      * 
-     * @return the mTypeElement
+     * @return The {@link TypeElement} of the annotation.
      */
     public TypeElement getTypeElement() {
         return mTypeElement;
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the qualified name of the annotation class.
      * 
-     * @return the qualifiedName
+     * @return The qualified name of the annotation class.
      */
-    public String getQualifiedName() {
-        return mQualifiedName;
+    public String getAnnotationQualifiedName() {
+        return mAnnotationQualifiedName;
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the simple name (i.e. without package name) of the annotation class.
      * 
-     * @return the simpleName
+     * @return The simple name (i.e. without package name) of the annotation class.
      */
-    public String getSimpleName() {
-        return mSimpleName;
+    public String getAnnotationSimpleName() {
+        return mAnnotationSimpleName;
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the name of the concrete annotation implementation class.
      * 
-     * @return the mConcreteClassName
+     * @return The name of the concrete annotation implementation class.
      */
     public String getConcreteClassName() {
         return mConcreteClassName;
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the package name of the concrete annotation implementation class.
      * 
-     * @return the packageName
+     * @return The package name of the concrete annotation implementation class.
      */
     public String getConcretePackageName() {
         return mConcretePackageName;
     }
 
     /**
-     * TODO Finish javadoc
+     * Gets the attributes of this concrete annotation.
      * 
-     * @return the attributes
+     * @return The attributes of this concrete annotation.
      */
     public List<AnnotationAttribute> getAttributes() {
-        return Collections.unmodifiableList(mAttributes);
+
+        return mAttributes;
     }
 
     private void calculateConcreteClassAndPackageNames(TypeElement typeElement) {
@@ -110,7 +120,7 @@ public class ConcreteAnnotation {
 
             this.mConcretePackageName = ((PackageElement) parentElement).getQualifiedName().toString();
         } else {
-            
+
             this.mConcretePackageName = "";
         }
 

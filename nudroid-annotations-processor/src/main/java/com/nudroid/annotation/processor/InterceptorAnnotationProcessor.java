@@ -200,15 +200,15 @@ class InterceptorAnnotationProcessor {
             break;
         case CHAR:
 
-            interceptor.addAnnotationValue(String.format("'%s'", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(String.format("'%s'", attributeValue.getValue()));
             break;
         case FLOAT:
 
-            interceptor.addAnnotationValue(String.format("%sf", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%sf", attributeValue.getValue()));
             break;
         case LONG:
 
-            interceptor.addAnnotationValue(String.format("%sL", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%sL", attributeValue.getValue()));
             break;
 
         case DECLARED:
@@ -217,13 +217,13 @@ class InterceptorAnnotationProcessor {
 
             if (mTypeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
 
-                interceptor.addAnnotationValue(String.format("\"%s\"", attributeValue.getValue()));
+                interceptor.addConcreteAnnotationConstructorLiteral(String.format("\"%s\"", attributeValue.getValue()));
             } else {
 
                 final Element asElement = mTypeUtils.asElement(attribute.getReturnType());
 
                 if (asElement.getKind() == ElementKind.ENUM) {
-                    interceptor.addAnnotationValue(String.format("%s.%s", asElement, attributeValue.getValue()));
+                    interceptor.addConcreteAnnotationConstructorLiteral(String.format("%s.%s", asElement, attributeValue.getValue()));
                 } else {
 
                     mLogger.error(String.format("Invalid type %s for the annotation attribute "
@@ -235,7 +235,7 @@ class InterceptorAnnotationProcessor {
             break;
 
         default:
-            interceptor.addAnnotationValue(String.format("%s", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%s", attributeValue.getValue()));
         }
     }
 
@@ -322,7 +322,7 @@ class InterceptorAnnotationProcessor {
             break;
         }
 
-        interceptor.addAnnotationValue(arrayInitializer.toString());
+        interceptor.addConcreteAnnotationConstructorLiteral(arrayInitializer.toString());
         System.out.println("Array is " + arrayInitializer);
     }
 }
