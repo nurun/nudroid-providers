@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
 import com.nudroid.annotation.processor.model.ConcreteAnnotation;
 import com.nudroid.annotation.processor.model.DelegateClass;
@@ -34,260 +36,293 @@ import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
  */
 class InterceptorAnnotationProcessor {
 
-	private LoggingUtils mLogger;
-	private Types mTypeUtils;
-	private Elements mElementUtils;
-
-	/**
-	 * Creates an instance of this class.
-	 * 
-	 * @param processorContext
-	 *            The processor context parameter object.
-	 */
-	InterceptorAnnotationProcessor(ProcessorContext processorContext) {
+    private LoggingUtils mLogger;
+    private Types mTypeUtils;
+    private Elements mElementUtils;
+
+    /**
+     * Creates an instance of this class.
+     * 
+     * @param processorContext
+     *            The processor context parameter object.
+     */
+    InterceptorAnnotationProcessor(ProcessorContext processorContext) {
 
-		this.mLogger = processorContext.logger;
-		this.mTypeUtils = processorContext.typeUtils;
-		this.mElementUtils = processorContext.elementUtils;
-	}
+        this.mLogger = processorContext.logger;
+        this.mTypeUtils = processorContext.typeUtils;
+        this.mElementUtils = processorContext.elementUtils;
+    }
 
-	/**
-	 * Process the {@link Query} annotations on this round.
-	 * 
-	 * @param roundEnv
-	 *            The round environment to process.
-	 * @param metadata
-	 *            The annotation metadata for the processor.
-	 * @param continuation
-	 *            The continuation object for this processor.
-	 */
-	void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
+    /**
+     * Process the {@link Query} annotations on this round.
+     * 
+     * @param roundEnv
+     *            The round environment to process.
+     * @param metadata
+     *            The annotation metadata for the processor.
+     * @param continuation
+     *            The continuation object for this processor.
+     */
+    void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
 
-		/*
-		 * Do not assume that because the @ProviderInterceptorPoint annotation can only be applied to annotation types,
-		 * only TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation
-		 * is applied to other elements even if it is correctly applied to a class, causing a class cast exception in
-		 * the for loop below.
-		 */
-		Set<Element> interceptorAnnotations = new HashSet<Element>();
-		interceptorAnnotations.addAll(roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class));
-		interceptorAnnotations.addAll(continuation.getInterceptorAnnotations());
+        /*
+         * Do not assume that because the @ProviderInterceptorPoint annotation can only be applied to annotation types,
+         * only TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation
+         * is applied to other elements even if it is correctly applied to a class, causing a class cast exception in
+         * the for loop below.
+         */
+        Set<Element> interceptorAnnotations = new HashSet<Element>();
+        interceptorAnnotations.addAll(roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class));
+        interceptorAnnotations.addAll(continuation.getInterceptorAnnotations());
 
-		mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
-		mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
-		        ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations));
+        mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
+        mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
+                ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations));
 
-		for (Element interceptorAnnotation : roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class)) {
+        for (Element interceptorAnnotation : roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class)) {
 
-			createAnnotationMetadata(interceptorAnnotation, metadata);
-		}
+            createAnnotationMetadata(interceptorAnnotation, metadata);
+        }
 
-		for (Element interceptorAnnotation : interceptorAnnotations) {
+        for (Element interceptorAnnotation : interceptorAnnotations) {
 
-			if (interceptorAnnotation instanceof TypeElement) {
+            if (interceptorAnnotation instanceof TypeElement) {
 
-				Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
-				        (TypeElement) interceptorAnnotation, roundEnv);
-				Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
-				continuation.addInterceptorAnnotation((TypeElement) interceptorAnnotation);
-				continuation.addInterceptorClasses(interceptorClassSet);
+                Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
+                        (TypeElement) interceptorAnnotation, roundEnv);
+                Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
+                continuation.addInterceptorAnnotation((TypeElement) interceptorAnnotation);
+                continuation.addInterceptorClasses(interceptorClassSet);
 
-				mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
-				        interceptorClassSet));
+                mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
+                        interceptorClassSet));
 
-				if (interceptorClassSet.size() > 1) {
-					mLogger.trace(String.format(
-					        "    Multiple interceptors for annotation %s. Signaling compilatoin error.",
-					        interceptorAnnotation));
+                if (interceptorClassSet.size() > 1) {
+                    mLogger.trace(String.format(
+                            "    Multiple interceptors for annotation %s. Signaling compilatoin error.",
+                            interceptorAnnotation));
 
-					for (TypeElement interceptorClass : interceptorClassSet) {
+                    for (TypeElement interceptorClass : interceptorClassSet) {
 
-						mLogger.error(String.format("Only one interceptor class for annotation %s is supported."
-						        + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
-						        interceptorClass);
-					}
+                        mLogger.error(String.format("Only one interceptor class for annotation %s is supported."
+                                + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
+                                interceptorClass);
+                    }
 
-					continue;
-				}
+                    continue;
+                }
 
-				if (interceptorClassSet.size() == 1) {
+                if (interceptorClassSet.size() == 1) {
 
-					final TypeElement interceptorClass = interceptorClassSet.iterator().next();
+                    final TypeElement interceptorClass = interceptorClassSet.iterator().next();
 
-					processInterceptorAnnotation(metadata, (TypeElement) interceptorAnnotation, interceptorClass);
-				}
-			}
-		}
+                    processInterceptorAnnotation(metadata, (TypeElement) interceptorAnnotation, interceptorClass);
+                }
+            }
+        }
 
-		mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
-	}
+        mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
+    }
 
-	private void createAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+    private void createAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
-		if (interceptorAnnotation instanceof TypeElement) {
+        if (interceptorAnnotation instanceof TypeElement) {
 
-			ConcreteAnnotation annotation = new ConcreteAnnotation((TypeElement) interceptorAnnotation);
+            ConcreteAnnotation annotation = new ConcreteAnnotation((TypeElement) interceptorAnnotation);
 
-			for (Element method : interceptorAnnotation.getEnclosedElements()) {
+            for (Element method : interceptorAnnotation.getEnclosedElements()) {
 
-				if (method instanceof ExecutableElement) {
-					annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method));
-				}
-			}
+                if (method instanceof ExecutableElement) {
+                    annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method));
+                }
+            }
 
-			metadata.registerConcreteAnnotation(annotation);
-		}
-	}
+            metadata.registerConcreteAnnotation(annotation);
+        }
+    }
 
-	private void processInterceptorAnnotation(Metadata metadata, TypeElement interceptorAnnotation,
-	        TypeElement interceptorClass) {
+    private void processInterceptorAnnotation(Metadata metadata, TypeElement interceptorAnnotation,
+            TypeElement interceptorClass) {
 
-		for (DelegateClass delagateClass : metadata.getDelegateClasses()) {
+        for (DelegateClass delagateClass : metadata.getDelegateClasses()) {
 
-			for (DelegateMethod delegateMethod : delagateClass.getDelegateMethods()) {
+            for (DelegateMethod delegateMethod : delagateClass.getDelegateMethods()) {
 
-				mLogger.trace("    Processing method " + delegateMethod.getName());
-				ExecutableElement executableElement = delegateMethod.getExecutableElement();
+                mLogger.trace("    Processing method " + delegateMethod.getName());
+                ExecutableElement executableElement = delegateMethod.getExecutableElement();
 
-				List<? extends AnnotationMirror> annotationsMirrors = executableElement.getAnnotationMirrors();
+                List<? extends AnnotationMirror> annotationsMirrors = executableElement.getAnnotationMirrors();
 
-				for (AnnotationMirror mirror : annotationsMirrors) {
+                for (AnnotationMirror mirror : annotationsMirrors) {
 
-					if (mTypeUtils.isSameType(mirror.getAnnotationType(), interceptorAnnotation.asType())) {
+                    if (mTypeUtils.isSameType(mirror.getAnnotationType(), interceptorAnnotation.asType())) {
 
-						Interceptor interceptor = createInterceptorWithAnnotationLiterals(metadata,
-						        interceptorAnnotation, interceptorClass, mirror);
+                        Interceptor interceptor = createInterceptorWithAnnotationLiterals(metadata,
+                                interceptorAnnotation, interceptorClass, mirror);
 
-						delegateMethod.addInterceptor(interceptor);
-					}
-				}
+                        delegateMethod.addInterceptor(interceptor);
+                    }
+                }
 
-				mLogger.trace("    Done processing method " + delegateMethod.getName());
-			}
-		}
-	}
+                mLogger.trace("    Done processing method " + delegateMethod.getName());
+            }
+        }
+    }
 
-	private Interceptor createInterceptorWithAnnotationLiterals(Metadata metadata, TypeElement interceptorAnnotation,
-	        TypeElement interceptorClass, AnnotationMirror mirror) {
-		Interceptor interceptor = new Interceptor(interceptorAnnotation, interceptorClass, mTypeUtils,
-		        metadata.getConcreteAnnotation(interceptorAnnotation));
+    private Interceptor createInterceptorWithAnnotationLiterals(Metadata metadata, TypeElement interceptorAnnotation,
+            TypeElement interceptorClass, AnnotationMirror mirror) {
+        Interceptor interceptor = new Interceptor(interceptorAnnotation, interceptorClass, mTypeUtils,
+                metadata.getConcreteAnnotation(interceptorAnnotation));
 
-		Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = mElementUtils
-		        .getElementValuesWithDefaults(mirror);
+        Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = mElementUtils
+                .getElementValuesWithDefaults(mirror);
 
-		for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationValues.entrySet()) {
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationValues.entrySet()) {
 
-			ExecutableElement attribute = entry.getKey();
-			AnnotationValue attributeValue = entry.getValue();
+            ExecutableElement attribute = entry.getKey();
+            AnnotationValue attributeValue = entry.getValue();
 
-			generateAnnotationLiteral(interceptor, attribute, attributeValue);
-		}
+            generateAnnotationLiteral(interceptor, attribute, attributeValue);
+        }
 
-		return interceptor;
-	}
+        return interceptor;
+    }
 
-	private void generateAnnotationLiteral(Interceptor interceptor, ExecutableElement attribute,
-	        AnnotationValue attributeValue) {
-		final TypeKind kind = attribute.getReturnType().getKind();
+    private void generateAnnotationLiteral(Interceptor interceptor, ExecutableElement attribute,
+            AnnotationValue attributeValue) {
+        final TypeKind kind = attribute.getReturnType().getKind();
 
-		switch (kind) {
-		case ARRAY:
+        switch (kind) {
+        case ARRAY:
 
-			generateAnnotationArrayLiteral(interceptor, attribute, attributeValue);
+            generateAnnotationArrayLiteral(interceptor, attribute, attributeValue);
 
-			break;
-		case CHAR:
+            break;
+        case CHAR:
 
-			interceptor.addAnnotationValue(String.format("'%s'", attributeValue.getValue()));
-			break;
-		case FLOAT:
+            interceptor.addAnnotationValue(String.format("'%s'", attributeValue.getValue()));
+            break;
+        case FLOAT:
 
-			interceptor.addAnnotationValue(String.format("%sf", attributeValue.getValue()));
-			break;
-		case LONG:
+            interceptor.addAnnotationValue(String.format("%sf", attributeValue.getValue()));
+            break;
+        case LONG:
 
-			interceptor.addAnnotationValue(String.format("%sL", attributeValue.getValue()));
-			break;
+            interceptor.addAnnotationValue(String.format("%sL", attributeValue.getValue()));
+            break;
 
-		case DECLARED:
+        case DECLARED:
 
-			TypeElement stringType = mElementUtils.getTypeElement(String.class.getName());
+            TypeElement stringType = mElementUtils.getTypeElement(String.class.getName());
 
-			if (mTypeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
+            if (mTypeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
 
-				interceptor.addAnnotationValue(String.format("\"%s\"", attributeValue.getValue()));
-			} else {
+                interceptor.addAnnotationValue(String.format("\"%s\"", attributeValue.getValue()));
+            } else {
 
-				final Element asElement = mTypeUtils.asElement(attribute.getReturnType());
+                final Element asElement = mTypeUtils.asElement(attribute.getReturnType());
 
-				if (asElement.getKind() == ElementKind.ENUM) {
-					interceptor.addAnnotationValue(String.format("%s.%s", asElement, attributeValue.getValue()));
-				} else {
+                if (asElement.getKind() == ElementKind.ENUM) {
+                    interceptor.addAnnotationValue(String.format("%s.%s", asElement, attributeValue.getValue()));
+                } else {
 
-					mLogger.error(String.format("Invalid type %s for the annotation attribute "
-					        + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
-					        + " thereof.", asElement, attribute), attribute);
-				}
-			}
+                    mLogger.error(String.format("Invalid type %s for the annotation attribute "
+                            + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
+                            + " thereof.", asElement, attribute), attribute);
+                }
+            }
 
-			break;
+            break;
 
-		default:
-			interceptor.addAnnotationValue(String.format("%s", attributeValue.getValue()));
-		}
-	}
+        default:
+            interceptor.addAnnotationValue(String.format("%s", attributeValue.getValue()));
+        }
+    }
 
-	private void generateAnnotationArrayLiteral(Interceptor interceptor, ExecutableElement attribute,
-	        AnnotationValue attributeValue) {
-		ArrayType typeMirror = (ArrayType) attribute.getReturnType();
+    private void generateAnnotationArrayLiteral(Interceptor interceptor, ExecutableElement attribute,
+            AnnotationValue attributeValue) {
+        ArrayType arrayType = (ArrayType) attribute.getReturnType();
 
-		switch (typeMirror.getComponentType().getKind()) {
-		case CHAR:
+        @SuppressWarnings("unchecked")
+        List<? extends AnnotationValue> annotationValues = (List<? extends AnnotationValue>) attributeValue.getValue();
+        List<Object> arrayElements = new ArrayList<Object>();
 
-			interceptor.addAnnotationValue(String.format("new char[] {%s}", attributeValue.getValue()));
-			break;
-		case FLOAT:
+        for (AnnotationValue value : annotationValues) {
 
-			interceptor.addAnnotationValue(String.format("new float[] {%s}", attributeValue.getValue()));
-			break;
-		case DOUBLE:
+            arrayElements.add(value.getValue());
+        }
 
-			interceptor.addAnnotationValue(String.format("new double[] {%s}", attributeValue.getValue()));
-			break;
-		case INT:
+        StringBuilder arrayInitializer = new StringBuilder();
 
-			interceptor.addAnnotationValue(String.format("new int[] {%s}", attributeValue.getValue()));
-			break;
-		case LONG:
+        /*
+         * On Eclipse, the toString() method of the AnnotationValues of an array is not proper. It does not print the
+         * fully qualified name of enum, does not surround characters and strings wiith ' and " and does not append 'f'
+         * or 'l' for floats or longs. Thus the need to recreate the logic for proper source code generation.
+         */
+        switch (arrayType.getComponentType().getKind()) {
+        case CHAR:
 
-			interceptor.addAnnotationValue(String.format("new long[] {%s}", attributeValue.getValue()));
-			break;
+            arrayInitializer.append("new char[] { '");
+            Joiner.on("', '").skipNulls().appendTo(arrayInitializer, arrayElements);
+            arrayInitializer.append("' }");
+            break;
+        case FLOAT:
 
-		case DECLARED:
+            arrayInitializer.append("new float[] { ");
+            Joiner.on("f, ").skipNulls().appendTo(arrayInitializer, arrayElements);
+            arrayInitializer.append("f }");
+            break;
+        case DOUBLE:
 
-			TypeElement stringType = mElementUtils.getTypeElement("java.lang.String");
+            arrayInitializer.append("new double[] { ");
+            Joiner.on(", ").skipNulls().appendTo(arrayInitializer, arrayElements);
+            arrayInitializer.append(" }");
+            break;
+        case INT:
 
-			if (mTypeUtils.isSameType(stringType.asType(), typeMirror.getComponentType())) {
+            arrayInitializer.append("new int[] { ");
+            Joiner.on(", ").skipNulls().appendTo(arrayInitializer, arrayElements);
+            arrayInitializer.append(" }");
+            break;
+        case LONG:
 
-				interceptor.addAnnotationValue(String.format("new String[] {%s}", attributeValue.getValue()));
-			} else {
+            arrayInitializer.append("new long[] { ");
+            Joiner.on("L, ").skipNulls().appendTo(arrayInitializer, arrayElements);
+            arrayInitializer.append("L }");
+            break;
 
-				final Element asElement = mTypeUtils.asElement(typeMirror.getComponentType());
+        case DECLARED:
 
-				if (asElement.getKind() == ElementKind.ENUM) {
-					interceptor
-					        .addAnnotationValue(String.format("new %s[] {%s}", asElement, attributeValue.getValue()));
-				} else {
+            TypeElement stringType = mElementUtils.getTypeElement("java.lang.String");
 
-					mLogger.error(String.format("Invalid type %s for the annotation attribute "
-					        + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
-					        + " thereof.", asElement, attribute), attribute);
-				}
-			}
+            if (mTypeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
 
-			break;
-		default:
-			break;
-		}
-	}
+                arrayInitializer.append("new String[] { \"");
+                Joiner.on("\", \"").skipNulls().appendTo(arrayInitializer, arrayElements);
+                arrayInitializer.append("\" }");
+            } else {
+
+                final Element arrayElementType = mTypeUtils.asElement(arrayType.getComponentType());
+
+                if (arrayElementType.getKind() == ElementKind.ENUM) {
+
+                    arrayInitializer.append(String.format("new %s[] { %s.", arrayElementType, arrayElementType));
+                    Joiner.on(String.format(", %s.", arrayElementType)).skipNulls().appendTo(arrayInitializer, arrayElements);
+                    arrayInitializer.append(" }");
+                } else {
+
+                    mLogger.error(String.format("Invalid type %s for the annotation attribute "
+                            + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
+                            + " thereof.", arrayElementType, attribute), attribute);
+                }
+            }
+
+            break;
+        default:
+            break;
+        }
+
+        interceptor.addAnnotationValue(arrayInitializer.toString());
+        System.out.println("Array is " + arrayInitializer);
+    }
 }

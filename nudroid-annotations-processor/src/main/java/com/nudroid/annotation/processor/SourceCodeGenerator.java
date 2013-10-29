@@ -94,8 +94,8 @@ class SourceCodeGenerator {
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
             } catch (Exception e) {
-                mLogger.error(String.format("Error processing velocity script '%s'",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+                mLogger.error(String.format("Error processing velocity script '%s': %s",
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
             }
         }
 
@@ -137,8 +137,8 @@ class SourceCodeGenerator {
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
             } catch (Exception e) {
-                mLogger.error(String.format("Error processing velocity script '%s'",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION));
+                mLogger.error(String.format("Error processing velocity script '%s': %s",
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
             }
 
             mLogger.trace(String.format("    Done generating router for class %s.", delegateClass.getTypeElement()));
@@ -182,8 +182,9 @@ class SourceCodeGenerator {
                 template.merge(context, writerContentUriRegistry);
                 writerContentUriRegistry.close();
             } catch (Exception e) {
-                mLogger.error(String.format("Error processing velocity script '%s'",
-                        CONCRETE_ANNOTATION_TEMPLATE_LOCATION));
+                //TODO Signal a compilation warning or error
+                mLogger.error(String.format("Error processing velocity script '%s': %s",
+                        CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
             }
         }
 
