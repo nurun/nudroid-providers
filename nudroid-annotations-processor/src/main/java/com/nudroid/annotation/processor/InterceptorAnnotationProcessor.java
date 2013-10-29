@@ -1,9 +1,13 @@
 package com.nudroid.annotation.processor;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -14,7 +18,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
@@ -26,8 +29,11 @@ import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.Interceptor;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
+import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 
 /**
+ * Add validation to interceptor constructors.
+ * <br/>
  * Processes @{@link ProviderInterceptorPoint} annotations.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
@@ -72,51 +78,50 @@ class InterceptorAnnotationProcessor {
         for (TypeElement interceptorAnnotation : interceptorAnnotations) {
 
             continuation.popInterceptorAnnotation(interceptorAnnotation);
+            createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
 
-            createAnnotationMetadata(interceptorAnnotation, metadata);
+            Element interceptorClass = interceptorAnnotation.getEnclosingElement();
 
-            Set<? extends Element> elementsAnnotatedWithInterceptor = continuation.getElementsAnotatedWith(
-                    (TypeElement) interceptorAnnotation, roundEnv);
-            Set<TypeElement> interceptorClassSet = ElementFilter.typesIn(elementsAnnotatedWithInterceptor);
-            continuation.addInterceptorAnnotation((TypeElement) interceptorAnnotation);
-            continuation.addInterceptorClasses(interceptorClassSet);
+            if (!ElementUtils.isClass(interceptorClass)) {
 
-            mLogger.trace(String.format("    Interceptor classes for %s: %s", interceptorAnnotation,
-                    interceptorClassSet));
-
-            if (interceptorClassSet.size() > 1) {
-                mLogger.trace(String.format(
-                        "    Multiple interceptors for annotation %s. Signaling compilatoin error.",
-                        interceptorAnnotation));
-
-                for (TypeElement interceptorClass : interceptorClassSet) {
-
-                    mLogger.error(String.format("Only one interceptor class for annotation %s is supported."
-                            + " Found multiple interceptors: %s", interceptorAnnotation, interceptorClassSet),
-                            interceptorClass);
-                }
-
+                mLogger.error(String.format("Interceptor annotations must be static elements of an eclosing %s",
+                        ContentProviderInterceptor.class.getName()), interceptorAnnotation);
                 continue;
             }
 
-            if (interceptorClassSet.size() == 1) {
+            if (!mTypeUtils.isAssignable(interceptorClass.asType(),
+                    mElementUtils.getTypeElement(ContentProviderInterceptor.class.getName()).asType())) {
 
-                final TypeElement interceptorClass = interceptorClassSet.iterator().next();
-
-                processInterceptorAnnotation(metadata, (TypeElement) interceptorAnnotation, interceptorClass);
+                mLogger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
+                        ContentProviderInterceptor.class.getName()), interceptorAnnotation);
+                continue;
             }
+
+            mLogger.trace(String.format("    Interceptor class for %s: %s", interceptorAnnotation, interceptorClass));
+
+            processInterceptorAnnotation(metadata, (TypeElement) interceptorAnnotation, (TypeElement) interceptorClass);
         }
 
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
     }
 
-    private void createAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+    private void createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
         if (interceptorAnnotation instanceof TypeElement) {
 
             ConcreteAnnotation annotation = new ConcreteAnnotation((TypeElement) interceptorAnnotation);
 
-            for (Element method : interceptorAnnotation.getEnclosedElements()) {
+            final List<? extends Element> enclosedElements = new ArrayList<Element>(
+                    interceptorAnnotation.getEnclosedElements());
+            Collections.sort(enclosedElements, new Comparator<Element>() {
+
+                @Override
+                public int compare(Element o1, Element o2) {
+                    return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString());
+                }
+            });
+
+            for (Element method : enclosedElements) {
 
                 if (method instanceof ExecutableElement) {
                     annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method));
@@ -160,13 +165,23 @@ class InterceptorAnnotationProcessor {
         Interceptor interceptor = new Interceptor(interceptorAnnotation, interceptorClass, mTypeUtils,
                 metadata.getConcreteAnnotation(interceptorAnnotation));
 
+        SortedSet<ExecutableElement> methodKeys = new TreeSet<ExecutableElement>(new Comparator<ExecutableElement>() {
+
+            @Override
+            public int compare(ExecutableElement o1, ExecutableElement o2) {
+
+                return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString());
+            }
+        });
+
         Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = mElementUtils
                 .getElementValuesWithDefaults(mirror);
+        methodKeys.addAll(annotationValues.keySet());
 
-        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationValues.entrySet()) {
+        for (ExecutableElement keyEntry : methodKeys) {
 
-            ExecutableElement attribute = entry.getKey();
-            AnnotationValue attributeValue = entry.getValue();
+            ExecutableElement attribute = keyEntry;
+            AnnotationValue attributeValue = annotationValues.get(keyEntry);
 
             generateAnnotationLiteral(interceptor, attribute, attributeValue);
         }

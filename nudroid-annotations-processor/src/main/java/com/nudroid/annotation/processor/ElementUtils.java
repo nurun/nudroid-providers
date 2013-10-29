@@ -24,7 +24,7 @@ class ElementUtils {
     }
 
     /**
-     * Checks if the element is a class or interface.
+     * Checks if the element is a class or interface (but not an enum or annotation).
      * 
      * @param element
      *            The element to check.
@@ -36,7 +36,7 @@ class ElementUtils {
     }
 
     /**
-     * Checks if the element is an interface.
+     * Checks if the element is an interface (but not an annotation type).
      * 
      * @param element
      *            The element to check.
@@ -48,7 +48,7 @@ class ElementUtils {
     }
 
     /**
-     * Checks if the element is a class.
+     * Checks if the element is a class (but not an enum).
      * 
      * @param element
      *            The element to check.
