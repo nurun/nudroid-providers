@@ -32,7 +32,7 @@ public class DelegateMethod {
     private DelegateUri mUri;
     private ExecutableElement mExecutableElement;
     private List<Interceptor> mInterceptorElements = new ArrayList<Interceptor>();
-    private List<Interceptor> mInverseInterceptorElements;
+    private List<Interceptor> mInverseInterceptorElements = null;
 
     /**
      * Creates an instance of this class.
@@ -203,8 +203,8 @@ public class DelegateMethod {
 
         if (mInverseInterceptorElements == null) {
             
-            mInterceptorElements = new ArrayList<Interceptor>(mInterceptorElements.size());
-            mInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
+            mInverseInterceptorElements = new ArrayList<Interceptor>(mInterceptorElements.size());
+            mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
         }
 
         return mInverseInterceptorElements;

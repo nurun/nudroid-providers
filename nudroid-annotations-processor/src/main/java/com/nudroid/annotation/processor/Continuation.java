@@ -21,8 +21,7 @@ import com.google.common.base.Splitter;
 import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 
 /**
- * Update continuation to all processed types.
- * <br/>
+ * Update continuation to all processed types. <br/>
  * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
  * modified classes are compiled on a round). Since the processor requires metadata extracted from other source files,
  * which might not be included in a particular compilation round on an IDE, not all information might be available to
@@ -278,7 +277,7 @@ class Continuation {
             }
         }
 
-        return mInterceptorAnnotationTypesStack;
+        return new HashSet<TypeElement>(mInterceptorAnnotationTypesStack);
     }
 
     /**

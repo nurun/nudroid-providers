@@ -32,8 +32,7 @@ import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 
 /**
- * Add validation to interceptor constructors.
- * <br/>
+ * Add validation to interceptor constructors. <br/>
  * Processes @{@link ProviderInterceptorPoint} annotations.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
@@ -74,7 +73,7 @@ class InterceptorAnnotationProcessor {
         mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
         mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
                 ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations));
-
+        
         for (TypeElement interceptorAnnotation : interceptorAnnotations) {
 
             continuation.popInterceptorAnnotation(interceptorAnnotation);
