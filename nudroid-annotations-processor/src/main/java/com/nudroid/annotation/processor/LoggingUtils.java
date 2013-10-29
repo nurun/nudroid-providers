@@ -102,11 +102,17 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      * @param element
-     *            The {@link Element} this message is associated with.
+     *            The {@link Element} this message is associated with. Can be null.
      */
     void warn(String message, Element element) {
 
-        messager.printMessage(Kind.WARNING, message, element);
+        if (element != null) {
+
+            messager.printMessage(Kind.WARNING, message, element);
+        } else {
+
+            messager.printMessage(Kind.WARNING, message);
+        }
     }
 
     /**
@@ -130,11 +136,17 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      * @param element
-     *            The {@link Element} this message is associated with.
+     *            The {@link Element} this message is associated with. Can be null.
      */
     void error(String message, Element element) {
 
-        messager.printMessage(Kind.ERROR, message, element);
+        if (element != null) {
+
+            messager.printMessage(Kind.ERROR, message, element);
+        } else {
+
+            messager.printMessage(Kind.ERROR, message);
+        }
     }
 
     private static enum LogLevel {

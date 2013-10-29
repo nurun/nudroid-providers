@@ -18,6 +18,7 @@ import javax.lang.model.util.Types;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 
 /**
  * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
@@ -35,6 +36,7 @@ class Continuation {
     private File mContinuationFile;
     private Set<TypeElement> mInterceptorAnnotationTypes = new HashSet<TypeElement>();
     private Set<TypeElement> mInterceptorClassTypes = new HashSet<TypeElement>();
+    private Set<TypeElement> mInterceptorAnnotationTypesStack = new HashSet<TypeElement>();
     private LoggingUtils mLogger;
     private Elements mElementUtils;
     private Types mTypeUtils;
@@ -133,6 +135,8 @@ class Continuation {
                 mLogger.debug(String.format("    Failed to load element %s.", className));
             }
         }
+
+        mInterceptorAnnotationTypesStack.addAll(mInterceptorAnnotationTypes);
 
         mLogger.debug("    Done loading continuation.");
     }
@@ -233,23 +237,45 @@ class Continuation {
     }
 
     /**
-     * Gets the interceptor annotations stored in the continuation file.
+     * Pops a interceptor annotation type from the continuation compilation. Types processes by the annotation processor
+     * on a round should be removed from the continuation so they are not re-processed in the next round.
      * 
-     * @return The interceptor annotations stored in the continuation file.
+     * @param interceptorAnnotation
+     *            The element to remove from the continuation compilation.
      */
-    Set<TypeElement> getInterceptorAnnotations() {
+    void popInterceptorAnnotation(TypeElement interceptorAnnotation) {
 
-        return mInterceptorAnnotationTypes;
+        mInterceptorAnnotationTypesStack.remove(interceptorAnnotation);
     }
 
     /**
-     * Gets the interceptor annotations stored in the continuation file.
+     * Gets the set of interceptor annotation to process this round.
      * 
-     * @return The interceptor annotations stored in the continuation file.
+     * @param roundEnv
+     *            The round environment for the round.
+     * 
+     * @return The set of interceptor annotation to process this round.
      */
-    Set<TypeElement> getInterceptorClasses() {
 
-        return mInterceptorClassTypes;
+    Set<TypeElement> getInterceptorAnnotationsForRound(RoundEnvironment roundEnv) {
+
+        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class);
+
+        for (Element element : elements) {
+
+            /*
+             * Do not assume that because the @ProviderInterceptorPoint annotation can only be applied to annotation
+             * types, only TypeElements will be returned. Compilation errors on a class can let the compiler think the
+             * annotation is applied to other elements even if it is correctly applied to a class, causing a class cast
+             * exception in the for loop below.
+             */
+            if (element instanceof TypeElement) {
+
+                mInterceptorAnnotationTypesStack.add((TypeElement) element);
+            }
+        }
+
+        return mInterceptorAnnotationTypesStack;
     }
 
     /**

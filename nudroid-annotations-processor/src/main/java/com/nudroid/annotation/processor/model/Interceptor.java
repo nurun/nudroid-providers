@@ -137,10 +137,6 @@ public class Interceptor {
      * 
      * @return The list of source code literals to create a new instance of the concrete annotation.
      */
-    /*
-     * TODO Important. Velocity call this method each time it needs to iterate the array, creating a new unmodifiable
-     * instance everytime. Change this here and in other methods.
-     */
     public List<String> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;

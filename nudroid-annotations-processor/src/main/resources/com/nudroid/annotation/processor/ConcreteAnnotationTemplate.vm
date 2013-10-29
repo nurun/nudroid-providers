@@ -32,7 +32,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 @SuppressWarnings("serial")
-public class ${annotation.getConcreteClassName()} implements Annotation, Serializable, ${annotation.getQualifiedName()} {
+public class ${annotation.getConcreteClassName()} implements Annotation, Serializable, ${annotation.getAnnotationQualifiedName()} {
 
 #foreach ( $attribute in $annotation.getAttributes() ) 
     private ${attribute.getType()} m${attribute.getCapitalizedName()};
@@ -48,7 +48,7 @@ public class ${annotation.getConcreteClassName()} implements Annotation, Seriali
 #foreach ( $attribute in $annotation.getAttributes() )
 #[[    /**
      * {@inheritDoc}]]#
-     * @see $annotation.getQualifiedName()
+     * @see $annotation.getAnnotationQualifiedName()
      */
     @Override
     public ${attribute.getType()} ${attribute.getName()}() {
@@ -63,7 +63,7 @@ public class ${annotation.getConcreteClassName()} implements Annotation, Seriali
      * @see java.lang.annotation.Annotation#annotationType()
      */]]#
     public Class<? extends Annotation> annotationType() {
-        return ${annotation.getQualifiedName()}.class;
+        return ${annotation.getAnnotationQualifiedName()}.class;
     }
 
 #[[    /**
