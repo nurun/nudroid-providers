@@ -6,7 +6,6 @@ import java.util.Map;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
@@ -24,11 +23,6 @@ public class ContentProviderContext {
      * The content provider context.
      */
     public Context context;
-
-    /**
-     * The {@link SQLiteOpenHelper} instance returned by {@link ContentProviderDelegate#onCreateOpenHelper(Context)}
-     */
-    public SQLiteOpenHelper sqliteOpenHelper;
 
     /**
      * The requested content URI.
@@ -70,9 +64,6 @@ public class ContentProviderContext {
      * 
      * @param context
      *            The content provider context.
-     * @param openHelper
-     *            The {@link SQLiteOpenHelper} instance returned by
-     *            {@link ContentProviderDelegate#onCreateOpenHelper(Context)}
      * @param uri
      *            The URI passed to the delegate method.
      * @param projection
@@ -86,11 +77,10 @@ public class ContentProviderContext {
      * @param contentValues
      *            The contentValues parameter passed to the query delegate method.
      */
-    public ContentProviderContext(Context context, SQLiteOpenHelper openHelper, Uri uri, String[] projection,
-            String selection, String[] selectionArgs, String sortOrder, ContentValues contentValues) {
+    public ContentProviderContext(Context context, Uri uri, String[] projection, String selection,
+            String[] selectionArgs, String sortOrder, ContentValues contentValues) {
 
         this.context = context;
-        this.sqliteOpenHelper = openHelper;
         this.uri = uri;
         this.projection = projection;
         this.selection = selection;
@@ -107,8 +97,8 @@ public class ContentProviderContext {
      */
     @Override
     public String toString() {
-        return "ContentProviderContext [context=" + context + ", sqliteOpenHelper=" + sqliteOpenHelper + ", uri=" + uri
-                + ", projection=" + Arrays.toString(projection) + ", selection=" + selection + ", selectionArgs="
+        return "ContentProviderContext [context=" + context + ", uri=" + uri + ", projection="
+                + Arrays.toString(projection) + ", selection=" + selection + ", selectionArgs="
                 + Arrays.toString(selectionArgs) + ", sortOrder=" + sortOrder + ", contentValues=" + contentValues
                 + ", placeholders=" + placeholders + "]";
     }

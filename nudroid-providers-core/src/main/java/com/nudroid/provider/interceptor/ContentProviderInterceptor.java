@@ -2,7 +2,6 @@ package com.nudroid.provider.interceptor;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 import com.nudroid.annotation.provider.delegate.Delete;
@@ -10,7 +9,6 @@ import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.provider.delegate.ContentProviderContext;
-import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 /**
  * A provider interceptor wraps invocations to content provider delegate methods and allows code to be executed before
@@ -25,11 +23,8 @@ public interface ContentProviderInterceptor {
      * 
      * @param context
      *            The content provider context.
-     * @param openHelper
-     *            The {@link SQLiteOpenHelper} instance returned by
-     *            {@link ContentProviderDelegate#onCreateOpenHelper(Context)}
      */
-    public void onCreate(Context context, SQLiteOpenHelper openHelper);
+    public void onCreate(Context context);
 
     /**
      * Called before {@link Query} target method is executed.

@@ -109,7 +109,6 @@ package ${delegateClass.getBasePackageName()};
 import android.content.Context;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.content.UriMatcher;
 
@@ -141,7 +140,7 @@ public class ${delegateClass.getRouterSimpleName()} {
      * @see     android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
      *      java.lang.String, java.lang.String[], java.lang.String)
      */]]#
-    public Cursor query(Context context, SQLiteOpenHelper openHelper, Uri uri, String[] projection, String selection,
+    public Cursor query(Context context, Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
 
         java.util.Set<String> queryParameterNames = uri.getQueryParameterNames();
@@ -156,7 +155,7 @@ public class ${delegateClass.getRouterSimpleName()} {
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
 #end
-                ContentProviderContext contentProviderContext = new ContentProviderContext(context, openHelper, uri, projection,
+                ContentProviderContext contentProviderContext = new ContentProviderContext(context, uri, projection,
                         selection, selectionArgs, sortOrder, null);
                 #populateContextPlaceholder($delegateMethod.getPathPlaceholderParameters())
                 #populateContextPlaceholder($delegateMethod.getQueryStringPlaceholderParameters())
@@ -170,7 +169,7 @@ public class ${delegateClass.getRouterSimpleName()} {
                 ${interceptor.getQualifiedName()} l${interceptor.getSimpleName()} = 
                     new ${interceptor.getQualifiedName()}();
 #end
-                l${interceptor.getSimpleName()}.onCreate(context, openHelper);
+                l${interceptor.getSimpleName()}.onCreate(context);
                 l${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
 #end
 
@@ -197,7 +196,7 @@ public class ${delegateClass.getRouterSimpleName()} {
 #[[    /**
      * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
      */]]#
-    public Uri insert(Context context, SQLiteOpenHelper openHelper, Uri uri, ContentValues values) {
+    public Uri insert(Context context, Uri uri, ContentValues values) {
 
         return null;
     }
@@ -206,7 +205,7 @@ public class ${delegateClass.getRouterSimpleName()} {
      * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
      *      java.lang.String, java.lang.String[])
      */]]#
-    public int update(Context context, SQLiteOpenHelper openHelper, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+    public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -215,7 +214,7 @@ public class ${delegateClass.getRouterSimpleName()} {
      * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
      *      java.lang.String[])
      */]]#
-    public int delete(Context context, SQLiteOpenHelper openHelper, Uri uri, String selection, String[] selectionArgs) {
+    public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         return 0;
     }
@@ -223,7 +222,7 @@ public class ${delegateClass.getRouterSimpleName()} {
 #[[    /**
      * @see     android.content.ContentProvider#getType(android.net.Uri)
      */]]#
-    public String getType(Context context, SQLiteOpenHelper openHelper, Uri uri) {
+    public String getType(Context context, Uri uri) {
 
         return null;
     }
