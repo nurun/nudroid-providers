@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,9 +9,9 @@ import java.util.Set;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
-import com.nudroid.annotation.processor.model.ConcreteAnnotation;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 
 /**
  * Gather all the information required to generate the source code for the content providers and router classes.
@@ -22,9 +23,9 @@ class Metadata {
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
     private Map<ExecutableElement, DelegateMethod> mRegisteredDelegateMethods = new HashMap<ExecutableElement, DelegateMethod>();
-    private Map<TypeElement, ConcreteAnnotation> mConcreteAnnotations = new HashMap<TypeElement, ConcreteAnnotation>();
-    private Set<ConcreteAnnotation> mConcreteAnnotationValues;
-    private Set<DelegateClass> mDelegateClassValues;
+    private Map<TypeElement, InterceptorBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorBlueprint>();
+    private Set<InterceptorBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorBlueprint>();
+    private Set<DelegateClass> mDelegateClassStack = new HashSet<DelegateClass>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
@@ -39,6 +40,18 @@ class Metadata {
         final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
         mRegisteredAuthorities.put(authorityName, delegateClass);
         mRegisteredDelegateClasses.put(delegateClassType, delegateClass);
+        mDelegateClassStack.add(delegateClass);
+    }
+
+    /**
+     * Pops a delegate class from the metadata (should be called after source code is generated).
+     * 
+     * @param delegateClass
+     *            The delegate class to pop out.
+     */
+    void popDelegateClass(DelegateClass delegateClass) {
+
+        mDelegateClassStack.remove(delegateClass);
     }
 
     /**
@@ -60,25 +73,31 @@ class Metadata {
      * @param annotation
      *            The concrete annotation bean to register.
      */
-    void registerConcreteAnnotation(ConcreteAnnotation annotation) {
+    void registerConcreteAnnotation(InterceptorBlueprint annotation) {
 
-        this.mConcreteAnnotations.put(annotation.getTypeElement(), annotation);
+        this.mInterceptorBlueprints.put(annotation.getTypeElement(), annotation);
+        this.mInterceptorBlueprintStack.add(annotation);
     }
 
     /**
-     * Gets the set of delegate classes to generate source code to.
+     * Pops a concrete annotation class from the metadata (should be called after source code is generated).
      * 
-     * @return The set of delegate classes to generate source code to.
+     * @param concreteAnnotation
+     *            The concrete annotation class to pop out.
      */
-    Set<DelegateClass> getDelegateClasses() {
+    void popInterceptorBlueprint(InterceptorBlueprint concreteAnnotation) {
 
-        if (mDelegateClassValues == null) {
+        mInterceptorBlueprintStack.remove(concreteAnnotation);
+    }
 
-            mDelegateClassValues = new HashSet<DelegateClass>();
-            mDelegateClassValues.addAll(mRegisteredDelegateClasses.values());
-        }
+    /**
+     * Gets the set of delegate classes to generate source code for.
+     * 
+     * @return The set of delegate classes to generate source code for.
+     */
+    Set<DelegateClass> getDelegateClassesForRound() {
 
-        return mDelegateClassValues;
+        return mDelegateClassStack;
     }
 
     /**
@@ -123,27 +142,49 @@ class Metadata {
     }
 
     /**
-     * Gets the set of registered concrete annotations.
+     * Gets the set of registered concrete annotations to generate source code for.
      * 
-     * @return The set of registered concrete annotations.
+     * @return The set of registered concrete annotations to generate source code for.
      */
-    Set<ConcreteAnnotation> getConcreteAnnotations() {
+    Set<InterceptorBlueprint> getInterceptorBlueprintsForRound() {
 
-        if (mConcreteAnnotationValues == null) {
-
-            mConcreteAnnotationValues = new HashSet<ConcreteAnnotation>();
-            mConcreteAnnotationValues.addAll(mConcreteAnnotations.values());
-        }
-
-        return mConcreteAnnotationValues;
+        return mInterceptorBlueprintStack;
     }
 
     /**
-     * @param interceptorAnnotation
-     * @return
+     * Gets the set of registered concrete annotations to generate source code for.
+     * 
+     * @return The set of registered concrete annotations to generate source code for.
      */
-    ConcreteAnnotation getConcreteAnnotation(TypeElement interceptorAnnotation) {
+    Collection<InterceptorBlueprint> getInterceptorBlueprints() {
 
-        return mConcreteAnnotations.get(interceptorAnnotation);
+        return mInterceptorBlueprints.values();
+    }
+
+    /**
+     * Gets the interceptor blueprint for the given annotation.
+     * 
+     * @param interceptorAnnotationTypeElement
+     *            The annotation to get the blueprint for.
+     * 
+     * @return the interceptor blueprint for the given annotation.
+     */
+    InterceptorBlueprint getInterceptorBlueprint(TypeElement interceptorAnnotationTypeElement) {
+
+        return mInterceptorBlueprints.get(interceptorAnnotationTypeElement);
+    }
+
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="
+                + mRegisteredDelegateClasses + ", \nmRegisteredDelegateMethods=" + mRegisteredDelegateMethods
+                + ", \nmConcreteAnnotations=" + mInterceptorBlueprints + ", \nmConcreteAnnotationValues="
+                + mInterceptorBlueprintStack + ", \nmDelegateClassValues=" + mDelegateClassStack + "]";
     }
 }

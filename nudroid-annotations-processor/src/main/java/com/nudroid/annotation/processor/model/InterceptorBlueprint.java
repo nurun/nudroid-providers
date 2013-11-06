@@ -14,41 +14,64 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 import com.google.common.base.Joiner;
+import com.nudroid.annotation.processor.LoggingUtils;
 
 /**
  * Represents a concrete annotation implementation that will be created.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class ConcreteAnnotation {
+public class InterceptorBlueprint {
 
-    private String mAnnotationQualifiedName;
+    private String mInterceptorAnnotationQualifiedName;
     private String mConcreteClassName;
-    private String mAnnotationSimpleName;
+    private String mInterceptorAnnotationSimpleName;
     private String mConcretePackageName;
     private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
-    private TypeElement mTypeElement;
-    private TypeElement mInterceptorTypeElement;
-    private Interceptor mInterceptor;
+    private TypeElement mInterceptorAnnotationTypeElement;
+    private TypeElement mInterceptorImplementationTypeElement;
+    private boolean mHasDefaultConstructor;
+    private boolean mHasCustomConstructor;
 
     /**
-     * Creates a new bean.
+     * Creates a new InterceptorBlueprint bean.
      * 
      * @param typeElement
      *            The {@link TypeElement} for the annotation this class represents.
+     *            
      */
-    public ConcreteAnnotation(TypeElement typeElement, Elements elements) {
+    public InterceptorBlueprint(TypeElement typeElement) {
 
-        this.mTypeElement = typeElement;
-        this.mInterceptorTypeElement = (TypeElement) typeElement.getEnclosingElement();
-        this.mAnnotationQualifiedName = typeElement.getQualifiedName().toString();
-        this.mAnnotationSimpleName = typeElement.getSimpleName().toString();
-        this.mInterceptor = createInterceptorWithAnnotationLiterals(this, elements);
+        this.mInterceptorAnnotationTypeElement = typeElement;
+        this.mInterceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();
+        this.mInterceptorAnnotationQualifiedName = typeElement.getQualifiedName().toString();
+        this.mInterceptorAnnotationSimpleName = typeElement.getSimpleName().toString();
+
+        List<ExecutableElement> constructors = ElementFilter.constructorsIn(mInterceptorImplementationTypeElement
+                .getEnclosedElements());
+
+        for (ExecutableElement constructor : constructors) {
+
+            final List<? extends VariableElement> parameters = constructor.getParameters();
+
+            if (parameters.size() == 0) {
+                this.mHasDefaultConstructor = true;
+            }
+
+            if (parameters.size() == 1
+                    && parameters.get(0).asType().toString().equals(mInterceptorAnnotationTypeElement.asType().toString())) {
+
+                this.mHasCustomConstructor = true;
+            }
+        }
 
         calculateConcreteClassAndPackageNames(typeElement);
     }
@@ -71,7 +94,7 @@ public class ConcreteAnnotation {
      */
     public TypeElement getTypeElement() {
 
-        return mTypeElement;
+        return mInterceptorAnnotationTypeElement;
     }
 
     /**
@@ -81,7 +104,7 @@ public class ConcreteAnnotation {
      */
     public TypeElement getInterceptorTypeElement() {
 
-        return mInterceptorTypeElement;
+        return mInterceptorImplementationTypeElement;
     }
 
     /**
@@ -90,7 +113,7 @@ public class ConcreteAnnotation {
      * @return The qualified name of the annotation class.
      */
     public String getAnnotationQualifiedName() {
-        return mAnnotationQualifiedName;
+        return mInterceptorAnnotationQualifiedName;
     }
 
     /**
@@ -99,7 +122,7 @@ public class ConcreteAnnotation {
      * @return The simple name (i.e. without package name) of the annotation class.
      */
     public String getAnnotationSimpleName() {
-        return mAnnotationSimpleName;
+        return mInterceptorAnnotationSimpleName;
     }
 
     /**
@@ -130,13 +153,35 @@ public class ConcreteAnnotation {
         return mAttributes;
     }
 
-    /**
-     * Gets the Interceptor metadata for this concrete annotation.
-     * 
-     * @return The Interceptor metadata for this concrete annotation.
-     */
-    public Interceptor getInterceptor() {
-        return mInterceptor;
+    public InterceptorPoint createInterceptorPoint(AnnotationMirror mirror, Elements elementUtils,
+            Types typeUtils, LoggingUtils logger) {
+
+        InterceptorPoint interceptor = new InterceptorPoint(this);
+        interceptor.setHasDefaultConstructor(mHasDefaultConstructor);
+        interceptor.setHasCustomConstructor(mHasCustomConstructor);
+
+        SortedSet<ExecutableElement> methodKeys = new TreeSet<ExecutableElement>(new Comparator<ExecutableElement>() {
+
+            @Override
+            public int compare(ExecutableElement o1, ExecutableElement o2) {
+
+                return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString());
+            }
+        });
+
+        Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = elementUtils
+                .getElementValuesWithDefaults(mirror);
+        methodKeys.addAll(annotationValues.keySet());
+
+        for (ExecutableElement keyEntry : methodKeys) {
+
+            ExecutableElement attribute = keyEntry;
+            AnnotationValue attributeValue = annotationValues.get(keyEntry);
+
+            generateAnnotationLiteral(interceptor, attribute, attributeValue, elementUtils, typeUtils, logger);
+        }
+
+        return interceptor;
     }
 
     private void calculateConcreteClassAndPackageNames(TypeElement typeElement) {
@@ -163,43 +208,14 @@ public class ConcreteAnnotation {
         this.mConcreteClassName = concreteSimpleName.toString();
     }
 
-    private Interceptor createInterceptorWithAnnotationLiterals(ConcreteAnnotation concreteAnnotation,
-            AnnotationMirror mirror, Elements elements) {
-
-        Interceptor interceptor = new Interceptor(concreteAnnotation);
-
-        SortedSet<ExecutableElement> methodKeys = new TreeSet<ExecutableElement>(new Comparator<ExecutableElement>() {
-
-            @Override
-            public int compare(ExecutableElement o1, ExecutableElement o2) {
-
-                return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString());
-            }
-        });
-
-        Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = elements
-                .getElementValuesWithDefaults(mirror);
-        methodKeys.addAll(annotationValues.keySet());
-
-        for (ExecutableElement keyEntry : methodKeys) {
-
-            ExecutableElement attribute = keyEntry;
-            AnnotationValue attributeValue = annotationValues.get(keyEntry);
-
-            generateAnnotationLiteral(interceptor, attribute, attributeValue);
-        }
-
-        return interceptor;
-    }
-
-    private void generateAnnotationLiteral(Interceptor interceptor, ExecutableElement attribute,
-            AnnotationValue attributeValue) {
+    private void generateAnnotationLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
+            AnnotationValue attributeValue, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
         final TypeKind kind = attribute.getReturnType().getKind();
 
         switch (kind) {
         case ARRAY:
 
-            generateAnnotationArrayLiteral(interceptor, attribute, attributeValue);
+            generateAnnotationArrayLiteral(interceptor, attribute, attributeValue, elementUtils, typeUtils, logger);
 
             break;
         case CHAR:
@@ -217,21 +233,21 @@ public class ConcreteAnnotation {
 
         case DECLARED:
 
-            TypeElement stringType = mElementUtils.getTypeElement(String.class.getName());
+            TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
 
-            if (mTypeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
+            if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
 
                 interceptor.addConcreteAnnotationConstructorLiteral(String.format("\"%s\"", attributeValue.getValue()));
             } else {
 
-                final Element asElement = mTypeUtils.asElement(attribute.getReturnType());
+                final Element asElement = typeUtils.asElement(attribute.getReturnType());
 
                 if (asElement.getKind() == ElementKind.ENUM) {
                     interceptor.addConcreteAnnotationConstructorLiteral(String.format("%s.%s", asElement,
                             attributeValue.getValue()));
                 } else {
 
-                    mLogger.error(String.format("Invalid type %s for the annotation attribute "
+                    logger.error(String.format("Invalid type %s for the annotation attribute "
                             + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
                             + " thereof.", asElement, attribute), attribute);
                 }
@@ -244,8 +260,8 @@ public class ConcreteAnnotation {
         }
     }
 
-    private void generateAnnotationArrayLiteral(Interceptor interceptor, ExecutableElement attribute,
-            AnnotationValue attributeValue) {
+    private void generateAnnotationArrayLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
+            AnnotationValue attributeValue, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
         ArrayType arrayType = (ArrayType) attribute.getReturnType();
 
         @SuppressWarnings("unchecked")
@@ -298,16 +314,16 @@ public class ConcreteAnnotation {
 
         case DECLARED:
 
-            TypeElement stringType = mElementUtils.getTypeElement("java.lang.String");
+            TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
 
-            if (mTypeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
+            if (typeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
 
                 arrayInitializer.append("new String[] { \"");
                 Joiner.on("\", \"").skipNulls().appendTo(arrayInitializer, arrayElements);
                 arrayInitializer.append("\" }");
             } else {
 
-                final Element arrayElementType = mTypeUtils.asElement(arrayType.getComponentType());
+                final Element arrayElementType = typeUtils.asElement(arrayType.getComponentType());
 
                 if (arrayElementType.getKind() == ElementKind.ENUM) {
 
@@ -317,7 +333,7 @@ public class ConcreteAnnotation {
                     arrayInitializer.append(" }");
                 } else {
 
-                    mLogger.error(String.format("Invalid type %s for the annotation attribute "
+                    logger.error(String.format("Invalid type %s for the annotation attribute "
                             + "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays"
                             + " thereof.", arrayElementType, attribute), attribute);
                 }

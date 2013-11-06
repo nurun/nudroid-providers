@@ -27,7 +27,7 @@ public class DuplicatePathException extends IllegalUriPathException {
 	 * 
 	 * @return The method which originally registered the offending path.
 	 */
-	public Object getOriginalMoethod() {
+	public Object getOriginalMethod() {
 
 		return mOriginalMethod;
 	}

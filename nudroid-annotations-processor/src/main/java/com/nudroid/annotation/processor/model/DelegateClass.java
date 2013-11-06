@@ -28,7 +28,7 @@ public class DelegateClass {
     private Authority mAuthority;
     private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
     private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
-    private Set<Interceptor> mRegisteredInterceptors = new HashSet<Interceptor>();
+    private Set<InterceptorPoint> mRegisteredInterceptors = new HashSet<InterceptorPoint>();
     private Map<Integer, Set<DelegateMethod>> mUriIdToDelegateMethodsRegistry = new HashMap<Integer, Set<DelegateMethod>>();
     private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
     private int mMatcherUriIdCount = 0;
@@ -144,7 +144,7 @@ public class DelegateClass {
      * @param interceptor
      *            The interceptor to register.
      */
-    public void registerInterceptor(Interceptor interceptor) {
+    public void registerInterceptor(InterceptorPoint interceptor) {
 
         mRegisteredInterceptors.add(interceptor);
     }
@@ -265,7 +265,7 @@ public class DelegateClass {
      * 
      * @return The registered interceptor on this class.
      */
-    public Set<Interceptor> getRegisteredInterceptors() {
+    public Set<InterceptorPoint> getRegisteredInterceptors() {
 
         return mRegisteredInterceptors;
     }

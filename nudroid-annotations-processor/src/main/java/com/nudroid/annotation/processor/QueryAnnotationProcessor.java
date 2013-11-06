@@ -11,9 +11,11 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import com.nudroid.annotation.processor.model.ConcreteAnnotation;
+import com.google.common.base.Joiner;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
@@ -42,6 +44,7 @@ class QueryAnnotationProcessor {
     private TypeMirror mArrayOfStringsType;
     private TypeMirror mUriType;
     private Types mTypeUtils;
+    private Elements mElementUtils;
 
     /**
      * Creates an instance of this class.
@@ -52,6 +55,7 @@ class QueryAnnotationProcessor {
     QueryAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mTypeUtils = processorContext.typeUtils;
+        this.mElementUtils = processorContext.elementUtils;
         this.mLogger = processorContext.logger;
 
         mContextType = processorContext.elementUtils.getTypeElement("android.content.Context").asType();
@@ -72,10 +76,14 @@ class QueryAnnotationProcessor {
      */
     void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
+        mLogger.info("Start processing @Query annotations.");
+
         Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Query.class, roundEnv);
 
-        mLogger.info("Start processing @Query annotations.");
-        mLogger.trace("    Methods annotated with @Query for the round " + queryMethods);
+        if (queryMethods.size() > 0) {
+            mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
+                    Query.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(queryMethods)));
+        }
 
         for (Element queryMethod : queryMethods) {
 
@@ -119,17 +127,16 @@ class QueryAnnotationProcessor {
 
         try {
 
-            mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
             delegateUri = delegateClass.registerPath(queryMethod, pathAndQuery);
-            mLogger.trace(String.format("        Done registering URI path '%s'.", pathAndQuery));
+            mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
             mLogger.trace(String.format(
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
-                    pathAndQuery, e.getOriginalMoethod()));
+                    pathAndQuery, e.getOriginalMethod()));
             mLogger.error(
                     String.format("An equivalent path has already been registered by method '%s'",
-                            e.getOriginalMoethod()), queryMethod);
+                            e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -149,8 +156,7 @@ class QueryAnnotationProcessor {
         }
 
         DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
-        mLogger.trace(String.format("        Added delegate method %s to delegate class %s.", queryMethod,
-                enclosingClass));
+        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
         delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
 
@@ -226,9 +232,6 @@ class QueryAnnotationProcessor {
 
         if (parameterElement.getAnnotation(annotationClass) != null) {
 
-            mLogger.trace(String.format("        Validating annotation @%s on prameter %s",
-                    annotationClass.getSimpleName(), parameterElement));
-
             accumulatedAnnotations.add(annotationClass);
 
             if (accumulatedAnnotations.size() > 1) {
@@ -236,7 +239,8 @@ class QueryAnnotationProcessor {
                 isValid = false;
 
                 mLogger.trace(String
-                        .format("        Multiple annotatoins on same parameter. Signaling compilatoin error."));
+                        .format("        Multiple incompatible annotatoins on same parameter [%s]. Signaling compilatoin error.",
+                                accumulatedAnnotations));
                 mLogger.error(
                         String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
                         parameterElement);
@@ -246,8 +250,9 @@ class QueryAnnotationProcessor {
 
                 isValid = false;
 
-                mLogger.trace(String.format("        Parameter is not of expected type. Signaling compilatoin error.",
-                        annotationClass.getSimpleName(), parameterElement));
+                mLogger.trace(String.format(
+                        "        Parameter is not of expected type %s. Signaling compilatoin error.", requiredType,
+                        parameterElement));
                 mLogger.error(
                         String.format("Parameters annotated with @%s must be of type %s.",
                                 annotationClass.getSimpleName(), requiredType), parameterElement);
@@ -302,32 +307,23 @@ class QueryAnnotationProcessor {
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
 
-        mLogger.info(String.format("Metadata instance: @%s", metadata));
-        mLogger.trace(String.format("        Concrete annotations: %s.", metadata.getConcreteAnnotations()));
-
-        for (ConcreteAnnotation concreteAnnotation : metadata.getConcreteAnnotations()) {
+        for (InterceptorBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
 
             mLogger.trace(String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
 
             List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
                     .getAnnotationMirrors();
 
-            mLogger.trace(String.format("        Mirrors on method %s.", annotationsMirrors));
-
             for (AnnotationMirror mirror : annotationsMirrors) {
 
                 final TypeElement annotationTypeElement = concreteAnnotation.getTypeElement();
-
-                mLogger.trace(String.format("        Checking %s against %s.", mirror.getAnnotationType(),
-                        annotationTypeElement.asType()));
 
                 // Can't use Types.isSameType() due to error caused by modern IDEs incremental compilation. Method will
                 // report they are not the same type even when thry are. Using the type qualified name instead.
                 if (mirror.getAnnotationType().toString().equals(annotationTypeElement.asType().toString())) {
 
-                    mLogger.trace(String.format("        Processing interceptor %s on method.", annotationTypeElement));
-
-                    delegateMethod.addInterceptor(concreteAnnotation.getInterceptor());
+                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptorPoint(mirror,
+                            mElementUtils, mTypeUtils, mLogger));
                     mLogger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

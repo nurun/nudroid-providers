@@ -3,57 +3,34 @@ package com.nudroid.annotation.processor.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.ElementFilter;
+
 
 /**
  * Information about delegate method interceptors.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class Interceptor {
+public class InterceptorPoint {
 
-    private TypeElement mInterceptorClassElement;
+    private TypeElement mInterceptorImplementationElement;
     private TypeElement mInterceptorAnnotationElement;
     private boolean mHasCustomConstructor;
-    private boolean mHasDefaultConstrucotr;
-    private ConcreteAnnotation mConcreteAnnotation;
+    private boolean mHasDefaultConstructor;
+    private InterceptorBlueprint mConcreteAnnotation;
     private List<String> mConcreteAnnotationConstructorArguments = new ArrayList<String>();
 
     /**
      * Creates a new Interceptor bean.
+     * 
      * @param concreteAnnotation
-     *            The {@link ConcreteAnnotation} generated for this interceptor annotation type.
-     * @param interceptorAnnotationElement
-     *            The {@link TypeElement} for the annotation for this interceptor.
-     * @param interceptorClassElement
-     *            The {@link TypeElement} for the concrete implementation for this interceptor.
+     *            The {@link InterceptorBlueprint} generated for this interceptor annotation type.
      */
-    public Interceptor(ConcreteAnnotation concreteAnnotation) {
+    public InterceptorPoint(InterceptorBlueprint concreteAnnotation) {
 
         this.mInterceptorAnnotationElement = concreteAnnotation.getTypeElement();
-        this.mInterceptorClassElement = concreteAnnotation.getInterceptorTypeElement();
+        this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
         this.mConcreteAnnotation = concreteAnnotation;
-
-        List<ExecutableElement> constructors = ElementFilter.constructorsIn(mInterceptorClassElement
-                .getEnclosedElements());
-
-        for (ExecutableElement constructor : constructors) {
-
-            final List<? extends VariableElement> parameters = constructor.getParameters();
-
-            if (parameters.size() == 0) {
-                this.mHasDefaultConstrucotr = true;
-            }
-
-            if (parameters.size() == 1
-                    && parameters.get(0).asType().toString().equals(mInterceptorAnnotationElement.asType())) {
-
-                this.mHasCustomConstructor = true;
-            }
-        }
     }
 
     /**
@@ -63,7 +40,7 @@ public class Interceptor {
      */
     public String getQualifiedName() {
 
-        return mInterceptorClassElement.getQualifiedName().toString();
+        return mInterceptorImplementationElement.getQualifiedName().toString();
     }
 
     /**
@@ -73,7 +50,7 @@ public class Interceptor {
      */
     public String getSimpleName() {
 
-        return mInterceptorClassElement.getSimpleName().toString();
+        return mInterceptorImplementationElement.getSimpleName().toString();
     }
 
     /**
@@ -92,7 +69,7 @@ public class Interceptor {
      */
     public boolean hasDefaultConstructor() {
 
-        return mHasDefaultConstrucotr;
+        return mHasDefaultConstructor;
     }
 
     /**
@@ -135,5 +112,25 @@ public class Interceptor {
     public List<String> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;
+    }
+
+    /**
+     * Sets if this Interceptor have a default constructor.
+     * 
+     * @param <tt>true</tt> if it has, <tt>false</tt> otherwise.
+     */
+    void setHasDefaultConstructor(boolean hasDefaultConstructor) {
+
+        this.mHasDefaultConstructor = hasDefaultConstructor;
+    }
+
+    /**
+     * Sets if this Interceptor have a custom constructor.
+     * 
+     * @param <tt>true</tt> if it has, <tt>false</tt> otherwise.
+     */
+    void setHasCustomConstructor(boolean hasCustomConstructor) {
+
+        this.mHasCustomConstructor = hasCustomConstructor;
     }
 }

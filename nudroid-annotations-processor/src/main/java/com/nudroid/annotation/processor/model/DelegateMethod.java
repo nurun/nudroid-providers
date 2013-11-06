@@ -31,8 +31,8 @@ public class DelegateMethod {
     private Set<String> mQueryStringParameterNames = new HashSet<String>();
     private DelegateUri mUri;
     private ExecutableElement mExecutableElement;
-    private List<Interceptor> mInterceptorElements = new ArrayList<Interceptor>();
-    private List<Interceptor> mInverseInterceptorElements = null;
+    private List<InterceptorPoint> mInterceptorElements = new ArrayList<InterceptorPoint>();
+    private List<InterceptorPoint> mInverseInterceptorElements = null;
 
     /**
      * Creates an instance of this class.
@@ -75,7 +75,7 @@ public class DelegateMethod {
      * @param interceptor
      *            The interceptor type to add.
      */
-    public void addInterceptor(Interceptor interceptor) {
+    public void addInterceptor(InterceptorPoint interceptor) {
 
         this.mInterceptorElements.add(interceptor);
         this.getDelegateClass().registerInterceptor(interceptor);
@@ -188,7 +188,7 @@ public class DelegateMethod {
      * 
      * @return The list of interceptors for this delegate method.
      */
-    public List<Interceptor> getBeforeInterceptorList() {
+    public List<InterceptorPoint> getBeforeInterceptorList() {
 
         return mInterceptorElements;
     }
@@ -199,11 +199,11 @@ public class DelegateMethod {
      * 
      * @return The list of interceptors for this delegate method.
      */
-    public List<Interceptor> getAfterInterceptorList() {
+    public List<InterceptorPoint> getAfterInterceptorList() {
 
         if (mInverseInterceptorElements == null) {
             
-            mInverseInterceptorElements = new ArrayList<Interceptor>(mInterceptorElements.size());
+            mInverseInterceptorElements = new ArrayList<InterceptorPoint>(mInterceptorElements.size());
             mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
         }
 

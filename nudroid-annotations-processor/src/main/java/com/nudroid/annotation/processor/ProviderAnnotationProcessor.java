@@ -94,21 +94,25 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         typeUtils = env.getTypeUtils();
 
         try {
+
+            final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils,
+                    mLogger);
+            mContinuation = new Continuation(processorContext, continuationFile);
+            mContinuation.loadContinuation();
+            contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(
+                    processorContext);
+            queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
+            interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
+            sourceCodeGenerator = new SourceCodeGenerator(processorContext);
+            mMetadata = new Metadata();
             initialized = true;
+
             mLogger.debug("Initialization complete.");
         } catch (Exception e) {
+
             mLogger.error("Unable to load continuation index file. Aborting annotation processor: " + e.getMessage());
             throw new AnnotationProcessorException(e);
         }
-
-        final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
-        mContinuation = new Continuation(processorContext, continuationFile);
-        mContinuation.loadContinuation();
-        contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
-        queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
-        interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
-        sourceCodeGenerator = new SourceCodeGenerator(processorContext);
-        mMetadata = new Metadata();
     }
 
     /**
@@ -122,7 +126,6 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
         mLogger.info("Starting provider annotation processor round " + ++mRound);
-        mLogger.trace("    Target classes " + roundEnv.getRootElements());
 
         if (!initialized) {
 

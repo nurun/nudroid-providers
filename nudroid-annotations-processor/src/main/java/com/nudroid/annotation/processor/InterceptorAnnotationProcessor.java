@@ -13,8 +13,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
+import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
-import com.nudroid.annotation.processor.model.ConcreteAnnotation;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
@@ -56,12 +57,16 @@ class InterceptorAnnotationProcessor {
      */
     void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
 
+        mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
+
         Set<? extends Element> interceptorAnnotations = continuation.getElementsAnotatedWith(
                 ProviderInterceptorPoint.class, roundEnv);
 
-        mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
-        mLogger.trace(String.format("    Interfaces annotated with @%s for the round: %s",
-                ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations));
+        if (interceptorAnnotations.size() > 0) {
+            mLogger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
+                    ProviderInterceptorPoint.class.getSimpleName(),
+                    Joiner.on("\n        - ").skipNulls().join(interceptorAnnotations)));
+        }
 
         for (Element interceptorAnnotation : interceptorAnnotations) {
 
@@ -95,16 +100,13 @@ class InterceptorAnnotationProcessor {
         }
 
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
-
-        mLogger.info(String.format("Metadata instance: @%s", metadata));
-        mLogger.info(String.format("Concrete annotations: @%s", metadata.getConcreteAnnotations()));
     }
 
-    private ConcreteAnnotation createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+    private InterceptorBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
         if (interceptorAnnotation instanceof TypeElement) {
 
-            ConcreteAnnotation annotation = new ConcreteAnnotation((TypeElement) interceptorAnnotation, mElementUtils);
+            InterceptorBlueprint annotation = new InterceptorBlueprint((TypeElement) interceptorAnnotation);
 
             final List<? extends Element> enclosedElements = new ArrayList<Element>(
                     interceptorAnnotation.getEnclosedElements());

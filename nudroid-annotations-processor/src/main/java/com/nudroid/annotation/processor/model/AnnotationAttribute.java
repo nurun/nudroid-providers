@@ -3,7 +3,7 @@ package com.nudroid.annotation.processor.model;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * An attribute from a {@link ConcreteAnnotation}.
+ * An attribute from a {@link InterceptorBlueprint}.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

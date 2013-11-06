@@ -13,6 +13,7 @@ import javax.lang.model.util.ElementFilter;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
@@ -51,6 +52,8 @@ class ContentProviderDelegateAnnotationProcessor {
      */
     void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
+        mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
+
         /*
          * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
          * TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation is
@@ -61,9 +64,11 @@ class ContentProviderDelegateAnnotationProcessor {
         Set<? extends Element> delegateClassTypes = continuation.getElementsAnotatedWith(ContentProvider.class,
                 roundEnv);
 
-        mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
-        mLogger.trace(String.format("    Classes annotated with @%s for the round: %s ",
-                ContentProvider.class.getSimpleName(), delegateClassTypes));
+        if (delegateClassTypes.size() > 0) {
+            mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
+                    ContentProvider.class.getSimpleName(),
+                    Joiner.on("\n        - ").skipNulls().join(delegateClassTypes)));
+        }
 
         for (Element delegateClassType : delegateClassTypes) {
 
@@ -127,22 +132,19 @@ class ContentProviderDelegateAnnotationProcessor {
 
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
-            mLogger.trace("        Class is in the default package. Signaling compilatoin error.");
+            mLogger.trace("            Class is in the default package. Signaling compilatoin error.");
             mLogger.error(String.format("Content providers can not be created in the default package."
                     + " Android will prefix the content provider name with the application name, making it unable to"
                     + " find the correct class at runtime."), delegateClassType);
         }
 
-        mLogger.trace(String.format("        Looking for interface %s in delegate class on %s.", mDelegateType,
-                delegateClassType.getInterfaces()));
-
         if (delegateClassType.getInterfaces().contains(mDelegateType)) {
 
-            mLogger.trace(String.format("        Class implements %s.", mDelegateType));
+            mLogger.trace(String.format("            Class implements %s.", mDelegateType));
             delegateClassForAuthority.setImplementDelegateInterface(true);
         } else {
 
-            mLogger.trace(String.format("        Class does not implement %s.", mDelegateType));
+            mLogger.trace(String.format("            Class does not implement %s.", mDelegateType));
             delegateClassForAuthority.setImplementDelegateInterface(false);
         }
     }

@@ -95,12 +95,11 @@ class Continuation {
             while (scanner.hasNextLine()) {
 
                 String line = scanner.nextLine();
-                mLogger.trace(String.format("    Attempting to load type %s", line));
                 final TypeElement typeElement = mElementUtils.getTypeElement(line);
 
                 if (typeElement != null) {
 
-                    mLogger.trace(String.format("    Type found: %s", line));
+                    mLogger.trace(String.format("    Type %s was found and added to continuation configuration.", line));
                     mContinuationTypes.add(typeElement);
                     mContinuationTypesStack.add(typeElement);
                 } else {
@@ -210,8 +209,7 @@ class Continuation {
 
         annotatedElementsForRound.addAll(roundEnv.getElementsAnnotatedWith(annotationClass));
 
-        mLogger.trace(String
-                .format("        Annotated elements in the round environment %s", annotatedElementsForRound));
+        mLogger.trace(String.format("    Searching for elements annotated with %s", annotationClass.getName()));
 
         Set<String> roundEnvironmentRootElementsName = new HashSet<String>();
 
@@ -238,14 +236,11 @@ class Continuation {
                 Annotation annotation = continuationClass.getAnnotation(annotationClass);
 
                 if (annotation != null) {
-                    mLogger.trace(String.format("        Added type %s from continuation to round environment.",
+                    mLogger.trace(String.format("    Type %s was not part of round environment information but was"
+                            + " present in the continuation configuration. Adding to set of target elements.",
                             continuationClass));
                     annotatedElementsForRound.add(continuationClass);
                 }
-            } else {
-
-                mLogger.trace(String.format("        Continuation type %s is already present"
-                        + " in round environment root elements.", continuationClass));
             }
         }
 
