@@ -13,21 +13,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
-/*
- * TODO Eclipse invoka corretamente as classes dependentes logo uma continuation não seria mais necessária. 
- * Entretanto, o que o Eclipse faz é chamar as classes fora de ordem (primeiro compila as classes que sofreram 
- * modificação, depois faz um novo round (mesmo que isDOne reporte verdadeiro) com as classes dependentes.
- * 
- * A forma como o código foi escrito depende que tanto as classes dependentes quanto as classes alvo sejam compiladas 
- * no mesmo round. Basta mudar a logica para que elas não dependam dessa forma.
- * 
- * Continuation talvez ainda seja necessário para mudancas no delegate apenas pegarem informacoes dos interceptors
- * (devido ao fato que os interceptor nao dependenm do content provider). Isso simplificaria o continuation.
- * 
- * Logo, a primeira coisa que se deve procurar são os interceptor, procurando no continuation também, e depois os
- * delegates. A logica terá que mudar para que os delegates procurem por interceptors ao inves dos interceptors mudarem
- * a configuracao criada pelos delegates (jah que a ordem nao é garantida).
- */
 /**
  * Update continuation to all processed types. <br/>
  * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
