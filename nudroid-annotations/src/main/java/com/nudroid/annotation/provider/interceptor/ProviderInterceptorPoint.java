@@ -97,7 +97,6 @@ import java.lang.annotation.Target;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @Target(ElementType.ANNOTATION_TYPE)
-@Retention(RetentionPolicy.CLASS)
 public @interface ProviderInterceptorPoint {
 
 }
