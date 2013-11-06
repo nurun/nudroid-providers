@@ -35,19 +35,21 @@ class ContentProviderDelegateAnnotationProcessor {
     ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        mDelegateType = processorContext.elementUtils.getTypeElement(
+        this.mDelegateType = processorContext.elementUtils.getTypeElement(
                 com.nudroid.provider.delegate.ContentProviderDelegate.class.getName()).asType();
     }
 
     /**
      * Process the {@link ContentProvider} annotations on this round.
      * 
+     * @param continuation
+     *            The continuation environment.
      * @param roundEnv
      *            The round environment to process.
      * @param metadata
      *            The annotation metadata for the processor.
      */
-    void process(RoundEnvironment roundEnv, Metadata metadata) {
+    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
         /*
          * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
@@ -55,7 +57,9 @@ class ContentProviderDelegateAnnotationProcessor {
          * applied to other elements even if it is correctly applied to a class, causing a class cast exception in the
          * for loop below.
          */
-        Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
+        // Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
+        Set<? extends Element> delegateClassTypes = continuation.getElementsAnotatedWith(ContentProvider.class,
+                roundEnv);
 
         mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
         mLogger.trace(String.format("    Classes annotated with @%s for the round: %s ",
@@ -64,6 +68,7 @@ class ContentProviderDelegateAnnotationProcessor {
         for (Element delegateClassType : delegateClassTypes) {
 
             if (delegateClassType instanceof TypeElement) {
+
                 mLogger.trace("    Processing " + delegateClassType);
                 processContentProviderDelegateAnnotation((TypeElement) delegateClassType, metadata);
                 mLogger.trace("    Done processing " + delegateClassType);

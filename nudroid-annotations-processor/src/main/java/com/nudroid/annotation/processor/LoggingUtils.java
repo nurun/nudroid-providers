@@ -45,7 +45,7 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      */
-    void trace(String message) {
+    public void trace(String message) {
 
         if (LogLevel.TRACE.ordinal() >= logLevel.ordinal()) {
 
@@ -59,7 +59,7 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      */
-    void debug(String message) {
+    public void debug(String message) {
 
         if (LogLevel.DEBUG.ordinal() >= logLevel.ordinal()) {
 
@@ -73,7 +73,7 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      */
-    void info(String message) {
+    public void info(String message) {
 
         if (LogLevel.INFO.ordinal() >= logLevel.ordinal()) {
 
@@ -87,7 +87,7 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      */
-    void warn(String message) {
+    public void warn(String message) {
 
         if (LogLevel.WARN.ordinal() >= logLevel.ordinal()) {
 
@@ -104,7 +104,7 @@ public class LoggingUtils {
      * @param element
      *            The {@link Element} this message is associated with. Can be null.
      */
-    void warn(String message, Element element) {
+    public void warn(String message, Element element) {
 
         if (element != null) {
 
@@ -121,7 +121,7 @@ public class LoggingUtils {
      * @param message
      *            The message to be logged.
      */
-    void error(String message) {
+    public void error(String message) {
 
         if (LogLevel.ERROR.ordinal() >= logLevel.ordinal()) {
 
@@ -138,7 +138,7 @@ public class LoggingUtils {
      * @param element
      *            The {@link Element} this message is associated with. Can be null.
      */
-    void error(String message, Element element) {
+    public void error(String message, Element element) {
 
         if (element != null) {
 

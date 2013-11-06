@@ -1,25 +1,33 @@
 package com.nudroid.annotation.processor;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
 
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
-
+/*
+ * TODO Eclipse invoka corretamente as classes dependentes logo uma continuation não seria mais necessária. 
+ * Entretanto, o que o Eclipse faz é chamar as classes fora de ordem (primeiro compila as classes que sofreram 
+ * modificação, depois faz um novo round (mesmo que isDOne reporte verdadeiro) com as classes dependentes.
+ * 
+ * A forma como o código foi escrito depende que tanto as classes dependentes quanto as classes alvo sejam compiladas 
+ * no mesmo round. Basta mudar a logica para que elas não dependam dessa forma.
+ * 
+ * Continuation talvez ainda seja necessário para mudancas no delegate apenas pegarem informacoes dos interceptors
+ * (devido ao fato que os interceptor nao dependenm do content provider). Isso simplificaria o continuation.
+ * 
+ * Logo, a primeira coisa que se deve procurar são os interceptor, procurando no continuation também, e depois os
+ * delegates. A logica terá que mudar para que os delegates procurem por interceptors ao inves dos interceptors mudarem
+ * a configuracao criada pelos delegates (jah que a ordem nao é garantida).
+ */
 /**
  * Update continuation to all processed types. <br/>
  * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
@@ -32,15 +40,12 @@ import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
  */
 class Continuation {
 
-    private static final String INTERCEPTOR_ANNOTTIONS_PROPERTY_KEY = "com.nudroid.annotation.processor.continuation.interceptor.annotations";
-    private static final String INTERCEPTOR_CLASSES_PROPERTY_KEY = "com.nudroid.annotation.processor.continuation.interceptor.classes";
     private File mContinuationFile;
-    private Set<TypeElement> mInterceptorAnnotationTypes = new HashSet<TypeElement>();
-    private Set<TypeElement> mInterceptorClassTypes = new HashSet<TypeElement>();
-    private Set<TypeElement> mInterceptorAnnotationTypesStack = new HashSet<TypeElement>();
     private LoggingUtils mLogger;
     private Elements mElementUtils;
-    private Types mTypeUtils;
+
+    private Set<TypeElement> mContinuationTypes = new HashSet<TypeElement>();
+    private Set<TypeElement> mContinuationTypesStack = new HashSet<TypeElement>();
 
     /**
      * Creates a new continuation.
@@ -56,7 +61,6 @@ class Continuation {
 
         this.mLogger = processorContext.logger;
         this.mElementUtils = processorContext.elementUtils;
-        this.mTypeUtils = processorContext.typeUtils;
     }
 
     /**
@@ -82,64 +86,36 @@ class Continuation {
         mLogger.debug(String.format("    Continuation file found at %s. Loading continuation information.",
                 mContinuationFile.getPath()));
 
-        Properties continuationProperties = new Properties();
-
-        FileReader fileReader = null;
+        Scanner scanner = null;
 
         try {
-            fileReader = new FileReader(mContinuationFile);
-            continuationProperties.load(fileReader);
-        } catch (IOException e) {
-            throw new IllegalStateException(String.format("Error while loading continuation file '%s'.",
-                    mContinuationFile), e);
+
+            scanner = new Scanner(mContinuationFile);
+
+            while (scanner.hasNextLine()) {
+
+                String line = scanner.nextLine();
+                mLogger.trace(String.format("    Attempting to load type %s", line));
+                final TypeElement typeElement = mElementUtils.getTypeElement(line);
+
+                if (typeElement != null) {
+
+                    mLogger.trace(String.format("    Type found: %s", line));
+                    mContinuationTypes.add(typeElement);
+                    mContinuationTypesStack.add(typeElement);
+                } else {
+
+                    mLogger.trace(String.format("    Type not found: %s", line));
+                }
+            }
+        } catch (Exception e) {
+
+            mLogger.error(String.format("    Error loading continuation index file %s'", mContinuationFile));
+            throw new AnnotationProcessorException(e);
         } finally {
-            FileUtils.close(fileReader);
+
+            FileUtils.close(scanner);
         }
-
-        Splitter splitter = Splitter.on(",").omitEmptyStrings().trimResults();
-
-        String interceptorAnnotations = continuationProperties.getProperty(INTERCEPTOR_ANNOTTIONS_PROPERTY_KEY);
-        String interceptorClasses = continuationProperties.getProperty(INTERCEPTOR_CLASSES_PROPERTY_KEY);
-
-        mLogger.trace(String.format("    Stored interceptor annotations: %s", interceptorAnnotations));
-        mLogger.trace(String.format("    Stored interceptor classes: %s", interceptorClasses));
-
-        Iterable<String> annotationNames = splitter.split(interceptorAnnotations);
-        Iterable<String> classNames = splitter.split(interceptorClasses);
-
-        for (String annotationName : annotationNames) {
-
-            mLogger.debug(String.format("    Attempting to load annotation %s.", annotationName));
-
-            final TypeElement typeElement = mElementUtils.getTypeElement(annotationName);
-
-            if (typeElement != null) {
-
-                mInterceptorAnnotationTypes.add(typeElement);
-            } else {
-
-                mLogger.debug(String.format("    Failed to load element %s.", annotationName));
-            }
-        }
-
-        for (String className : classNames) {
-
-            mLogger.debug(String.format("    Attempting to load class %s.", className));
-
-            final TypeElement typeElement = mElementUtils.getTypeElement(className);
-
-            if (typeElement != null) {
-
-                mInterceptorClassTypes.add(typeElement);
-            } else {
-
-                mLogger.debug(String.format("    Failed to load element %s.", className));
-            }
-        }
-
-        mInterceptorAnnotationTypesStack.addAll(mInterceptorAnnotationTypes);
-
-        mLogger.debug("    Done loading continuation.");
     }
 
     /**
@@ -155,11 +131,12 @@ class Continuation {
             return;
         }
 
-        FileWriter fileWriter = null;
+        PrintWriter writer = null;
 
         try {
 
             mLogger.trace("    Checking for presence of existing continuation files.");
+
             if (mContinuationFile.exists()) {
 
                 boolean wasDeleted = mContinuationFile.delete();
@@ -180,141 +157,125 @@ class Continuation {
                 mLogger.trace("    Done.");
             }
 
-            Properties continuationProperties = new Properties();
+            writer = new PrintWriter(mContinuationFile);
 
-            Set<String> interceptorAnnotationNames = new HashSet<String>();
-            Set<String> interceptorClassNames = new HashSet<String>();
+            mLogger.trace(String.format("    Continuation types being saved: %s", mContinuationTypes));
 
-            for (Element indexedTypeName : mInterceptorAnnotationTypes) {
+            for (Element indexedTypeName : mContinuationTypes) {
 
-                interceptorAnnotationNames.add(indexedTypeName.toString());
+                writer.println(indexedTypeName.toString());
             }
 
-            for (Element indexedTypeName : mInterceptorClassTypes) {
+            FileUtils.close(writer);
 
-                interceptorClassNames.add(indexedTypeName.toString());
-            }
-
-            Joiner joiner = Joiner.on(",").skipNulls();
-
-            mLogger.trace(String.format("    Interceptor annotations being saved: %s", interceptorAnnotationNames));
-            mLogger.trace(String.format("    Interceptor clsses being saved: %s", interceptorClassNames));
-            continuationProperties.put(INTERCEPTOR_ANNOTTIONS_PROPERTY_KEY, joiner.join(interceptorAnnotationNames));
-            continuationProperties.put(INTERCEPTOR_CLASSES_PROPERTY_KEY, joiner.join(interceptorClassNames));
-
-            fileWriter = new FileWriter(mContinuationFile);
-            continuationProperties.store(fileWriter, "");
         } catch (Exception e) {
 
-            mLogger.error(String.format("    Error processing continuation index file %s'", mContinuationFile));
+            mLogger.error(String.format("    Error saving continuation index file %s'", mContinuationFile));
             throw new AnnotationProcessorException(e);
         } finally {
-            FileUtils.close(fileWriter);
+            FileUtils.close(writer);
         }
 
         mLogger.trace("Done saving continuation file.");
     }
 
     /**
-     * Adds a {@link TypeElement} to be stored in the continuation file as annotation interceptors.
+     * Adds a {@link TypeElement} to this continuation environment.
      * 
-     * @param element
-     *            The {@link TypeElement} interceptor to add to the continuation.
+     * @param typeElement
+     *            The type element to add.
      */
-    void addInterceptorAnnotation(TypeElement element) {
+    void addTypeToContinuation(TypeElement typeElement) {
 
-        mInterceptorAnnotationTypes.add(element);
+        mContinuationTypes.add(typeElement);
+        mContinuationTypesStack.add(typeElement);
     }
 
     /**
-     * Adds a set {@link TypeElement} to be stored in the continuation file as class interceptors.
+     * Looks for elements annotated with the given annotation on the {@link RoundEnvironment} as well as the
+     * continuation information.
      * 
-     * @param interceptorClassSet
-     *            The set of {@link TypeElement} interceptors to add to the continuation.
-     */
-    void addInterceptorClasses(Set<TypeElement> interceptorClassSet) {
-
-        mInterceptorClassTypes.addAll(interceptorClassSet);
-    }
-
-    /**
-     * Pops a interceptor annotation type from the continuation compilation. Types processes by the annotation processor
-     * on a round should be removed from the continuation so they are not re-processed in the next round.
-     * 
-     * @param interceptorAnnotation
-     *            The element to remove from the continuation compilation.
-     */
-    void popInterceptorAnnotation(TypeElement interceptorAnnotation) {
-
-        mInterceptorAnnotationTypesStack.remove(interceptorAnnotation);
-    }
-
-    /**
-     * Gets the set of interceptor annotation to process this round.
-     * 
+     * @param annotationClass
+     *            The class type of the annotation to check.
      * @param roundEnv
-     *            The round environment for the round.
+     *            The {@link RoundEnvironment} for the round.
      * 
-     * @return The set of interceptor annotation to process this round.
+     * @return The set of elements from the round environment as well as the continuation environment annotated with the
+     *         given annotation class.
      */
+    Set<? extends Element> getElementsAnotatedWith(Class<? extends Annotation> annotationClass,
+            RoundEnvironment roundEnv) {
 
-    Set<TypeElement> getInterceptorAnnotationsForRound(RoundEnvironment roundEnv) {
+        Set<Element> annotatedElementsForRound = new HashSet<Element>();
 
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint.class);
+        annotatedElementsForRound.addAll(roundEnv.getElementsAnnotatedWith(annotationClass));
 
-        for (Element element : elements) {
+        mLogger.trace(String
+                .format("        Annotated elements in the round environment %s", annotatedElementsForRound));
 
-            /*
-             * Do not assume that because the @ProviderInterceptorPoint annotation can only be applied to annotation
-             * types, only TypeElements will be returned. Compilation errors on a class can let the compiler think the
-             * annotation is applied to other elements even if it is correctly applied to a class, causing a class cast
-             * exception in the for loop below.
-             */
-            if (element instanceof TypeElement) {
+        Set<String> roundEnvironmentRootElementsName = new HashSet<String>();
 
-                mInterceptorAnnotationTypesStack.add((TypeElement) element);
-                addInterceptorAnnotation((TypeElement) element);
-            }
+        for (Element e : roundEnv.getRootElements()) {
+            roundEnvironmentRootElementsName.add(e.toString());
         }
 
-        return new HashSet<TypeElement>(mInterceptorAnnotationTypesStack);
-    }
+        for (Element continuationClass : mContinuationTypesStack) {
 
-    /**
-     * Get elements from this round or the continuation environment for the provided annotation.
-     * 
-     * @param annotationType
-     *            The annotatoin to check.
-     * @param roundEnv
-     *            The rounding environment to check.
-     * @return The coalesced set of annotated types from the round environment + the continuation file.
-     */
-    @SuppressWarnings("unchecked")
-    Set<? extends Element> getElementsAnotatedWith(TypeElement annotationType, RoundEnvironment roundEnv) {
+            Element rootCheck = continuationClass;
 
-        Set<TypeElement> annotatedElements = new HashSet<TypeElement>();
-        annotatedElements.addAll((Set<TypeElement>) roundEnv.getElementsAnnotatedWith(annotationType));
+            boolean isInRootElements = false;
 
-        mLogger.trace(String.format("    Elements annotated with %s from the round environment: %s", annotationType,
-                annotatedElements));
+            for (; rootCheck != null; rootCheck = rootCheck.getEnclosingElement()) {
 
-        for (TypeElement continuationInterceptorClass : mInterceptorClassTypes) {
-
-            List<? extends AnnotationMirror> mirrors = continuationInterceptorClass.getAnnotationMirrors();
-
-            for (AnnotationMirror mirror : mirrors) {
-
-                if (mTypeUtils.asElement(mirror.getAnnotationType()).equals(annotationType)) {
-                    mLogger.trace(String.format(
-                            "        Added class %s from continuation to the list of annotated elements",
-                            continuationInterceptorClass));
-                    annotatedElements.add(continuationInterceptorClass);
+                if (roundEnvironmentRootElementsName.contains(rootCheck.toString())) {
+                    isInRootElements = true;
+                    break;
                 }
             }
+
+            if (!isInRootElements) {
+
+                Annotation annotation = continuationClass.getAnnotation(annotationClass);
+
+                if (annotation != null) {
+                    mLogger.trace(String.format("        Added type %s from continuation to round environment.",
+                            continuationClass));
+                    annotatedElementsForRound.add(continuationClass);
+                }
+            } else {
+
+                mLogger.trace(String.format("        Continuation type %s is already present"
+                        + " in round environment root elements.", continuationClass));
+            }
         }
 
-        mLogger.trace(String.format("    Final set of annotated elements for annotation %s: %s", annotationType,
-                annotatedElements));
-        return annotatedElements;
+        return annotatedElementsForRound;
     }
+
+    /**
+     * Clears this compilation's stack of continuation elements to process.
+     */
+    void flushStack() {
+
+        mContinuationTypesStack.clear();
+    }
+
+    // private void checkForAnnotationOnElementAndChildren(Element elementToCheck,
+    // Class<? extends Annotation> annotationClass, Set<Element> annotatedElementsForRound) {
+    //
+    // Annotation annotation = elementToCheck.getAnnotation(annotationClass);
+    //
+    // if (annotation != null && annotatedElementsForRound.add(elementToCheck)) {
+    //
+    // mLogger.trace(String.format("        Added Element %s from continuation to the list of annotated elements",
+    // elementToCheck));
+    // }
+    //
+    // List<? extends Element> enclosedElements = elementToCheck.getEnclosedElements();
+    //
+    // for (Element enclosedElement : enclosedElements) {
+    //
+    // checkForAnnotationOnElementAndChildren(enclosedElement, annotationClass, annotatedElementsForRound);
+    // }
+    // }
 }

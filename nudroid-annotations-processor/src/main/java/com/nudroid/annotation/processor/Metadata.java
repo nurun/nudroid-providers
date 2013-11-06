@@ -73,7 +73,7 @@ class Metadata {
     Set<DelegateClass> getDelegateClasses() {
 
         if (mDelegateClassValues == null) {
-            
+
             mDelegateClassValues = new HashSet<DelegateClass>();
             mDelegateClassValues.addAll(mRegisteredDelegateClasses.values());
         }
@@ -130,7 +130,7 @@ class Metadata {
     Set<ConcreteAnnotation> getConcreteAnnotations() {
 
         if (mConcreteAnnotationValues == null) {
-            
+
             mConcreteAnnotationValues = new HashSet<ConcreteAnnotation>();
             mConcreteAnnotationValues.addAll(mConcreteAnnotations.values());
         }
@@ -145,16 +145,5 @@ class Metadata {
     ConcreteAnnotation getConcreteAnnotation(TypeElement interceptorAnnotation) {
 
         return mConcreteAnnotations.get(interceptorAnnotation);
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "Metadata [\nmRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="
-                + mRegisteredDelegateClasses + "]";
     }
 }

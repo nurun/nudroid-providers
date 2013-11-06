@@ -7,7 +7,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Types;
 
 /**
  * Information about delegate method interceptors.
@@ -25,24 +24,20 @@ public class Interceptor {
 
     /**
      * Creates a new Interceptor bean.
-     * 
+     * @param concreteAnnotation
+     *            The {@link ConcreteAnnotation} generated for this interceptor annotation type.
      * @param interceptorAnnotationElement
      *            The {@link TypeElement} for the annotation for this interceptor.
      * @param interceptorClassElement
      *            The {@link TypeElement} for the concrete implementation for this interceptor.
-     * @param typeUtils
-     *            An instance of the {@link Types} interface.
-     * @param concreteAnnotation
-     *            The {@link ConcreteAnnotation} generated for this interceptor annotation type.
      */
-    public Interceptor(TypeElement interceptorAnnotationElement, TypeElement interceptorClassElement, Types typeUtils,
-            ConcreteAnnotation concreteAnnotation) {
+    public Interceptor(ConcreteAnnotation concreteAnnotation) {
 
-        this.mInterceptorAnnotationElement = interceptorAnnotationElement;
-        this.mInterceptorClassElement = interceptorClassElement;
+        this.mInterceptorAnnotationElement = concreteAnnotation.getTypeElement();
+        this.mInterceptorClassElement = concreteAnnotation.getInterceptorTypeElement();
         this.mConcreteAnnotation = concreteAnnotation;
 
-        List<ExecutableElement> constructors = ElementFilter.constructorsIn(interceptorClassElement
+        List<ExecutableElement> constructors = ElementFilter.constructorsIn(mInterceptorClassElement
                 .getEnclosedElements());
 
         for (ExecutableElement constructor : constructors) {
@@ -54,7 +49,7 @@ public class Interceptor {
             }
 
             if (parameters.size() == 1
-                    && typeUtils.isSameType(parameters.get(0).asType(), interceptorAnnotationElement.asType())) {
+                    && parameters.get(0).asType().toString().equals(mInterceptorAnnotationElement.asType())) {
 
                 this.mHasCustomConstructor = true;
             }

@@ -1,6 +1,8 @@
 package com.nudroid.annotation.provider.interceptor;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
@@ -95,6 +97,7 @@ import java.lang.annotation.Target;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @Target(ElementType.ANNOTATION_TYPE)
+@Retention(RetentionPolicy.CLASS)
 public @interface ProviderInterceptorPoint {
 
 }

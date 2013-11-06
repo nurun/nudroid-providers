@@ -95,7 +95,7 @@ class SourceCodeGenerator {
                 writerContentUriRegistry.close();
             } catch (Exception e) {
                 mLogger.error(String.format("Error processing velocity script '%s': %s",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e), null);
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
             }
         }
 
@@ -138,7 +138,7 @@ class SourceCodeGenerator {
                 writerContentUriRegistry.close();
             } catch (Exception e) {
                 mLogger.error(String.format("Error processing velocity script '%s': %s",
-                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e), null);
+                        CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
             }
 
             mLogger.trace(String.format("    Done generating router for class %s.", delegateClass.getTypeElement()));
@@ -183,7 +183,7 @@ class SourceCodeGenerator {
                 writerContentUriRegistry.close();
             } catch (Exception e) {
                 mLogger.error(String.format("Error processing velocity script '%s': %s",
-                        CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e), null);
+                        CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
             }
         }
 

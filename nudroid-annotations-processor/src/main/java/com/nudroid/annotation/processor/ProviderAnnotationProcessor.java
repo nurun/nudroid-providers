@@ -29,7 +29,7 @@ import javax.lang.model.util.Types;
  */
 // @f[off]
 @SupportedAnnotationTypes({
-    "com.nudroid.annotation.provider.delegate.ContentProviderDelegate",
+    "com.nudroid.annotation.provider.delegate.ContentProvider",
     "com.nudroid.annotation.provider.delegate.Delete",
     "com.nudroid.annotation.provider.delegate.Insert",
     "com.nudroid.annotation.provider.delegate.Query",
@@ -60,6 +60,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     private int mRound = 0;
 
     private Continuation mContinuation;
+
+    private Metadata mMetadata;
 
     /**
      * <p/>
@@ -106,6 +108,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
         interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
         sourceCodeGenerator = new SourceCodeGenerator(processorContext);
+        mMetadata = new Metadata();
     }
 
     /**
@@ -128,14 +131,17 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             return false;
         }
 
-        Metadata metadata = new Metadata();
-        contentProviderDelegateAnnotationProcessor.process(roundEnv, metadata);
-        queryAnnotationProcessor.process(roundEnv, metadata);
-        interceptorAnnotationProcessor.process(roundEnv, metadata, mContinuation);
+        interceptorAnnotationProcessor.process(roundEnv, mMetadata, mContinuation);
+        contentProviderDelegateAnnotationProcessor.process(mContinuation, roundEnv, mMetadata);
+        queryAnnotationProcessor.process(mContinuation, roundEnv, mMetadata);
 
-        sourceCodeGenerator.generateCompanionSourceCode(metadata);
+        sourceCodeGenerator.generateCompanionSourceCode(mMetadata);
+
+        // Continuation elements are to be processed on the first round only.
+        mContinuation.flushStack();
 
         if (roundEnv.processingOver()) {
+
             mContinuation.saveContinuation();
         }
 
