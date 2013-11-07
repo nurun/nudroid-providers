@@ -101,8 +101,8 @@ class QueryAnnotationProcessor {
 
                 mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processQueryOnMethod(enclosingClass, (ExecutableElement) queryMethod,
-                        delegateClass, metadata);
+                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass,
+                        metadata);
 
                 if (delegateMethod != null) {
 
@@ -117,8 +117,8 @@ class QueryAnnotationProcessor {
         mLogger.info("Done processing @Query annotations.");
     }
 
-    private DelegateMethod processQueryOnMethod(TypeElement enclosingClass, ExecutableElement queryMethod,
-            DelegateClass delegateClass, Metadata metadata) {
+    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
+            Metadata metadata) {
 
         Query query = queryMethod.getAnnotation(Query.class);
         String pathAndQuery = query.value();
@@ -148,7 +148,7 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidAnnotations(enclosingClass, queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidAnnotations(queryMethod, query, delegateUri);
 
         if (!hasValidAnnotations) {
 
@@ -172,7 +172,9 @@ class QueryAnnotationProcessor {
             if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
             if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
             if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
-            if (mTypeUtils.isSameType(methodParameter.asType(), mStringType)) parameter.setString(true);
+            // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
+            // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
+            if (methodParameter.asType().toString().equals(mStringType.toString())) parameter.setString(true);
 
             final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 
@@ -192,8 +194,7 @@ class QueryAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidAnnotations(TypeElement enclosingClass, ExecutableElement method, Query query,
-            DelegateUri uri) {
+    private boolean hasValidAnnotations(ExecutableElement method, Query query, DelegateUri uri) {
 
         boolean isValid = true;
 
@@ -246,7 +247,9 @@ class QueryAnnotationProcessor {
                         parameterElement);
             }
 
-            if (!mTypeUtils.isSameType(parameterType, requiredType)) {
+            // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
+            // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
+            if (!parameterType.toString().equals(requiredType.toString())) {
 
                 isValid = false;
 
@@ -318,12 +321,12 @@ class QueryAnnotationProcessor {
 
                 final TypeElement annotationTypeElement = concreteAnnotation.getTypeElement();
 
-                // Can't use Types.isSameType() due to error caused by modern IDEs incremental compilation. Method will
-                // report they are not the same type even when thry are. Using the type qualified name instead.
+                // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same
+                // qualified name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
                 if (mirror.getAnnotationType().toString().equals(annotationTypeElement.asType().toString())) {
 
-                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptorPoint(mirror,
-                            mElementUtils, mTypeUtils, mLogger));
+                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptorPoint(mirror, mElementUtils,
+                            mTypeUtils, mLogger));
                     mLogger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

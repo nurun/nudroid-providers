@@ -62,8 +62,8 @@ class SourceCodeGenerator {
 
             mLogger.trace("Generating source code for class " + delegateClass.getTypeElement());
 
-            generateContentProviderSourceCode(metadata, delegateClass);
-            generateContentProviderRouterSourceCode(metadata, delegateClass);
+            generateContentProviderSourceCode(delegateClass);
+            generateContentProviderRouterSourceCode(delegateClass);
             metadata.popDelegateClass(delegateClass);
 
             mLogger.trace("Done generating source code for class " + delegateClass.getTypeElement());
@@ -75,7 +75,7 @@ class SourceCodeGenerator {
 
             mLogger.trace(String.format("Generating concrete annotation class %s.",
                     annotation.getAnnotationQualifiedName()));
-            generateConcreteAnnotationSourceCode(metadata, annotation);
+            generateConcreteAnnotationSourceCode(annotation);
             metadata.popInterceptorBlueprint(annotation);
             mLogger.trace(String.format("Done generating concrete annotation class %s.",
                     annotation.getAnnotationQualifiedName()));
@@ -83,7 +83,7 @@ class SourceCodeGenerator {
         }
     }
 
-    private void generateContentProviderSourceCode(Metadata metadata, DelegateClass delegateClass) {
+    private void generateContentProviderSourceCode(DelegateClass delegateClass) {
 
         Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);
@@ -119,7 +119,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
     }
 
-    private void generateContentProviderRouterSourceCode(Metadata metadata, DelegateClass delegateClass) {
+    private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
 
         Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);
@@ -155,7 +155,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Router for class %s.", delegateClass.getTypeElement()));
     }
 
-    private void generateConcreteAnnotationSourceCode(Metadata metadata, InterceptorBlueprint annotation) {
+    private void generateConcreteAnnotationSourceCode(InterceptorBlueprint annotation) {
 
         Properties p = generateVelocityConfigurationProperties();
         Velocity.init(p);

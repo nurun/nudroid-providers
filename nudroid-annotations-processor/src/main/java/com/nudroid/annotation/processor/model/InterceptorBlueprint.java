@@ -46,7 +46,7 @@ public class InterceptorBlueprint {
      * 
      * @param typeElement
      *            The {@link TypeElement} for the annotation this class represents.
-     *            
+     * 
      */
     public InterceptorBlueprint(TypeElement typeElement) {
 
@@ -66,8 +66,11 @@ public class InterceptorBlueprint {
                 this.mHasDefaultConstructor = true;
             }
 
+            // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
+            // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
             if (parameters.size() == 1
-                    && parameters.get(0).asType().toString().equals(mInterceptorAnnotationTypeElement.asType().toString())) {
+                    && parameters.get(0).asType().toString()
+                            .equals(mInterceptorAnnotationTypeElement.asType().toString())) {
 
                 this.mHasCustomConstructor = true;
             }
@@ -153,8 +156,8 @@ public class InterceptorBlueprint {
         return mAttributes;
     }
 
-    public InterceptorPoint createInterceptorPoint(AnnotationMirror mirror, Elements elementUtils,
-            Types typeUtils, LoggingUtils logger) {
+    public InterceptorPoint createInterceptorPoint(AnnotationMirror mirror, Elements elementUtils, Types typeUtils,
+            LoggingUtils logger) {
 
         InterceptorPoint interceptor = new InterceptorPoint(this);
         interceptor.setHasDefaultConstructor(mHasDefaultConstructor);
@@ -235,7 +238,9 @@ public class InterceptorBlueprint {
 
             TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
 
-            if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
+            // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
+            // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
+            if (stringType.asType().toString().equals(attribute.getReturnType().toString())) {
 
                 interceptor.addConcreteAnnotationConstructorLiteral(String.format("\"%s\"", attributeValue.getValue()));
             } else {
@@ -316,7 +321,9 @@ public class InterceptorBlueprint {
 
             TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
 
-            if (typeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
+            // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
+            // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
+            if (stringType.asType().toString().equals(arrayType.getComponentType().toString())) {
 
                 arrayInitializer.append("new String[] { \"");
                 Joiner.on("\", \"").skipNulls().appendTo(arrayInitializer, arrayElements);

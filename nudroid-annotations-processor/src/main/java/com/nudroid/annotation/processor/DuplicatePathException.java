@@ -16,7 +16,7 @@ public class DuplicatePathException extends IllegalUriPathException {
 	 * @param existingDelegateMethod
 	 *            The delegate method which already define the path.
 	 */
-	public DuplicatePathException(ExecutableElement existingDelegateMethod, String pathAndQuery) {
+	public DuplicatePathException(ExecutableElement existingDelegateMethod) {
 		super(String.format("An equivalent path has already been registerd by method %s", existingDelegateMethod));
 
 		this.mOriginalMethod = existingDelegateMethod;

@@ -169,7 +169,7 @@ public class ${delegateClass.getRouterSimpleName()} {
                 ${interceptor.getQualifiedName()} l${interceptor.getSimpleName()} = 
                     new ${interceptor.getQualifiedName()}();
 #end
-                l${interceptor.getSimpleName()}.onCreate(context);
+                l${interceptor.getSimpleName()}.onCreate(contentProviderContext);
                 l${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
 #end
 

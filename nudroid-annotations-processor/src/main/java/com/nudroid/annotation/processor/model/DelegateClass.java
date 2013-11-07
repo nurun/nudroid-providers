@@ -130,7 +130,7 @@ public class DelegateClass {
 
         if (existingDelegateMethod != null) {
 
-            throw new DuplicatePathException(existingDelegateMethod, pathAndQuery);
+            throw new DuplicatePathException(existingDelegateMethod);
         }
 
         mDelegateUris.put(delegateUri, queryMethodElement);

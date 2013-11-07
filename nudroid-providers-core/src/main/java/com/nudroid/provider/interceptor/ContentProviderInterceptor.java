@@ -1,6 +1,5 @@
 package com.nudroid.provider.interceptor;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -24,7 +23,7 @@ public interface ContentProviderInterceptor {
      * @param context
      *            The content provider context.
      */
-    public void onCreate(Context context);
+    public void onCreate(ContentProviderContext context);
 
     /**
      * Called before {@link Query} target method is executed.
