@@ -24,6 +24,16 @@
 #end
 ##(End Macro delimiterIfNeeded)------------------------------------
 ##
+##-----------------------------------------------------------------
+## Calculates the if statement for query parameter name matching
+## Param: $methodParameterNames - The list of method parameter names
+##-----------------------------------------------------------------
+#macro( generateQueryParameterIfStatement $methodParameterNames $methodIndex $methodCount)
+#if ( ${methodParameterNames.size()} > 0 )    
+if ( #generateQueryParameterNamesMatcher($methodParameterNames) ) {
+#end
+#end
+##
 ##
 ##-----------------------------------------------------------------
 ## Generates the source code conditional check to match all method query
@@ -32,9 +42,9 @@
 ## Param: $methodParameterNames - The list of method parameter names
 ##-----------------------------------------------------------------
 #macro( generateQueryParameterNamesMatcher $methodParameterNames)
-queryParameterNames.size() == $methodParameterNames.size()##
-#if ($methodParameterNames.size() > 0) && #end
-#foreach( $parameterName in $methodParameterNames )queryParameterNames.contains("$parameterName")#delimiterIfNeeded( $velocityCount $methodParameterNames " && " )#end
+#if ( ${methodParameterNames.size()} > 0 )
+#foreach( $parameterName in $methodParameterNames )uri.getQueryParameterNames().contains("$parameterName")#delimiterIfNeeded( $velocityCount $methodParameterNames " && " )#end
+#end
 #end
 ##(End Macro generateQueryParameterNamesMatcher)-------------------
 ##
@@ -143,15 +153,14 @@ public class ${delegateClass.getRouterSimpleName()} {
     public Cursor query(Context context, Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
 
-        java.util.Set<String> queryParameterNames = uri.getQueryParameterNames();
-    
         switch (URI_MATCHER.match(uri)) {
 #foreach( $uriId in $delegateClass.getUriIds() )
         case $uriId:
-
-#foreach( $delegateMethod in $delegateClass.getUriIdToDelegateMethodRegistry().get($uriId) )            
-            if (#generateQueryParameterNamesMatcher($delegateMethod.getQueryStringParameterNames())) {
-
+#set( $methods = ${delegateClass.getMethodsForUriId($uriId)} )
+#foreach( $delegateMethod in $methods )     
+#set ( $methodIndex = $velocityCount - 1 )    
+            #generateQueryParameterIfStatement( ${delegateMethod.getQueryStringParameterNames()}, $methodIndex, ${methods.size()} )
+                
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
 #end
@@ -179,12 +188,15 @@ public class ${delegateClass.getRouterSimpleName()} {
                 result = l${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);
 #end
                 return result;
-            }
-            
+#if ( ${delegateMethod.getQueryStringParameterCount()} != 0 )                
+            } 
 #end
-
+            
+#if ( $methodIndex == (${methods.size()} - 1) && ${delegateMethod.getQueryStringParameterCount()} != 0 )
             throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
                     uri, mDelegate.getClass()));
+#end
+#end
 #end
         default:
         

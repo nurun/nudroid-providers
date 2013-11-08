@@ -173,6 +173,16 @@ public class DelegateMethod {
     }
 
     /**
+     * Gets the count of parameters on the query string on the delegate annotation of this method.
+     * 
+     * @return The count of parameters on the query string.
+     */
+    public int getQueryStringParameterCount() {
+        
+        return mQueryStringParameterNames.size();
+    }
+
+    /**
      * Checks if this method URI has any placeholders in it's path.
      * 
      * @return <tt>true</tt> if this method has any placeholder in its URI path, <tt>false</tt> otherwise.
@@ -210,9 +220,18 @@ public class DelegateMethod {
         return mInverseInterceptorElements;
     }
 
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
-        return "DelegateMethod [name=" + mName + ", parameters=" + mParameters + "]";
+        return "DelegateMethod [mDelegateClass=" + mDelegateClass + ", mName=" + mName + ", mParameters=" + mParameters
+                + ", mPathPlaceholderParameters=" + mPathPlaceholderParameters + ", mQueryStringPlaceholderParameters="
+                + mQueryStringPlaceholderParameters + ", mQueryStringParameterNames=" + mQueryStringParameterNames
+                + ", mUri=" + mUri + ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements="
+                + mInterceptorElements + ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
     }
 
     /**

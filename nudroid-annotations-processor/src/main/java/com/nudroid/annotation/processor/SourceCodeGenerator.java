@@ -69,7 +69,8 @@ class SourceCodeGenerator {
             mLogger.trace("Done generating source code for class " + delegateClass.getTypeElement());
         }
 
-        Set<InterceptorBlueprint> concreteAnnotations = new HashSet<InterceptorBlueprint>(metadata.getInterceptorBlueprintsForRound());
+        Set<InterceptorBlueprint> concreteAnnotations = new HashSet<InterceptorBlueprint>(
+                metadata.getInterceptorBlueprintsForRound());
 
         for (InterceptorBlueprint annotation : concreteAnnotations) {
 
@@ -119,6 +120,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
     }
 
+    // ##TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
 
         Properties p = generateVelocityConfigurationProperties();
