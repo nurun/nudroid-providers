@@ -5,7 +5,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Denotes a method responsible to handle an insert operation sent to a content provider.
+ * Denotes a method responsible for handling an insert operation sent to a content provider.
  * <p/>
  * 
  * Methods annotated with Insert must return the URI for the newly inserted item.
@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * Example usage:
  * 
  * <pre>
- * &#064;Authority(&quot;com.example.userscontentprovider&quot;)
+ * &#064;ContentProvider(authority = &quot;com.example.userscontentprovider&quot;)
  * public class UsersContentProviderDelegate {
  *     &#064;Insert(&quot;/users&quot;)
  *     public Uri insertUser(@ContentValuesRef ContentValues contentValues) {

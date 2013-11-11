@@ -120,7 +120,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
     }
 
-    // ##TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
+    // TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
 
         Properties p = generateVelocityConfigurationProperties();

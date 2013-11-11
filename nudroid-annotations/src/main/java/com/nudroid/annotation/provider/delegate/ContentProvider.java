@@ -5,13 +5,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Registers a content provider delegate. A ContentProvider will be automatically generated and will forward methods to
- * the annotated delegate.
+ * Registers a content provider delegate. A ContentProvider class will be automatically generated and will forward
+ * methods to the annotated delegate.
  * <p/>
  * Example usage:
  * 
  * <pre>
- * &#064;ContentProviderDelegate(authority=&quot;com.example.contentprovider.users&quot;)
+ * &#064;ContentProvider(authority=&quot;com.example.contentprovider.users&quot;)
  * public class UserContentProviderDelegate {
  *     ...
  * }

@@ -3,10 +3,6 @@ package com.nudroid.provider.interceptor;
 import android.database.Cursor;
 import android.net.Uri;
 
-import com.nudroid.annotation.provider.delegate.Delete;
-import com.nudroid.annotation.provider.delegate.Insert;
-import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.provider.delegate.ContentProviderContext;
 
 /**
@@ -26,7 +22,7 @@ public interface ContentProviderInterceptor {
     public void onCreate(ContentProviderContext context);
 
     /**
-     * Called before {@link Query} target method is executed.
+     * Called before com.nudroid.annotation.provider.delegate.Query target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -34,7 +30,7 @@ public interface ContentProviderInterceptor {
     public void beforeQuery(ContentProviderContext contentProviderContext);
 
     /**
-     * Called after {@link Query} target method is executed.
+     * Called after com.nudroid.annotation.provider.delegate.Query target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -47,7 +43,7 @@ public interface ContentProviderInterceptor {
     public Cursor afterQuery(ContentProviderContext contentProviderContext, Cursor result);
 
     /**
-     * Called before {@link Update} target method is executed.
+     * Called before com.nudroid.annotation.provider.delegate.Update target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -55,7 +51,7 @@ public interface ContentProviderInterceptor {
     public void beforeUpdate(ContentProviderContext contentProviderContext);
 
     /**
-     * Called after {@link Update} target method is executed.
+     * Called after com.nudroid.annotation.provider.delegate.Update target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -68,7 +64,7 @@ public interface ContentProviderInterceptor {
     public int afterUpdate(ContentProviderContext contentProviderContext, int result);
 
     /**
-     * Called before {@link Insert} target method is executed.
+     * Called before com.nudroid.annotation.provider.delegate.Insert target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -76,7 +72,7 @@ public interface ContentProviderInterceptor {
     public void beforeInsert(ContentProviderContext contentProviderContext);
 
     /**
-     * Called after {@link Insert} target method is executed.
+     * Called after com.nudroid.annotation.provider.delegate.Insert target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -89,7 +85,7 @@ public interface ContentProviderInterceptor {
     public Uri afterInsert(ContentProviderContext contentProviderContext, Uri result);
 
     /**
-     * Called before {@link Delete} target method is executed.
+     * Called before com.nudroid.annotation.provider.delegate.Delete target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.
@@ -97,7 +93,7 @@ public interface ContentProviderInterceptor {
     public void beforeDelete(ContentProviderContext contentProviderContext);
 
     /**
-     * Called after {@link Delete} target method is executed.
+     * Called after com.nudroid.annotation.provider.delegate.Delete target method is executed.
      * 
      * @param contentProviderContext
      *            A parameter object with the parameters that are to be passed to the delegate method.

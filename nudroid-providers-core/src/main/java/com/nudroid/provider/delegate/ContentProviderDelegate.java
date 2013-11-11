@@ -3,8 +3,6 @@ package com.nudroid.provider.delegate;
 import android.content.ContentProvider;
 import android.content.Context;
 
-import com.nudroid.annotation.provider.delegate.ContextRef;
-
 /**
  * Optional interface which can be applied to a content provider delegate. If the content provider delegate implements
  * this interface, calls to {@link ContentProvider#onCreate()} will be delegated to classes implementing it.
@@ -19,7 +17,8 @@ public interface ContentProviderDelegate {
      * 
      * @param context
      *            The content provider context, as returned by {@link ContentProvider#getContext()}. There's no need to
-     *            save this reference since the context can also be obtained by the annotation {@link ContextRef}.
+     *            save this reference since the context can also be obtained by the annotation
+     *            com.nudroid.annotation.provider.delegate.ContextRef.
      * 
      * @see ContentProvider#onCreate()
      * 

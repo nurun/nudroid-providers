@@ -75,21 +75,23 @@ subprojects {
 
 /*
  * =================================================================================================================
- * nudroid-provider-interceptors
- * Configuration for nudroid-provider-interceptors
+ * nudroid-providers-core
+ * Configuration for nudroid-providers-core
  */
-project(':nudroid-annotations') {
+project(':nudroid-providers-core') {
+    dependencies {
+        compileOnly 'com.google.android:android:2.2.1'
+    }
 }
 
 /*
  * =================================================================================================================
- * nudroid-provider-interceptors
- * Configuration for nudroid-provider-interceptors
+ * nudroid-annotations
+ * Configuration for nudroid-annotations
  */
-project(':nudroid-providers-core') {
+project(':nudroid-annotations') {
     dependencies {
-        compile project(':nudroid-annotations')
-        compileOnly 'com.google.android:android:2.2.1'
+        compile project(':nudroid-providers-core')
     }
 }
 

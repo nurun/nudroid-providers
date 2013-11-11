@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * import import android.net.Uri;
  * 
  * &#064;Query(&quot;/users&quot;)
- * public Cursor insertUser(@Projection String[] projection, ...) {
+ * public Cursor listUsers(@Projection String[] projection, ...) {
  * 
  *     ...
  * }

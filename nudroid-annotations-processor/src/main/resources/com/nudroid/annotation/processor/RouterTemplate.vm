@@ -239,7 +239,7 @@ public class ${delegateClass.getRouterSimpleName()} {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unused", "unchecked" })
     private <T> T convert(String queryParameter, Class<T> clazz) {
 
         if (clazz.equals(Integer.class)) {
