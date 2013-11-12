@@ -1,5 +1,6 @@
 package com.nudroid.annotation.processor;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
 class ContentProviderDelegateAnnotationProcessor {
 
     private LoggingUtils mLogger;
-    private TypeMirror mDelegateType;
+    private String mDelegateTypeName;
 
     /**
      * Creates an instance of this class.
@@ -36,8 +37,7 @@ class ContentProviderDelegateAnnotationProcessor {
     ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        this.mDelegateType = processorContext.elementUtils.getTypeElement(
-                com.nudroid.provider.delegate.ContentProviderDelegate.class.getName()).asType();
+        this.mDelegateTypeName = com.nudroid.provider.delegate.ContentProviderDelegate.class.getName().toString();
     }
 
     /**
@@ -138,13 +138,21 @@ class ContentProviderDelegateAnnotationProcessor {
                     + " find the correct class at runtime."), delegateClassType);
         }
 
-        if (delegateClassType.getInterfaces().contains(mDelegateType)) {
+        // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
+        // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
+        Set<String> interfaceNames = new HashSet<String>();
 
-            mLogger.trace(String.format("            Class implements %s.", mDelegateType));
+        for (TypeMirror e : delegateClassType.getInterfaces()) {
+            interfaceNames.add(e.toString());
+        }
+
+        if (interfaceNames.contains(mDelegateTypeName)) {
+
+            mLogger.trace(String.format("            Class implements %s.", mDelegateTypeName));
             delegateClassForAuthority.setImplementDelegateInterface(true);
         } else {
 
-            mLogger.trace(String.format("            Class does not implement %s.", mDelegateType));
+            mLogger.trace(String.format("            Class does not implement %s.", mDelegateTypeName));
             delegateClassForAuthority.setImplementDelegateInterface(false);
         }
     }
