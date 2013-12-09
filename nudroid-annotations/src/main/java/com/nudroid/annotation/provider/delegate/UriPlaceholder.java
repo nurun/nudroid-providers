@@ -22,9 +22,10 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * 
- * A content delete request for URI content://com.example.userscontentprovider/users/daniel.freitas?cascade=1ST_LEVEL
- * will be matched by the deleteUser method above and the userId parameter will be passed the string
- * <tt>daniel.freitas</tt> while the cascadeType parameter will be passed the string <tt>1ST-LEVEL</tt>.
+ * A content delete request for URI
+ * <tt>content://com.example.userscontentprovider/users/daniel.freitas?cascade=1ST_LEVEL</tt> will be matched by the
+ * <tt>deleteUser</tt> method above and the <tt>userId</tt> parameter will be passed the string <tt>daniel.freitas</tt>
+ * while the <tt>cascadeType</tt> parameter will be passed the string <tt>1ST-LEVEL</tt>.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

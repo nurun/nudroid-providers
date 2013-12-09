@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * Example usage:
  * 
  * <pre>
- * &#064;ContentProvider(authority=&quot;com.example.userscontentprovider&quot;)
+ * &#064;ContentProvider(authority = &quot;com.example.userscontentprovider&quot;)
  * public class UsersContentProviderDelegate {
  *     &#064;Update(&quot;/users/{user_id}&quot;)
  *     public int updateUser(@PathParam(&quot;user_id&quot;) String userId, @ContentValuesRef ContentValues contentValues) {
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * </pre>
  * 
  * The above class and method definitions will respond the following content path URLs:
- * content://com.example.userscontentprovider/users/*.
+ * <tt>content://com.example.userscontentprovider/users/*</tt>.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

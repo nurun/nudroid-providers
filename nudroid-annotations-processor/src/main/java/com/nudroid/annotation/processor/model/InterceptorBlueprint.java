@@ -223,15 +223,28 @@ public class InterceptorBlueprint {
             break;
         case CHAR:
 
-            interceptor.addConcreteAnnotationConstructorLiteral(String.format("'%s'", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format(
+                    "'%s'", attributeValue.getValue()), char.class));
             break;
         case FLOAT:
 
-            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%sf", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%sf",
+                    attributeValue.getValue()), float.class));
+            break;
+        case DOUBLE:
+            
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%s",
+                    attributeValue.getValue()), double.class));
+            break;
+        case INT:
+            
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%sL",
+                    attributeValue.getValue()), long.class));
             break;
         case LONG:
 
-            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%sL", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%sL",
+                    attributeValue.getValue()), int.class));
             break;
 
         case DECLARED:
@@ -242,14 +255,15 @@ public class InterceptorBlueprint {
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
             if (stringType.asType().toString().equals(attribute.getReturnType().toString())) {
 
-                interceptor.addConcreteAnnotationConstructorLiteral(String.format("\"%s\"", attributeValue.getValue()));
+                interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format(
+                        "\"%s\"", attributeValue.getValue()), String.class));
             } else {
 
                 final Element asElement = typeUtils.asElement(attribute.getReturnType());
 
                 if (asElement.getKind() == ElementKind.ENUM) {
-                    interceptor.addConcreteAnnotationConstructorLiteral(String.format("%s.%s", asElement,
-                            attributeValue.getValue()));
+                    interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String
+                            .format("%s.%s", asElement, attributeValue.getValue()), Object.class));
                 } else {
 
                     logger.error(String.format("Invalid type %s for the annotation attribute "
@@ -261,18 +275,21 @@ public class InterceptorBlueprint {
             break;
 
         default:
-            interceptor.addConcreteAnnotationConstructorLiteral(String.format("%s", attributeValue.getValue()));
+            interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%s",
+                    attributeValue.getValue()), Object.class));
         }
     }
 
     private void generateAnnotationArrayLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
             AnnotationValue attributeValue, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
+        
         ArrayType arrayType = (ArrayType) attribute.getReturnType();
+        Class<?> arrayClass = null;
 
         @SuppressWarnings("unchecked")
         List<? extends AnnotationValue> annotationValues = (List<? extends AnnotationValue>) attributeValue.getValue();
         List<Object> arrayElements = new ArrayList<Object>();
-
+        
         for (AnnotationValue value : annotationValues) {
 
             arrayElements.add(value.getValue());
@@ -291,30 +308,35 @@ public class InterceptorBlueprint {
             arrayInitializer.append("new char[] { '");
             Joiner.on("', '").skipNulls().appendTo(arrayInitializer, arrayElements);
             arrayInitializer.append("' }");
+            arrayClass = char[].class;
             break;
         case FLOAT:
 
             arrayInitializer.append("new float[] { ");
             Joiner.on("f, ").skipNulls().appendTo(arrayInitializer, arrayElements);
             arrayInitializer.append("f }");
+            arrayClass = float[].class;
             break;
         case DOUBLE:
 
             arrayInitializer.append("new double[] { ");
             Joiner.on(", ").skipNulls().appendTo(arrayInitializer, arrayElements);
             arrayInitializer.append(" }");
+            arrayClass = double[].class;
             break;
         case INT:
 
             arrayInitializer.append("new int[] { ");
             Joiner.on(", ").skipNulls().appendTo(arrayInitializer, arrayElements);
             arrayInitializer.append(" }");
+            arrayClass = int[].class;
             break;
         case LONG:
 
             arrayInitializer.append("new long[] { ");
             Joiner.on("L, ").skipNulls().appendTo(arrayInitializer, arrayElements);
             arrayInitializer.append("L }");
+            arrayClass = long[].class;
             break;
 
         case DECLARED:
@@ -328,6 +350,7 @@ public class InterceptorBlueprint {
                 arrayInitializer.append("new String[] { \"");
                 Joiner.on("\", \"").skipNulls().appendTo(arrayInitializer, arrayElements);
                 arrayInitializer.append("\" }");
+                arrayClass = String[].class;
             } else {
 
                 final Element arrayElementType = typeUtils.asElement(arrayType.getComponentType());
@@ -338,6 +361,7 @@ public class InterceptorBlueprint {
                     Joiner.on(String.format(", %s.", arrayElementType)).skipNulls()
                             .appendTo(arrayInitializer, arrayElements);
                     arrayInitializer.append(" }");
+                    arrayClass = Object[].class;
                 } else {
 
                     logger.error(String.format("Invalid type %s for the annotation attribute "
@@ -351,6 +375,7 @@ public class InterceptorBlueprint {
             break;
         }
 
-        interceptor.addConcreteAnnotationConstructorLiteral(arrayInitializer.toString());
+        interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(arrayInitializer
+                .toString(), arrayClass));
     }
 }

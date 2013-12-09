@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * </pre>
  * 
  * The above class and method definitions will respond the following content path URLs:
- * content://com.example.userscontentprovider/users.
+ * <tt>content://com.example.userscontentprovider/users</tt>.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

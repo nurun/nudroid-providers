@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.lang.model.element.TypeElement;
 
-
 /**
  * Information about delegate method interceptors.
  * 
@@ -18,7 +17,7 @@ public class InterceptorPoint {
     private boolean mHasCustomConstructor;
     private boolean mHasDefaultConstructor;
     private InterceptorBlueprint mConcreteAnnotation;
-    private List<String> mConcreteAnnotationConstructorArguments = new ArrayList<String>();
+    private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<InterceptorAnnotationParameter>();
 
     /**
      * Creates a new Interceptor bean.
@@ -89,7 +88,7 @@ public class InterceptorPoint {
      * @param value
      *            The literal to add.
      */
-    public void addConcreteAnnotationConstructorLiteral(String value) {
+    public void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
 
         mConcreteAnnotationConstructorArguments.add(value);
     }
@@ -109,7 +108,7 @@ public class InterceptorPoint {
      * 
      * @return The list of source code literals to create a new instance of the concrete annotation.
      */
-    public List<String> getConcreteAnnotationConstructorArgumentLiterals() {
+    public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;
     }

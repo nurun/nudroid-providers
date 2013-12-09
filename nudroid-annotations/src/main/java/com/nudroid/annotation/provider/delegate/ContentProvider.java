@@ -6,14 +6,21 @@ import java.lang.annotation.Target;
 
 /**
  * Registers a content provider delegate. A ContentProvider class will be automatically generated and will forward
- * methods to the annotated delegate.
+ * methods to the annotated delegate class.
  * <p/>
  * Example usage:
  * 
  * <pre>
  * &#064;ContentProvider(authority=&quot;com.example.contentprovider.users&quot;)
- * public class UserContentProviderDelegate {
+ * public class UserContentProviderDelegate implements ContentProviderDelegate {
  *     ...
+ *     
+ *     &#064;Override
+ *     public boolean onCreate(Context context) {
+ * 
+ *         // Create/get SQLiteOpenHelper here.
+ *         return true;
+ *     }
  * }
  * </pre>
  * 

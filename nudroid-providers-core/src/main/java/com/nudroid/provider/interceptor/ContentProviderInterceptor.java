@@ -3,8 +3,6 @@ package com.nudroid.provider.interceptor;
 import android.database.Cursor;
 import android.net.Uri;
 
-import com.nudroid.provider.delegate.ContentProviderContext;
-
 /**
  * A provider interceptor wraps invocations to content provider delegate methods and allows code to be executed before
  * and after the delegate method is invoked.

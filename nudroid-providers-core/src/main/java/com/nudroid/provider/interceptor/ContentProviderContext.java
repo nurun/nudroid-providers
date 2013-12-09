@@ -1,23 +1,26 @@
-package com.nudroid.provider.delegate;
+package com.nudroid.provider.interceptor;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 
-import com.nudroid.provider.interceptor.ContentProviderInterceptor;
-
 /**
- * A parameter object for the {@link ContentProviderInterceptor}. Provides access to all possible delegate method
+ * A parameter object used by {@link ContentProviderInterceptor}s. Provides access to all possible delegate method
  * parameters. An interceptor can change the properties on this class and the new values will be forwarded to the the
  * content provider delegate method.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class ContentProviderContext {
+
+    private static String PLACEHOLDER_REG_EXP = "\\{([^\\}]+)\\}";
+    private static Pattern PLACEHOLDER_PATTERN = Pattern.compile(PLACEHOLDER_REG_EXP);
 
     /**
      * The content provider context.
@@ -90,6 +93,7 @@ public class ContentProviderContext {
     }
 
     /**
+     * 
      * <p/>
      * {@inheritDoc}
      * 
@@ -101,5 +105,53 @@ public class ContentProviderContext {
                 + Arrays.toString(projection) + ", selection=" + selection + ", selectionArgs="
                 + Arrays.toString(selectionArgs) + ", sortOrder=" + sortOrder + ", contentValues=" + contentValues
                 + ", placeholders=" + placeholders + "]";
+    }
+
+    /**
+     * Expands the passed string by replacing placeholders (in the form {<placeholder_name>}) by the values captured in
+     * property map <tt>placeholders</tt>
+     * 
+     * @param stringToExpand
+     *            The string to be expanded.
+     * @return The original string with placeholders replaced by their corresponding values.
+     */
+    public String expand(String stringToExpand) {
+
+        String result = stringToExpand;
+
+        Matcher m = PLACEHOLDER_PATTERN.matcher(result);
+
+        while (m.find()) {
+
+            String placeholderName = m.group(1);
+
+            final String placeholderValue = placeholders.get(placeholderName);
+
+            if (placeholderValue != null) {
+
+                result = result.replaceAll("\\{" + placeholderName + "\\}", placeholderValue);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Expands the passed array of string by replacing placeholders (in the form {<placeholder_name>}) by the values
+     * captured in property map <tt>placeholders</tt>
+     * 
+     * @param stringsToExpand
+     *            The array of strings to be expanded. Each string in the array will be expanded individually.
+     * @return A new array with the expanded content of each string.
+     */
+    public String[] expand(String[] stringsToExpand) {
+
+        String[] result = new String[stringsToExpand.length];
+
+        for (int i = 0; i < stringsToExpand.length; i++) {
+            result[i] = expand(stringsToExpand[i]);
+        }
+
+        return result;
     }
 }

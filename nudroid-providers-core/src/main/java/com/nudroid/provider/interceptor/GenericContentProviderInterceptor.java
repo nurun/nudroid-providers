@@ -1,7 +1,5 @@
 package com.nudroid.provider.interceptor;
 
-import com.nudroid.provider.delegate.ContentProviderContext;
-
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -35,7 +33,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(com.nudroid.provider.delegate.ContentProviderContext)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(com.nudroid.provider.interceptor.ContentProviderContext)
      */
     @Override
     public void beforeQuery(ContentProviderContext contentProviderContext) {
@@ -47,7 +45,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(com.nudroid.provider.delegate.ContentProviderContext,
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(com.nudroid.provider.interceptor.ContentProviderContext,
      *      android.database.Cursor)
      */
     @Override
@@ -60,7 +58,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(com.nudroid.provider.delegate.ContentProviderContext)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(com.nudroid.provider.interceptor.ContentProviderContext)
      */
     @Override
     public void beforeUpdate(ContentProviderContext contentProviderContext) {
@@ -72,7 +70,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(com.nudroid.provider.delegate.ContentProviderContext,
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(com.nudroid.provider.interceptor.ContentProviderContext,
      *      int)
      */
     @Override
@@ -85,7 +83,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(com.nudroid.provider.delegate.ContentProviderContext)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(com.nudroid.provider.interceptor.ContentProviderContext)
      */
     @Override
     public void beforeInsert(ContentProviderContext contentProviderContext) {
@@ -97,7 +95,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(com.nudroid.provider.delegate.ContentProviderContext,
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(com.nudroid.provider.interceptor.ContentProviderContext,
      *      android.net.Uri)
      */
     @Override
@@ -110,7 +108,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(com.nudroid.provider.delegate.ContentProviderContext)
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(com.nudroid.provider.interceptor.ContentProviderContext)
      */
     @Override
     public void beforeDelete(ContentProviderContext contentProviderContext) {
@@ -122,7 +120,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
      * <p/>
      * {@inheritDoc}
      * 
-     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(com.nudroid.provider.delegate.ContentProviderContext,
+     * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(com.nudroid.provider.interceptor.ContentProviderContext,
      *      int)
      */
     @Override
