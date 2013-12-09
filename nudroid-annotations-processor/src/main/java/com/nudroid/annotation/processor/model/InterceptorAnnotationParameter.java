@@ -24,9 +24,7 @@ public class InterceptorAnnotationParameter {
         this.mLiteralValue = literalValue;
         this.mType = parameterType;
 
-        System.out.println("*********" + mType);
         mIsString = mType.equals(String.class) || mType.equals(String[].class);
-        System.out.println("*********" + mIsString);
     }
 
     /**
