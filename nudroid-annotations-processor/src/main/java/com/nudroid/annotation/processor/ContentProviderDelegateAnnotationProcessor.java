@@ -109,6 +109,10 @@ class ContentProviderDelegateAnnotationProcessor {
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
+        if (contentProviderDelegateAnnotation == null) {
+            return;
+        }
+
         final String authorityName = contentProviderDelegateAnnotation.authority();
         mLogger.trace(String.format("        Authority name ='%s'.", authorityName));
 

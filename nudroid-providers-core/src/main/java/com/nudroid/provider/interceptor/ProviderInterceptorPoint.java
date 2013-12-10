@@ -1,4 +1,4 @@
-package com.nudroid.annotation.provider.interceptor;
+package com.nudroid.provider.interceptor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

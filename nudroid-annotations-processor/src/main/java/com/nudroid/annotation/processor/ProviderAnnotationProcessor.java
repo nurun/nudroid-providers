@@ -35,7 +35,7 @@ import javax.lang.model.util.Types;
     "com.nudroid.annotation.provider.delegate.Query",
     "com.nudroid.annotation.provider.delegate.Update",
 
-    "com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint" })
+    "com.nudroid.provider.interceptor.ProviderInterceptorPoint" })
 // @f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({ "com.nudroid.annotation.processor.log.level", "com.nudroid.annotation.processor.continuation.file" })

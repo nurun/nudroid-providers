@@ -17,8 +17,8 @@ import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
 import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
+import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 
 /**
  * Add validation to interceptor constructors. <br/>
