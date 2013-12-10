@@ -26,7 +26,7 @@ subprojects {
     apply plugin: 'maven'
     apply from:   '../emma.gradle'
 
-    version = '2.0-MILESTONE-1-SNAPSHOT'
+    version = '2.0-MILESTONE-1'
     group = 'com.nudroid'
     sourceCompatibility = JavaVersion.VERSION_1_6
     targetCompatibility = JavaVersion.VERSION_1_6
@@ -38,6 +38,8 @@ subprojects {
         maven {
             url 'http://repo.springsource.org/libs-release'
             url 'http://repo.springsource.org/libs-milestone'
+            url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local'
+            url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local'
         }
     }
 
@@ -70,6 +72,14 @@ subprojects {
     artifacts {
         archives sourceJar
         archives javadocJar
+    }
+    
+    uploadArchives { 
+        repositories.mavenDeployer { 
+                repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {    
+                    authentication(userName: "pubandroid", password: "androidpub") 
+                }  
+        }     
     }
 }
 
