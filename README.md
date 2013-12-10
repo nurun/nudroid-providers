@@ -59,18 +59,42 @@ Here's how a Content Provider looks like according to Android's documentation.
         // call the code to actually do the query
     } 
 
+The code is brittle, error prone, complex, hard to maintain and stupidly boring to write. What if instead you could do
+this:
 
-
-#Title
-##Subtitle
- - point
- - point
- - point
- - point
- - point
- - point
-
-##Subtitle
-After checking out the project from BitBucket, execute the command
-
-    Code
+    @ContentProvider(authority = "com.example.app.provider") // Anotate the authority once.
+    public class ExampleProviderDelegate implements ContentProviderDelegate {
+    
+        @Query("table3") // Add the path specific URI. No more URI ids \o/.
+        public Cursor listTable3(final @SortOrder String sortOrder) { // Method names are meaningful. No need to look at the code to know what it should do.
+                                                                      // Only parameters we are interested in are exposed.
+            String order = sortOrder;
+            if (TextUtils.isEmpty(order)) order = "_ID ASC";
+    
+            // Do the query with the sort order.
+        }
+    
+        @Query("table3/{rowId}")
+        public Cursor getTable3Record(final @UriPlaceholder("rowId") String rowId) { // Required data is passed in as arguments. No need to know their position in the URL.
+                                                                                     // Don't worry. The compiler will flag invalid mapping for you and your IDE will highlight the errors.
+            
+            String selection = "_ID = ?";
+            String[] selectionArgs = new String[] { rowId };
+    
+            return null;
+        }
+    
+        // URIs can be easily distinguished by query string parameters if the need arises.
+        @Query("data?rows={rows}")
+        public Cursor getRowsOfData(final @UriPlaceholder("rows") String rowList) { // Type conversion is in the works.
+    
+            return null;
+        }
+    
+        @Query("data?cols={cols}")
+        public Cursor getColsOfData(final @UriPlaceholder("cols") String colList) { // Type conversion is in the works.
+    
+            return null;
+        }
+        ...
+    }
