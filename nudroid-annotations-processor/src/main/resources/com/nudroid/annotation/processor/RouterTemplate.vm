@@ -157,6 +157,9 @@ public class ${delegateClass.getRouterSimpleName()} {
     public Cursor query(Context context, Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
 
+        ContentProviderContext contentProviderContext = null;
+        Cursor result = null;
+
         switch (URI_MATCHER.match(uri)) {
 #foreach( $uriId in $delegateClass.getUriIds() )
         case $uriId:
@@ -168,7 +171,7 @@ public class ${delegateClass.getRouterSimpleName()} {
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
 #end
-                ContentProviderContext contentProviderContext = new ContentProviderContext(context, uri, projection,
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
                         selection, selectionArgs, sortOrder, null);
                 #populateContextPlaceholder($delegateMethod.getPathPlaceholderParameters())
                 #populateContextPlaceholder($delegateMethod.getQueryStringPlaceholderParameters())
@@ -186,7 +189,7 @@ public class ${delegateClass.getRouterSimpleName()} {
                 l${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
 #end
 
-                Cursor result = mDelegate.${delegateMethod.getName()}(#generateParamsList($delegateMethod.getParameters()));
+                result = mDelegate.${delegateMethod.getName()}(#generateParamsList($delegateMethod.getParameters()));
 
 #foreach($interceptor in $delegateMethod.getAfterInterceptorList())
                 result = l${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);

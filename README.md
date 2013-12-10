@@ -1,6 +1,7 @@
 #Nudroid Persistence Library
 
-The Nudroid persistence library is a set of Java annotations and accompanying annotation processor which aims to reduce the amount of work required to configure and manage Android Content Providers.
+The Nudroid persistence library is a set of Java annotations and accompanying annotation processor which aims to reduce
+the amount of work required to configure and manage Android Content Providers.
 
 Here's how a Content Provider looks like according to Android's documentation.
 
@@ -97,4 +98,130 @@ this:
             return null;
         }
         ...
+    }
+    
+The code is easier to understand and maintain. The compiler will do a great deal of job to validate the input parameters
+and the mappings.
+
+The magic is possible due to Java annotation processor which will create all the necessary boiler plate code for you
+every time you save a file. In fact, here's the code that the annotation processor creates for you:
+
+ - A content provider (with the XML snippet to register it in your manifest file):
+ 
+     /*
+     * This is the basic XML you can use to configure this content provider in AndroidManifest.xml
+     * <provider
+     * android:name="com.example.test_anotations.vision.custom.ExampleProviderContentProvider"
+     * android:authorities="com.example.app.provider"
+     * android:exported="<true|false>"
+     * android:grantUriPermissions="<true|false>"
+     * android:label="<label>"
+     * android:readPermission="<read_permission>"
+     * android:writePermission="<write_permission>" />
+     */
+    public class ExampleProviderContentProvider extends ContentProvider {
+    
+        private ExampleProviderDelegateRouter mContentProviderRouter;
+    
+        public boolean onCreate() {
+    
+            final com.example.test_anotations.vision.custom.ExampleProviderDelegate delegate = new com.example.test_anotations.vision.custom.ExampleProviderDelegate();
+            mContentProviderRouter = new ExampleProviderDelegateRouter(delegate);
+    
+            boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());
+            return result;
+        }
+    
+        public Cursor query(Uri contentUri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    
+            return mContentProviderRouter.query(getContext(), contentUri, projection, selection, selectionArgs, sortOrder);
+        }
+        ...
+    }
+
+ - And a Router class
+ 
+     public class ExampleProviderDelegateRouter {
+    
+        static final UriMatcher URI_MATCHER;
+    
+        static {
+            URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
+    
+            URI_MATCHER.addURI("com.example.app.provider", "/table3/*", 1);
+            URI_MATCHER.addURI("com.example.app.provider", "/data", 2);
+            URI_MATCHER.addURI("com.example.app.provider", "/table3", 3);
+        }
+    
+        private com.example.test_anotations.vision.custom.ExampleProviderDelegate mDelegate;
+        
+        public ExampleProviderDelegateRouter(com.example.test_anotations.vision.custom.ExampleProviderDelegate delegate) {
+        
+            this.mDelegate = delegate;
+        }
+    
+        public Cursor query(Context context, Uri uri, String[] projection, String selection,
+                String[] selectionArgs, String sortOrder) {
+    
+            ContentProviderContext contentProviderContext = null;
+            Cursor result = null;
+            
+            switch (URI_MATCHER.match(uri)) {
+            case 1:
+                                
+                    java.util.List<String> pathSegments = uri.getPathSegments();
+                    contentProviderContext = new ContentProviderContext(context, uri, projection,
+                            selection, selectionArgs, sortOrder, null);
+                    contentProviderContext.placeholders.put("rowId", pathSegments.get(1));
+                                    
+    
+                    result = mDelegate.getTable3Record(contentProviderContext.placeholders.get("rowId"));
+    
+                    return result;
+                
+            case 2:
+                
+                if ( uri.getQueryParameterNames().contains("cols") ) {
+                    
+                    contentProviderContext = new ContentProviderContext(context, uri, projection,
+                            selection, selectionArgs, sortOrder, null);
+                                    contentProviderContext.placeholders.put("cols", uri.getQueryParameter("cols"));
+                    
+    
+                    result = mDelegate.getColsOfData(contentProviderContext.placeholders.get("cols"));
+    
+                    return result;
+                } 
+                
+                if ( uri.getQueryParameterNames().contains("rows") ) {
+                    
+                    contentProviderContext = new ContentProviderContext(context, uri, projection,
+                            selection, selectionArgs, sortOrder, null);
+                                    contentProviderContext.placeholders.put("rows", uri.getQueryParameter("rows"));
+                    
+    
+                    result = mDelegate.getRowsOfData(contentProviderContext.placeholders.get("rows"));
+    
+                    return result;
+                } 
+                
+                throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+                        uri, mDelegate.getClass()));
+            case 3:
+                                
+                    contentProviderContext = new ContentProviderContext(context, uri, projection,
+                            selection, selectionArgs, sortOrder, null);
+                                                    
+    
+                    result = mDelegate.listTable3(contentProviderContext.sortOrder);
+    
+                    return result;
+                
+            default:
+            
+                throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+                        uri, mDelegate.getClass()));
+            }
+        }
+        ...    
     }
