@@ -63,8 +63,8 @@ The code is brittle, error prone, complex, hard to maintain and stupidly boring 
 this:
 
     @ContentProvider(authority = "com.example.app.provider") // Anotate the authority once.
-    public class ExampleProviderDelegate implements ContentProviderDelegate {
-    
+    public class ExampleProviderDelegate implements ContentProviderDelegate { // Yes. POJO class (it is not required to implement ContentProviderDelegate
+                                                                              // if you do not need to hook up with the content provider lifecycle methods). 
         @Query("table3") // Add the path specific URI. No more URI ids \o/.
         public Cursor listTable3(final @SortOrder String sortOrder) { // Method names are meaningful. No need to look at the code to know what it should do.
                                                                       // Only parameters we are interested in are exposed.
