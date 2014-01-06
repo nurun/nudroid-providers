@@ -106,7 +106,7 @@ contentProviderContext.uri#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #if( $parameter.isString())
 contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )
 #else
-contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}")#delimiterIfNeeded( $velocityCount $paramaters ", " )##This will be reoplaced by conversion later on.
+convert(contentProviderContext.placeholders.get("${parameter.getPlaceholderName()}"), ${parameter.getType()})#delimiterIfNeeded( $velocityCount $paramaters ", " )##This will be reoplaced by conversion later on.
 #end##if $parameter.isString()
 #else
     null#delimiterIfNeeded( $velocityCount $paramaters ", " )

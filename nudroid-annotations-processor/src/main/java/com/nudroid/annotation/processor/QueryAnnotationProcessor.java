@@ -181,6 +181,14 @@ class QueryAnnotationProcessor {
             if (uriPlaceholder != null) {
 
                 parameter.setPlaceholderName(uriPlaceholder.value());
+                
+                try {
+                    System.out.println(methodParameter.asType().toString());
+                    parameter.setParameterType(Class.forName(methodParameter.asType().toString()));
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                
                 parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
                 parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
             }

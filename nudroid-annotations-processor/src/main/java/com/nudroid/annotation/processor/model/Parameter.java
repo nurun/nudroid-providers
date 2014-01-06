@@ -26,6 +26,7 @@ public class Parameter {
     private boolean mString;
     private String mKeyName;
     private String mPlaceholderName;
+    private Class<?> mParameterType;
     private UriPlaceholderType mUriPlaceholderType;
 
     /**
@@ -137,6 +138,15 @@ public class Parameter {
     }
 
     /**
+     * Get's the Class representation of this parameter's type.
+     * 
+     * @return This parameter's type.
+     */
+    public Class<?> getParameterType() {
+        return mParameterType;
+    }
+
+    /**
      * Sets if this parameter is annotated with {@link ContextRef}.
      * 
      * @param isContext
@@ -235,6 +245,16 @@ public class Parameter {
      */
     public void setPlaceholderName(String mPlaceholderName) {
         this.mPlaceholderName = mPlaceholderName;
+    }
+
+    /**
+     * Sets the parameter's type.
+     * 
+     * @param mParameterType
+     *            The type of the parameter.
+     */
+    public void setParameterType(Class<?> mParameterType) {
+        this.mParameterType = mParameterType;
     }
 
     /**
