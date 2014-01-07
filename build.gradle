@@ -26,7 +26,7 @@ subprojects {
     apply plugin: 'maven'
     apply from:   '../emma.gradle'
 
-    version = '2.0-MILESTONE-2'
+    version = '2.0-MILESTONE-2-SNAPSHOT'
     group = 'com.nudroid'
     sourceCompatibility = JavaVersion.VERSION_1_6
     targetCompatibility = JavaVersion.VERSION_1_6
@@ -76,9 +76,16 @@ subprojects {
     
     uploadArchives { 
         repositories.mavenDeployer { 
-                repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {    
-                    authentication(userName: "pubandroid", password: "androidpub") 
-                }  
+            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {    
+                authentication(userName: "pubandroid", password: "androidpub") 
+                releases(updatePolicy: 'always')
+                snapshots(updatePolicy: 'never')   
+            }
+            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {    
+                authentication(userName: "pubandroid", password: "androidpub") 
+                releases(updatePolicy: 'never')
+                snapshots(updatePolicy: 'always')   
+            }
         }     
     }
 }
