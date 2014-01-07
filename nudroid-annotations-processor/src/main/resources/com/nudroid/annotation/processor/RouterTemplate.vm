@@ -166,7 +166,7 @@ public class ${delegateClass.getRouterSimpleName()} {
 #set( $methods = ${delegateClass.getMethodsForUriId($uriId)} )
 #foreach( $delegateMethod in $methods )     
 #set ( $methodIndex = $velocityCount - 1 )    
-            #generateQueryParameterIfStatement( ${delegateMethod.getQueryStringParameterNames()}, $methodIndex, ${methods.size()} )
+            #generateQueryParameterIfStatement( ${delegateMethod.getQueryStringParameterNames()} )
                 
 #if ( $delegateMethod.hasUriPlaceholders() )
                 java.util.List<String> pathSegments = uri.getPathSegments();
