@@ -28,7 +28,7 @@
 ## Calculates the if statement for query parameter name matching
 ## Param: $methodParameterNames - The list of method parameter names
 ##-----------------------------------------------------------------
-#macro( generateQueryParameterIfStatement $methodParameterNames $methodIndex $methodCount)
+#macro( generateQueryParameterIfStatement $methodParameterNames)
 #if ( ${methodParameterNames.size()} > 0 )    
 if ( #generateQueryParameterNamesMatcher($methodParameterNames) ) {
 #end
