@@ -26,7 +26,7 @@ public class Parameter {
     private boolean mString;
     private String mKeyName;
     private String mPlaceholderName;
-    private Class<?> mParameterType;
+    private String mParameterType;
     private UriPlaceholderType mUriPlaceholderType;
 
     /**
@@ -138,11 +138,11 @@ public class Parameter {
     }
 
     /**
-     * Get's the Class representation of this parameter's type.
+     * Get's this parameter type's qualified name.
      * 
-     * @return This parameter's type.
+     * @return This parameter type's name.
      */
-    public Class<?> getParameterType() {
+    public String getParameterType() {
         return mParameterType;
     }
 
@@ -248,12 +248,12 @@ public class Parameter {
     }
 
     /**
-     * Sets the parameter's type.
+     * Sets the parameter type's name.
      * 
      * @param mParameterType
      *            The type of the parameter.
      */
-    public void setParameterType(Class<?> mParameterType) {
+    public void setParameterType(String mParameterType) {
         this.mParameterType = mParameterType;
     }
 
