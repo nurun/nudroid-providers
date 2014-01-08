@@ -1,0 +1,8 @@
+#[[    /**
+     * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
+     *      java.lang.String, java.lang.String[])
+     */]]#
+    public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+
+        return 0;
+    }

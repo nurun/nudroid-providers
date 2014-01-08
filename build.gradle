@@ -124,6 +124,7 @@ project(':nudroid-annotations-processor') {
         compile project(':nudroid-providers-core')
         compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.apache.velocity:velocity:1.7'
+        compileOnly 'org.antlr:ST4:4.0.7'
     }
 }
 
@@ -141,6 +142,7 @@ project(':nudroid-annotations-processor-all') {
         compileOnly project(':nudroid-annotations-processor')
         compileOnly 'org.apache.velocity:velocity:1.7'
         compileOnly 'com.google.guava:guava:15.0'
+        compileOnly 'org.antlr:ST4:4.0.7'
     }
 
     jar {

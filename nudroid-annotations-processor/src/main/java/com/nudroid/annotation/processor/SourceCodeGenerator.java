@@ -13,9 +13,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroupFile;
 
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 
 /**
  * Generates the source code for the content provider delegates based on the gathered metadata.
@@ -30,7 +32,8 @@ class SourceCodeGenerator {
 
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.vm";
     private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.vm";
-    private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.vm";
+    private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
+    private static final String CONCRETE_ANNOTATION_TEMPLATE_NAME = "ConcreteAnnotationTemplate";
 
     /**
      * Creates an instance of this class.
@@ -159,16 +162,44 @@ class SourceCodeGenerator {
 
     private void generateConcreteAnnotationSourceCode(InterceptorBlueprint annotation) {
 
-        Properties p = generateVelocityConfigurationProperties();
-        Velocity.init(p);
-        VelocityContext context = new VelocityContext();
-        context.put("annotation", annotation);
-        context.put("newline", "\n");
-
-        Template template = null;
+        // Properties p = generateVelocityConfigurationProperties();
+        // Velocity.init(p);
+        // VelocityContext context = new VelocityContext();
+        // context.put("annotation", annotation);
+        // context.put("newline", "\n");
+        //
+        // Template template = null;
+        //
+        // try {
+        // template = Velocity.getTemplate(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
+        //
+        // JavaFileObject javaFile = null;
+        //
+        // if (StringUtils.isEmpty(annotation.getConcretePackageName())) {
+        //
+        // javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
+        // } else {
+        //
+        // javaFile = mFiler.createSourceFile(String.format("%s.%s", annotation.getConcretePackageName(),
+        // annotation.getConcreteClassName()));
+        // }
+        //
+        // Writer writerContentUriRegistry = javaFile.openWriter();
+        //
+        // template.merge(context, writerContentUriRegistry);
+        // writerContentUriRegistry.close();
+        // } catch (Exception e) {
+        // mLogger.error(String.format("Error processing velocity script '%s': %s",
+        // CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
+        // }
+        //
+        // mLogger.trace("    Generating concrete annotation " + annotation.getConcreteClassName());
 
         try {
-            template = Velocity.getTemplate(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
+            STGroupFile g = new STGroupFile(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
+            ST st = g.getInstanceOf(CONCRETE_ANNOTATION_TEMPLATE_NAME);
+            st.add("annotation", annotation);
+            String result = st.render();
 
             JavaFileObject javaFile = null;
 
@@ -182,14 +213,13 @@ class SourceCodeGenerator {
             }
 
             Writer writerContentUriRegistry = javaFile.openWriter();
-
-            template.merge(context, writerContentUriRegistry);
+            writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
             mLogger.error(String.format("Error processing velocity script '%s': %s",
                     CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
         }
-
+        
         mLogger.trace("    Generating concrete annotation " + annotation.getConcreteClassName());
     }
 

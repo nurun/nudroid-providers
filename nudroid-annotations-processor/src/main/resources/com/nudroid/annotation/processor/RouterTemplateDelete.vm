@@ -1,0 +1,8 @@
+#[[    /**
+     * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
+     *      java.lang.String[])
+     */]]#
+    public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
+
+        return 0;
+    }

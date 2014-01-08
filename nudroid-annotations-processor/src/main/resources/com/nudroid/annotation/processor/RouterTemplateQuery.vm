@@ -1,0 +1,61 @@
+#[[    /**
+     * @see     android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
+     *      java.lang.String, java.lang.String[], java.lang.String)
+     */]]#
+    public Cursor query(Context context, Uri uri, String[] projection, String selection,
+            String[] selectionArgs, String sortOrder) {
+
+        ContentProviderContext contentProviderContext = null;
+        Cursor result = null;
+
+        switch (URI_MATCHER.match(uri)) {
+#foreach( $uriId in $delegateClass.getUriIds() )
+        case $uriId:
+#set( $methods = ${delegateClass.getMethodsForUriId($uriId)} )
+#foreach( $delegateMethod in $methods )     
+#set ( $methodIndex = $velocityCount - 1 )    
+            #generateQueryParameterIfStatement( ${delegateMethod.getQueryStringParameterNames()} )
+                
+#if ( $delegateMethod.hasUriPlaceholders() )
+                java.util.List<String> pathSegments = uri.getPathSegments();
+#end
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+                #populateContextPlaceholder($delegateMethod.getQueryStringPlaceholderParameters())
+                #populateContextPlaceholder($delegateMethod.getPathPlaceholderParameters())
+                
+#foreach($interceptor in $delegateMethod.getBeforeInterceptorList())
+#if ( ${interceptor.hasCustomConstructor()} )
+                ${interceptor.getQualifiedName()} l${interceptor.getSimpleName()} = 
+                    new ${interceptor.getQualifiedName()}(
+                        new ${interceptor.getConcreteAnnotationQualifiedName()}(#generateConcreteAnnotationConstructor(${interceptor.getConcreteAnnotationConstructorArgumentLiterals()})));
+#else
+                ${interceptor.getQualifiedName()} l${interceptor.getSimpleName()} = 
+                    new ${interceptor.getQualifiedName()}();
+#end
+                l${interceptor.getSimpleName()}.onCreate(contentProviderContext);
+                l${interceptor.getSimpleName()}.beforeQuery(contentProviderContext);
+#end
+
+                result = mDelegate.${delegateMethod.getName()}(#generateParamsList($delegateMethod.getParameters()));
+
+#foreach($interceptor in $delegateMethod.getAfterInterceptorList())
+                result = l${interceptor.getSimpleName()}.afterQuery(contentProviderContext, result);
+#end
+                return result;
+#if ( ${delegateMethod.getQueryStringParameterCount()} != 0 )                
+            } 
+#end
+            
+#if ( $methodIndex == (${methods.size()} - 1) && ${delegateMethod.getQueryStringParameterCount()} != 0 )
+            throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+                    uri, mDelegate.getClass()));
+#end
+#end
+#end
+        default:
+        
+            throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+                    uri, mDelegate.getClass()));
+        }
+    }
