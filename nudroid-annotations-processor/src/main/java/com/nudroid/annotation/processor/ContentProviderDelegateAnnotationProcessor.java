@@ -153,11 +153,11 @@ class ContentProviderDelegateAnnotationProcessor {
         if (interfaceNames.contains(mDelegateTypeName)) {
 
             mLogger.trace(String.format("            Class implements %s.", mDelegateTypeName));
-            delegateClassForAuthority.setImplementDelegateInterface(true);
+            delegateClassForAuthority.setImplementsDelegateInterface(true);
         } else {
 
             mLogger.trace(String.format("            Class does not implement %s.", mDelegateTypeName));
-            delegateClassForAuthority.setImplementDelegateInterface(false);
+            delegateClassForAuthority.setImplementsDelegateInterface(false);
         }
     }
 

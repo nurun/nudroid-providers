@@ -35,7 +35,7 @@ public class DelegateClass {
     private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
-    private boolean doesImplementDelegateInterface;
+    private boolean mHasImplementDelegateInterface;
     private String mBasePackageName;
     private String mContentProviderSimpleName;
     private String mRouterSimpleName;
@@ -177,8 +177,8 @@ public class DelegateClass {
      *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
      *            otherwise.
      */
-    public void setImplementDelegateInterface(boolean doesImplementDelegateInterface) {
-        this.doesImplementDelegateInterface = doesImplementDelegateInterface;
+    public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
+        this.mHasImplementDelegateInterface = doesImplementDelegateInterface;
     }
 
     /**
@@ -297,9 +297,9 @@ public class DelegateClass {
      * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
      *         otherwise.
      */
-    public boolean doesImplementDelegateInterface() {
+    public boolean hasContentProviderDelegateInterface() {
 
-        return doesImplementDelegateInterface;
+        return mHasImplementDelegateInterface;
     }
 
     /**

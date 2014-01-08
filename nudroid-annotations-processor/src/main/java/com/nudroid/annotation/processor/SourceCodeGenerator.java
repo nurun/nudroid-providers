@@ -31,7 +31,8 @@ class SourceCodeGenerator {
     private Filer mFiler;
 
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.vm";
-    private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.vm";
+    private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.stg";
+    private static final String CONTENT_PROVIDER_TEMPLATE_NAME = "ContentProviderTemplate";
     private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
     private static final String CONCRETE_ANNOTATION_TEMPLATE_NAME = "ConcreteAnnotationTemplate";
 
@@ -89,16 +90,44 @@ class SourceCodeGenerator {
 
     private void generateContentProviderSourceCode(DelegateClass delegateClass) {
 
-        Properties p = generateVelocityConfigurationProperties();
-        Velocity.init(p);
-        VelocityContext context = new VelocityContext();
-        context.put("delegateClass", delegateClass);
-        context.put("newline", "\n");
-
-        Template template = null;
+        // Properties p = generateVelocityConfigurationProperties();
+        // Velocity.init(p);
+        // VelocityContext context = new VelocityContext();
+        // context.put("delegateClass", delegateClass);
+        // context.put("newline", "\n");
+        //
+        // Template template = null;
+        //
+        // try {
+        // template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
+        //
+        // JavaFileObject javaFile = null;
+        //
+        // if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+        //
+        // javaFile = mFiler.createSourceFile(delegateClass.getContentProviderSimpleName());
+        // } else {
+        //
+        // javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+        // delegateClass.getContentProviderSimpleName()));
+        // }
+        //
+        // Writer writerContentUriRegistry = javaFile.openWriter();
+        //
+        // template.merge(context, writerContentUriRegistry);
+        // writerContentUriRegistry.close();
+        // } catch (Exception e) {
+        // mLogger.error(String.format("Error processing velocity script '%s': %s",
+        // CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
+        // }
+        //
+        // mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
 
         try {
-            template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
+            STGroupFile g = new STGroupFile(CONTENT_PROVIDER_TEMPLATE_LOCATION);
+            ST st = g.getInstanceOf(CONTENT_PROVIDER_TEMPLATE_NAME);
+            st.add("delegateClass", delegateClass);
+            String result = st.render();
 
             JavaFileObject javaFile = null;
 
@@ -112,12 +141,11 @@ class SourceCodeGenerator {
             }
 
             Writer writerContentUriRegistry = javaFile.openWriter();
-
-            template.merge(context, writerContentUriRegistry);
+            writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
             mLogger.error(String.format("Error processing velocity script '%s': %s",
-                    CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
+                    CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
         }
 
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
@@ -219,8 +247,8 @@ class SourceCodeGenerator {
             mLogger.error(String.format("Error processing velocity script '%s': %s",
                     CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
         }
-        
-        mLogger.trace("    Generating concrete annotation " + annotation.getConcreteClassName());
+
+        mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
     }
 
     private Properties generateVelocityConfigurationProperties() {
