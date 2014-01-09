@@ -1,0 +1,163 @@
+
+
+
+
+generateDelegateMethodParameterList(parameter) ::= <%
+<if(parameter.context)>
+contentProviderContext.context
+<elseif(parameter.projection)>
+contentProviderContext.projection
+<elseif(parameter.isSelection)>
+contentProviderContext.selection
+<elseif(parameter.selectionArgs)>
+contentProviderContext.selectionArgs
+<elseif(parameter.sortOrder)>
+contentProviderContext.sortOrder
+<elseif(parameter.contentValues)>
+contentProviderContext.contentValues
+<elseif(parameter.contentUri)>
+contentProviderContext.uri
+<elseif(parameter.pathParameter)>
+    <if(parameter.string)>
+contentProviderContext.placeholders.get("<parameter.placeholderName>")
+    <else>
+convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
+    <endif>
+<elseif(parameter.queryParameter)>
+    <if(parameter.string)>
+contentProviderContext.placeholders.get("<parameter.placeholderName>")
+    <else>
+convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
+    <endif>
+<else>
+null
+<endif>
+%>
+
+
+
+
+generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
+result = l<interceptor.simpleName>.afterQuery(contentProviderContext, result);
+>>
+
+
+
+
+generateConcreteAnnotationConstructor(literal) ::= <<
+<if(literal.string)>
+contentProviderContext.expand(<literal.literalValue>)
+<else>
+<literal.literalValue>
+<endif>
+>>
+
+
+
+
+generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
+<if(interceptor.customConstructor)>
+<interceptor.qualifiedName> l<interceptor.simpleName> = 
+    new <interceptor.qualifiedName>(
+        new <interceptor.concreteAnnotationQualifiedName>(<interceptor.concreteAnnotationConstructorArgumentLiterals:generateConcreteAnnotationConstructor(); separator=", ">));
+<else>
+<interceptor.qualifiedName> l<interceptor.simpleName> = 
+    new <interceptor.qualifiedName>();
+<endif>
+
+l<interceptor.simpleName>.onCreate(contentProviderContext);
+l<interceptor.simpleName>.beforeQuery(contentProviderContext);
+>>
+
+
+
+
+populatePathContextPlaceholder(placeholder) ::= <<
+contentProviderContext.placeholders.put("<placeholder.placeholderName>", pathSegments.get(<placeholder.keyName>));
+>>
+
+
+
+
+populateQueryContextPlaceholder(placeholder) ::= <<
+contentProviderContext.placeholders.put("<placeholder.placeholderName>", uri.getQueryParameter("<placeholder.keyName>"));
+>>
+
+
+
+
+generateQueryParameterIfStatement(queryParameterName) ::= <<
+uri.getQueryParameterNames().contains("<queryParameterName>")
+>>
+
+
+
+
+generateDelegateMethodCode(delegateMethod) ::= <<
+<if(!delegateMethod.queryStringParameterNames.empty)>
+if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(); separator=" && ">) {
+<endif>
+                
+    <if(delegateMethod.uriPlaceholders)>
+    java.util.List\<String> pathSegments = uri.getPathSegments();
+    <endif>
+    
+    contentProviderContext = new ContentProviderContext(context, uri, projection,
+            selection, selectionArgs, sortOrder, null);
+            
+    <delegateMethod.queryStringPlaceholderParameters:populateQueryContextPlaceholder(); separator="\n">
+    <delegateMethod.PathPlaceholderParameters:populatePathContextPlaceholder(); separator="\n">
+    
+    <delegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
+                
+    result = mDelegate.<delegateMethod.name>(<delegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
+    
+    <delegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
+    
+    return result;
+<if(!delegateMethod.queryStringParameterNames.empty)>
+}
+<endif>
+>>
+
+
+
+
+createCaseStatements(uriDelegateMethodEntry) ::= <<
+case <uriDelegateMethodEntry.key>:
+{
+    <uriDelegateMethodEntry.value:generateDelegateMethodCode(); separator="\n">
+    
+    // Throw exceptions here            
+    //#if ( $methodIndex == (${methods.size()} - 1) && ${delegateMethod.getQueryStringParameterCount()} != 0 )
+    //            throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+    //                    uri, mDelegate.getClass()));
+    //#end
+    //#end
+    //#end
+}
+>>
+
+
+
+
+RouterTemplateQuery(delegateClass) ::= <<
+/**
+ * @see android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
+ *      java.lang.String, java.lang.String[], java.lang.String)
+ */
+public Cursor query(Context context, Uri uri, String[] projection, String selection,
+        String[] selectionArgs, String sortOrder) {
+
+    ContentProviderContext contentProviderContext = null;
+    Cursor result = null;
+
+    switch (URI_MATCHER.match(uri)) {
+    <delegateClass.uriToDelegateMethodEntrySet:createCaseStatements(); separator="\n">
+    default:
+        
+        throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+                uri, mDelegate.getClass()));
+    }
+}
+>>

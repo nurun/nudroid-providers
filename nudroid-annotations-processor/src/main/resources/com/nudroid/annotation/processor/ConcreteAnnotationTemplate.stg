@@ -1,14 +1,27 @@
+
+
+
+
 generateAttributesStatements(attribute) ::= <<
 private <attribute.type> m<attribute.capitalizedName>;
 >>
+
+
+
 
 generateConstructorParameters(parameter) ::= <<
 <parameter.type> <parameter.name>
 >>
 
+
+
+
 generateConstructorAssignments(parameter) ::= <<
 this.m<parameter.capitalizedName> = <parameter.name>;
 >>
+
+
+
 
 generateGetterMethods(attribute) ::= <<
 /**
@@ -19,7 +32,11 @@ generateGetterMethods(attribute) ::= <<
 public <attribute.type> <attribute.name>() {
 
     return this.m<attribute.capitalizedName>;
-}>>
+}
+>>
+
+
+
 
 ConcreteAnnotationTemplate(annotation) ::= <<
 <if(annotation.concretePackageName)>
@@ -178,4 +195,5 @@ public class <annotation.concreteClassName> implements Annotation, Serializable,
 
         return sb.toString();
     }
-}>>
+}
+>>

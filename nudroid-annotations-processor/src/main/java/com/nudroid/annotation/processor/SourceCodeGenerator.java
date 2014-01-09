@@ -10,9 +10,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupFile;
 
@@ -30,7 +27,8 @@ class SourceCodeGenerator {
     private LoggingUtils mLogger;
     private Filer mFiler;
 
-    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.vm";
+    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.stg";
+    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_NAME = "RouterTemplate";
     private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.stg";
     private static final String CONTENT_PROVIDER_TEMPLATE_NAME = "ContentProviderTemplate";
     private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
@@ -154,16 +152,42 @@ class SourceCodeGenerator {
     // TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
 
-        Properties p = generateVelocityConfigurationProperties();
-        Velocity.init(p);
-        VelocityContext context = new VelocityContext();
-        context.put("delegateClass", delegateClass);
-        context.put("newline", "\n");
-
-        Template template = null;
-
+//        Properties p = generateVelocityConfigurationProperties();
+//        Velocity.init(p);
+//        VelocityContext context = new VelocityContext();
+//        context.put("delegateClass", delegateClass);
+//        context.put("newline", "\n");
+//
+//        Template template = null;
+        //
+//        try {
+//            template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+//
+//            JavaFileObject javaFile = null;
+//
+//            if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+//
+//                javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
+//            } else {
+//
+//                javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+//                        delegateClass.getRouterSimpleName()));
+//            }
+//
+//            Writer writerContentUriRegistry = javaFile.openWriter();
+//
+//            template.merge(context, writerContentUriRegistry);
+//            writerContentUriRegistry.close();
+//        } catch (Exception e) {
+//            mLogger.error(String.format("Error processing velocity script '%s': %s",
+//                    CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
+//        }
+        
         try {
-            template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+            STGroupFile g = new STGroupFile(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+            ST st = g.getInstanceOf(CONTENT_PROVIDER_ROUTER_TEMPLATE_NAME);
+            st.add("delegateClass", delegateClass);
+            String result = st.render();
 
             JavaFileObject javaFile = null;
 
@@ -177,10 +201,10 @@ class SourceCodeGenerator {
             }
 
             Writer writerContentUriRegistry = javaFile.openWriter();
-
-            template.merge(context, writerContentUriRegistry);
+            writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
+            e.printStackTrace();
             mLogger.error(String.format("Error processing velocity script '%s': %s",
                     CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
         }
@@ -251,12 +275,12 @@ class SourceCodeGenerator {
         mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
     }
 
-    private Properties generateVelocityConfigurationProperties() {
-
-        Properties p = new Properties();
-        p.put("resource.loader", "classpath");
-        p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
-        p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-        return p;
-    }
+//    private Properties generateVelocityConfigurationProperties() {
+//
+//        Properties p = new Properties();
+//        p.put("resource.loader", "classpath");
+//        p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
+//        p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+//        return p;
+//    }
 }

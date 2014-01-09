@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
@@ -247,6 +248,10 @@ public class DelegateClass {
     public Set<Integer> getUriIds() {
 
         return mUriIdToDelegateMethodsRegistry.keySet();
+    }
+    
+    public Set<Entry<Integer, List<DelegateMethod>>> getUriToDelegateMethodEntrySet() {
+        return mUriIdToDelegateMethodsRegistry.entrySet();
     }
 
     /**

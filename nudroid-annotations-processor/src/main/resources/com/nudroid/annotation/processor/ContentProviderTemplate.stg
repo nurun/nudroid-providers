@@ -107,4 +107,5 @@ public class <delegateClass.contentProviderSimpleName> extends ContentProvider {
     public String getType(Uri contentUri) {
         return mContentProviderRouter.getType(getContext(), contentUri);
     }
-}>>
+}
+>>

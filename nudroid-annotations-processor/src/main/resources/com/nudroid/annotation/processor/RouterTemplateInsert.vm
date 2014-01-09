@@ -1,7 +1,0 @@
-#[[    /**
-     * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
-     */]]#
-    public Uri insert(Context context, Uri uri, ContentValues values) {
-
-        return null;
-    }

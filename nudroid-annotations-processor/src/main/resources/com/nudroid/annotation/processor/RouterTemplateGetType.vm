@@ -1,7 +1,0 @@
-#[[    /**
-     * @see     android.content.ContentProvider#getType(android.net.Uri)
-     */]]#
-    public String getType(Context context, Uri uri) {
-
-        return null;
-    }
