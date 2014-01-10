@@ -200,7 +200,6 @@ class UpdateAnnotationProcessor {
         }
 
         delegateClass.addMethod(delegateMethod);
-        metadata.registerDelegateMethod(queryMethod, delegateMethod);
 
         return delegateMethod;
     }

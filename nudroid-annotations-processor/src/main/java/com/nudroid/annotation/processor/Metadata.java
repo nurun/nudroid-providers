@@ -22,7 +22,6 @@ class Metadata {
 
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
-    private Map<ExecutableElement, DelegateMethod> mRegisteredDelegateMethods = new HashMap<ExecutableElement, DelegateMethod>();
     private Map<TypeElement, InterceptorBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorBlueprint>();
     private Set<InterceptorBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorBlueprint>();
     private Set<DelegateClass> mDelegateClassStack = new HashSet<DelegateClass>();
@@ -52,19 +51,6 @@ class Metadata {
     void popDelegateClass(DelegateClass delegateClass) {
 
         mDelegateClassStack.remove(delegateClass);
-    }
-
-    /**
-     * Registers a delegate method.
-     * 
-     * @param executableElement
-     *            The {@link ExecutableElement} for the method.
-     * @param delagateMethod
-     *            The delegate method.
-     */
-    void registerDelegateMethod(ExecutableElement executableElement, DelegateMethod delagateMethod) {
-
-        mRegisteredDelegateMethods.put(executableElement, delagateMethod);
     }
 
     /**
@@ -129,19 +115,6 @@ class Metadata {
     }
 
     /**
-     * Gets the {@link DelegateMethod} representation of the provided element.
-     * 
-     * @param executableElement
-     *            The {@link ExecutableElement} to check.
-     * @return The {@link DelegateMethod} for the {@link ExecutableElement}, or <tt>null</tt> if the executable element
-     *         is not a delegate method.
-     */
-    DelegateMethod getDelegateMethodForElement(ExecutableElement executableElement) {
-
-        return mRegisteredDelegateMethods.get(executableElement);
-    }
-
-    /**
      * Gets the set of registered concrete annotations to generate source code for.
      * 
      * @return The set of registered concrete annotations to generate source code for.
@@ -183,8 +156,8 @@ class Metadata {
     @Override
     public String toString() {
         return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="
-                + mRegisteredDelegateClasses + ", \nmRegisteredDelegateMethods=" + mRegisteredDelegateMethods
-                + ", \nmConcreteAnnotations=" + mInterceptorBlueprints + ", \nmConcreteAnnotationValues="
-                + mInterceptorBlueprintStack + ", \nmDelegateClassValues=" + mDelegateClassStack + "]";
+                + mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorBlueprints
+                + ", \nmConcreteAnnotationValues=" + mInterceptorBlueprintStack + ", \nmDelegateClassValues="
+                + mDelegateClassStack + "]";
     }
 }
