@@ -53,8 +53,8 @@ public class UriIdDelegateMethodMapper {
 
     public boolean add(DelegateMethod e) {
 
-        if (!e.hasQueryStringPlaceholders()) {
-
+        if (e.getQueryStringParameterCount() == 0) {
+            
             mHasQueryMethodsOnly = false;
         }
 

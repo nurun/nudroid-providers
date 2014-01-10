@@ -38,6 +38,7 @@ generateDelegateMethodParameterList(parameter) ::= <%
 
 
 generateAfterMethodInterceptorInvocations(interceptor) ::= <%
+
     result = l<interceptor.simpleName>.afterQuery(contentProviderContext, result);
 %>
 
@@ -61,13 +62,15 @@ generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
     new <interceptor.qualifiedName>(
             new <interceptor.concreteAnnotationQualifiedName>(
                 <interceptor.concreteAnnotationConstructorArgumentLiterals:generateConcreteAnnotationConstructor(); separator=", ">));
+                
 <else>
 <interceptor.qualifiedName> l<interceptor.simpleName> = 
         new <interceptor.qualifiedName>();
+        
 <endif>
-
 l<interceptor.simpleName>.onCreate(contentProviderContext);
 l<interceptor.simpleName>.beforeQuery(contentProviderContext);
+
 >>
 
 
@@ -110,9 +113,7 @@ if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(
     <delegateMethod.PathPlaceholderParameters:populatePathContextPlaceholder(); separator="\n">
     
     <delegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
-                
     result = mDelegate.<delegateMethod.name>(<delegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
-    
     <delegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
     
     return result;
