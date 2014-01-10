@@ -104,8 +104,8 @@ if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(
                 
     <if(delegateMethod.uriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
-    <endif>
     
+    <endif>
     contentProviderContext = new ContentProviderContext(context, uri, projection,
             selection, selectionArgs, sortOrder, null);
             
@@ -115,7 +115,6 @@ if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(
     <delegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
     result = mDelegate.<delegateMethod.name>(<delegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
     <delegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
-    
     return result;
 <if(!delegateMethod.queryStringParameterNames.empty)>
 }
