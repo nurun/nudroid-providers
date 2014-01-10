@@ -143,9 +143,9 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the list of parameters this method accepts.
+     * Gets the list of parameters this method accepts in the path portion. A subset of {@link #getParameters()}.
      * 
-     * @return List of parameters this method accepts.
+     * @return List of parameters.
      */
     public List<Parameter> getPathPlaceholderParameters() {
 
@@ -153,9 +153,10 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the list of parameters this method accepts.
+     * Gets the list of parameters this method accepts in the query string portion. A subset of {@link #getParameters()}
+     * .
      * 
-     * @return List of parameters this method accepts.
+     * @return List of parameters.
      */
     public List<Parameter> getQueryStringPlaceholderParameters() {
 
@@ -178,7 +179,7 @@ public class DelegateMethod {
      * @return The count of parameters on the query string.
      */
     public int getQueryStringParameterCount() {
-        
+
         return mQueryStringParameterNames.size();
     }
 
@@ -190,6 +191,16 @@ public class DelegateMethod {
     public boolean hasUriPlaceholders() {
 
         return mPathPlaceholderParameters.size() > 0;
+    }
+
+    /**
+     * Checks if this method URI has any placeholders in it's query string.
+     * 
+     * @return <tt>true</tt> if this method has any placeholder in its query string, <tt>false</tt> otherwise.
+     */
+    public boolean hasQueryStringPlaceholders() {
+        
+        return mQueryStringPlaceholderParameters.size() > 0;
     }
 
     /**
@@ -212,7 +223,7 @@ public class DelegateMethod {
     public List<InterceptorPoint> getAfterInterceptorList() {
 
         if (mInverseInterceptorElements == null) {
-            
+
             mInverseInterceptorElements = new ArrayList<InterceptorPoint>(mInterceptorElements.size());
             mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
         }
@@ -223,6 +234,7 @@ public class DelegateMethod {
     /**
      * <p/>
      * {@inheritDoc}
+     * 
      * @see java.lang.Object#toString()
      */
     @Override

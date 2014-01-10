@@ -12,9 +12,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
@@ -193,6 +192,6 @@ class ContentProviderDelegateAnnotationProcessor {
 
     private boolean validateClassIsNotInDefaultPackage(DelegateClass delegateClass) {
 
-        return StringUtils.isEmpty(delegateClass.getBasePackageName()) == false;
+        return Strings.isNullOrEmpty(delegateClass.getBasePackageName()) == false;
     }
 }

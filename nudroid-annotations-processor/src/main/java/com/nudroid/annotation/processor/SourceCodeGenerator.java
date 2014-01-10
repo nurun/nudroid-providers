@@ -2,17 +2,16 @@ package com.nudroid.annotation.processor;
 
 import java.io.Writer;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupFile;
 
+import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 
@@ -129,7 +128,7 @@ class SourceCodeGenerator {
 
             JavaFileObject javaFile = null;
 
-            if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+            if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
                 javaFile = mFiler.createSourceFile(delegateClass.getContentProviderSimpleName());
             } else {
@@ -152,37 +151,37 @@ class SourceCodeGenerator {
     // TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
 
-//        Properties p = generateVelocityConfigurationProperties();
-//        Velocity.init(p);
-//        VelocityContext context = new VelocityContext();
-//        context.put("delegateClass", delegateClass);
-//        context.put("newline", "\n");
-//
-//        Template template = null;
+        // Properties p = generateVelocityConfigurationProperties();
+        // Velocity.init(p);
+        // VelocityContext context = new VelocityContext();
+        // context.put("delegateClass", delegateClass);
+        // context.put("newline", "\n");
         //
-//        try {
-//            template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
-//
-//            JavaFileObject javaFile = null;
-//
-//            if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
-//
-//                javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
-//            } else {
-//
-//                javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
-//                        delegateClass.getRouterSimpleName()));
-//            }
-//
-//            Writer writerContentUriRegistry = javaFile.openWriter();
-//
-//            template.merge(context, writerContentUriRegistry);
-//            writerContentUriRegistry.close();
-//        } catch (Exception e) {
-//            mLogger.error(String.format("Error processing velocity script '%s': %s",
-//                    CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
-//        }
-        
+        // Template template = null;
+        //
+        // try {
+        // template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
+        //
+        // JavaFileObject javaFile = null;
+        //
+        // if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+        //
+        // javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
+        // } else {
+        //
+        // javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+        // delegateClass.getRouterSimpleName()));
+        // }
+        //
+        // Writer writerContentUriRegistry = javaFile.openWriter();
+        //
+        // template.merge(context, writerContentUriRegistry);
+        // writerContentUriRegistry.close();
+        // } catch (Exception e) {
+        // mLogger.error(String.format("Error processing velocity script '%s': %s",
+        // CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
+        // }
+
         try {
             STGroupFile g = new STGroupFile(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
             ST st = g.getInstanceOf(CONTENT_PROVIDER_ROUTER_TEMPLATE_NAME);
@@ -191,7 +190,7 @@ class SourceCodeGenerator {
 
             JavaFileObject javaFile = null;
 
-            if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
+            if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
                 javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
             } else {
@@ -255,7 +254,7 @@ class SourceCodeGenerator {
 
             JavaFileObject javaFile = null;
 
-            if (StringUtils.isEmpty(annotation.getConcretePackageName())) {
+            if (Strings.isNullOrEmpty(annotation.getConcretePackageName())) {
 
                 javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
             } else {
@@ -275,12 +274,12 @@ class SourceCodeGenerator {
         mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
     }
 
-//    private Properties generateVelocityConfigurationProperties() {
-//
-//        Properties p = new Properties();
-//        p.put("resource.loader", "classpath");
-//        p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
-//        p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-//        return p;
-//    }
+    // private Properties generateVelocityConfigurationProperties() {
+    //
+    // Properties p = new Properties();
+    // p.put("resource.loader", "classpath");
+    // p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
+    // p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+    // return p;
+    // }
 }

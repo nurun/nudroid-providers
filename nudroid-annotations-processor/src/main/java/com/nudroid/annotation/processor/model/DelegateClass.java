@@ -1,13 +1,12 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.lang.model.element.Element;
@@ -32,7 +31,7 @@ public class DelegateClass {
     private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
     private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
     private Set<InterceptorPoint> mRegisteredInterceptors = new HashSet<InterceptorPoint>();
-    private Map<Integer, List<DelegateMethod>> mUriIdToDelegateMethodsRegistry = new HashMap<Integer, List<DelegateMethod>>();
+    private Map<Integer, UriIdDelegateMethodMapper> mUriIdToDelegateMethodsRegistry = new LinkedHashMap<Integer, UriIdDelegateMethodMapper>();
     private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
@@ -96,36 +95,15 @@ public class DelegateClass {
 
         mDelegateMethods.add(delegateMethod);
         delegateMethod.setDelegateClass(this);
-        List<DelegateMethod> listForUriId = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
+        UriIdDelegateMethodMapper uriToDelegateMapper = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
 
-        if (listForUriId == null) {
+        if (uriToDelegateMapper == null) {
 
-            listForUriId = new ArrayList<DelegateMethod>() {
-                private static final long serialVersionUID = 1L;
-
-                public boolean add(DelegateMethod delegateMethod) {
-                    int index = Collections.binarySearch(this, delegateMethod, new Comparator<DelegateMethod>() {
-
-                        @Override
-                        public int compare(DelegateMethod dm1, DelegateMethod dm2) {
-
-                            return dm2.getQueryStringParameterCount() - dm1.getQueryStringParameterCount();
-                        }
-                    });
-                    
-                    // This is equivalent to
-                    // if (index < 0), index = Math.abs(index) + 1;
-                    if (index < 0) index = ~index;
-                    
-                    super.add(index, delegateMethod);
-                    return true;
-                }
-            };
-            
-            mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), listForUriId);
+            uriToDelegateMapper = new UriIdDelegateMethodMapper(delegateMethod.getUriId());
+            mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), uriToDelegateMapper);
         }
 
-        listForUriId.add(delegateMethod);
+        uriToDelegateMapper.add(delegateMethod);
     }
 
     /**
@@ -237,7 +215,7 @@ public class DelegateClass {
      */
     public List<DelegateMethod> getMethodsForUriId(int uriId) {
 
-        return mUriIdToDelegateMethodsRegistry.get(uriId);
+        return mUriIdToDelegateMethodsRegistry.get(uriId).getDelegateMethods();
     }
 
     /**
@@ -250,8 +228,9 @@ public class DelegateClass {
         return mUriIdToDelegateMethodsRegistry.keySet();
     }
     
-    public Set<Entry<Integer, List<DelegateMethod>>> getUriToDelegateMethodEntrySet() {
-        return mUriIdToDelegateMethodsRegistry.entrySet();
+    public Collection<UriIdDelegateMethodMapper> getUriToDelegateMethodMapperSet() {
+        
+        return mUriIdToDelegateMethodsRegistry.values();
     }
 
     /**
