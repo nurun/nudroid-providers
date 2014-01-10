@@ -15,27 +15,27 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import com.google.common.base.Joiner;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Projection;
-import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
+import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
- * Processes the Query annotations on a class.
+ * Processes the Update annotations on a class.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class QueryAnnotationProcessor {
+class UpdateAnnotationProcessor {
 
     private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
 
@@ -54,7 +54,7 @@ class QueryAnnotationProcessor {
      * @param processorContext
      *            The processor context parameter object.
      */
-    QueryAnnotationProcessor(ProcessorContext processorContext) {
+    UpdateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mTypeUtils = processorContext.typeUtils;
         this.mElementUtils = processorContext.elementUtils;
@@ -67,7 +67,7 @@ class QueryAnnotationProcessor {
     }
 
     /**
-     * Process the {@link Query} annotations on this round.
+     * Process the {@link Update} annotations on this round.
      * 
      * @param continuation
      *            The continuation environment.
@@ -78,58 +78,59 @@ class QueryAnnotationProcessor {
      */
     void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
-        mLogger.info("Start processing @Query annotations.");
+        mLogger.info("Start processing @Update annotations.");
 
-        Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Query.class, roundEnv);
+        Set<? extends Element> updateMethods = continuation.getElementsAnotatedWith(Update.class, roundEnv);
 
-        if (queryMethods.size() > 0) {
+        if (updateMethods.size() > 0) {
+            
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Query.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(queryMethods)));
+                    Update.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(updateMethods)));
         }
 
-        for (Element queryMethod : queryMethods) {
+        for (Element updateMethod : updateMethods) {
 
-            if (queryMethod instanceof ExecutableElement) {
+            if (updateMethod instanceof ExecutableElement) {
 
-                TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
+                TypeElement enclosingClass = (TypeElement) updateMethod.getEnclosingElement();
                 ContentProvider contentProviderDelegateAnnotation = enclosingClass.getAnnotation(ContentProvider.class);
 
                 if (contentProviderDelegateAnnotation == null) {
 
                     mLogger.error(String.format("Enclosing class must be annotated with @%s",
-                            ContentProvider.class.getName()), queryMethod);
+                            ContentProvider.class.getName()), updateMethod);
                     continue;
                 }
 
-                mLogger.trace("    Processing " + queryMethod);
+                mLogger.trace("    Processing " + updateMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass,
+                DelegateMethod delegateMethod = processUpdateOnMethod((ExecutableElement) updateMethod, delegateClass,
                         metadata);
 
                 if (delegateMethod != null) {
 
-                    mLogger.trace("    Checking for interceptors on method " + queryMethod);
+                    mLogger.trace("    Checking for interceptors on method " + updateMethod);
                     processInterceptorsOnMethod(delegateMethod, metadata);
                 }
 
-                mLogger.trace("    Done processing " + queryMethod);
+                mLogger.trace("    Done processing " + updateMethod);
             }
         }
 
-        mLogger.info("Done processing @Query annotations.");
+        mLogger.info("Done processing @Update annotations.");
     }
 
-    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
+    private DelegateMethod processUpdateOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
             Metadata metadata) {
 
-        Query query = queryMethod.getAnnotation(Query.class);
-        String pathAndQuery = query.value();
+        Update update = queryMethod.getAnnotation(Update.class);
+        String pathAndQuery = update.value();
 
         DelegateUri delegateUri = null;
 
         try {
 
-            delegateUri = delegateClass.registerPathForQuery(queryMethod, pathAndQuery);
+            delegateUri = delegateClass.registerPathForUpdate(queryMethod, pathAndQuery);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -150,7 +151,7 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, update, delegateUri);
 
         if (!hasValidAnnotations) {
 
@@ -204,7 +205,7 @@ class QueryAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Query query, DelegateUri uri) {
+    private boolean hasValidSignature(ExecutableElement method, Update query, DelegateUri uri) {
 
         boolean isValid = true;
 
@@ -212,8 +213,8 @@ class QueryAnnotationProcessor {
 
         if (!ANDROID_DATABASE_CURSOR_CLASS_NAME.equals(returnType.toString())) {
 
-            mLogger.trace(String.format("        Query %s method does not return expected Android Cursor.", method));
-            mLogger.error(String.format("@Query annotated methods must return android.database.Cursor."), method);
+            mLogger.trace(String.format("        Update %s method does not return expected Android Cursor.", method));
+            mLogger.error(String.format("@Update annotated methods must return android.database.Cursor."), method);
 
             isValid = false;
         }
@@ -285,7 +286,7 @@ class QueryAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, DelegateUri uri,
             List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;

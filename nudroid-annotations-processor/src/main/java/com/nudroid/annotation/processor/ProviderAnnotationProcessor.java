@@ -53,6 +53,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
     private QueryAnnotationProcessor queryAnnotationProcessor;
+    private UpdateAnnotationProcessor updateAnnotationProcessor;
     private InterceptorAnnotationProcessor interceptorAnnotationProcessor;
 
     private SourceCodeGenerator sourceCodeGenerator;
@@ -102,6 +103,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(
                     processorContext);
             queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
+            updateAnnotationProcessor = new UpdateAnnotationProcessor(processorContext);
             interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
             sourceCodeGenerator = new SourceCodeGenerator(processorContext);
             mMetadata = new Metadata();
@@ -137,6 +139,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         interceptorAnnotationProcessor.process(roundEnv, mMetadata, mContinuation);
         contentProviderDelegateAnnotationProcessor.process(mContinuation, roundEnv, mMetadata);
         queryAnnotationProcessor.process(mContinuation, roundEnv, mMetadata);
+        updateAnnotationProcessor.process(mContinuation, roundEnv, mMetadata);
 
         sourceCodeGenerator.generateCompanionSourceCode(mMetadata);
 

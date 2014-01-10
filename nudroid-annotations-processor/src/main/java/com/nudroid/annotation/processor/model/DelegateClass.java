@@ -30,9 +30,8 @@ public class DelegateClass {
     private Authority mAuthority;
     private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
     private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
-    private Set<InterceptorPoint> mRegisteredInterceptors = new HashSet<InterceptorPoint>();
-    private Map<Integer, UriIdDelegateMethodMapper> mUriIdToDelegateMethodsRegistry = new LinkedHashMap<Integer, UriIdDelegateMethodMapper>();
-    private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
+    private Map<Integer, IdDelegateMethodMapper> mUriIdToDelegateMethodsRegistry = new LinkedHashMap<Integer, IdDelegateMethodMapper>();
+    private Map<DelegateUri, UriMethodDelegateMapper> mDelegateUris = new LinkedHashMap<DelegateUri, UriMethodDelegateMapper>();
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
     private boolean mHasImplementDelegateInterface;
@@ -95,11 +94,11 @@ public class DelegateClass {
 
         mDelegateMethods.add(delegateMethod);
         delegateMethod.setDelegateClass(this);
-        UriIdDelegateMethodMapper uriToDelegateMapper = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
+        IdDelegateMethodMapper uriToDelegateMapper = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
 
         if (uriToDelegateMapper == null) {
 
-            uriToDelegateMapper = new UriIdDelegateMethodMapper(delegateMethod.getUriId());
+            uriToDelegateMapper = new IdDelegateMethodMapper(delegateMethod.getUriId());
             mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), uriToDelegateMapper);
         }
 
@@ -107,7 +106,7 @@ public class DelegateClass {
     }
 
     /**
-     * Registers a path to be matched by the content provider uri matcher.
+     * Registers a path to be matched by the content provider uri matcher for a @Query method.
      * 
      * @param queryMethodElement
      *            The method the path appears on.
@@ -115,38 +114,53 @@ public class DelegateClass {
      * @param pathAndQuery
      *            The path to register.
      */
-    public DelegateUri registerPath(ExecutableElement queryMethodElement, String pathAndQuery) {
+    public DelegateUri registerPathForQuery(ExecutableElement queryMethodElement, String pathAndQuery) {
 
-        MatcherUri matcherUri = new MatcherUri(mAuthority, pathAndQuery);
-
-        if (!mMactherUris.contains(matcherUri)) {
-            matcherUri.setId(++mMatcherUriIdCount);
-            mMactherUris.add(matcherUri);
-        }
+        MatcherUri matcherUri = registerPathAndQuery(pathAndQuery);
 
         DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
 
-        ExecutableElement existingDelegateMethod = mDelegateUris.get(delegateUri);
+        UriMethodDelegateMapper uriMethodDelegateMapper = getMapperForUri(delegateUri);
+
+        ExecutableElement existingDelegateMethod = uriMethodDelegateMapper.getQueryMethod();
 
         if (existingDelegateMethod != null) {
 
             throw new DuplicatePathException(existingDelegateMethod);
         }
 
-        mDelegateUris.put(delegateUri, queryMethodElement);
+        mDelegateUris.put(delegateUri, uriMethodDelegateMapper);
 
         return delegateUri;
     }
 
     /**
-     * Registers an interceptor for this class.
+     * Registers a path to be matched by the content provider uri matcher for an @Update method.
      * 
-     * @param interceptor
-     *            The interceptor to register.
+     * @param updateMethodElement
+     *            The method the path appears on.
+     * 
+     * @param pathAndQuery
+     *            The path to register.
      */
-    public void registerInterceptor(InterceptorPoint interceptor) {
+    public DelegateUri registerPathForUpdate(ExecutableElement updateMethodElement, String pathAndQuery) {
 
-        mRegisteredInterceptors.add(interceptor);
+        MatcherUri matcherUri = registerPathAndQuery(pathAndQuery);
+
+        DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
+
+        UriMethodDelegateMapper uriMethodDelegateMapper = getMapperForUri(delegateUri);
+
+        ExecutableElement existingDelegateMethod = uriMethodDelegateMapper.getUpdateMethod();
+
+        if (existingDelegateMethod != null) {
+
+            throw new DuplicatePathException(existingDelegateMethod);
+        }
+
+        mDelegateUris.put(delegateUri, uriMethodDelegateMapper);
+
+        return delegateUri;
     }
 
     /**
@@ -199,16 +213,6 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the URIs this delegate class handles.
-     * 
-     * @return The URIs this delegate class handles.
-     */
-    public List<MatcherUri> getMactherUris() {
-
-        return mMactherUris;
-    }
-
-    /**
      * Gets the mapping of uri ids to the delegate methods responsible to process requests matching the uri.
      * 
      * @return The mapping of uri ids to the delegate methods responsible to process requests matching the uri.
@@ -227,9 +231,9 @@ public class DelegateClass {
 
         return mUriIdToDelegateMethodsRegistry.keySet();
     }
-    
-    public Collection<UriIdDelegateMethodMapper> getUriToDelegateMethodMapperSet() {
-        
+
+    public Collection<IdDelegateMethodMapper> getUriToDelegateMethodMapperSet() {
+
         return mUriIdToDelegateMethodsRegistry.values();
     }
 
@@ -266,16 +270,6 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the registered interceptor on this class.
-     * 
-     * @return The registered interceptor on this class.
-     */
-    public Set<InterceptorPoint> getRegisteredInterceptors() {
-
-        return mRegisteredInterceptors;
-    }
-
-    /**
      * Checks if the delegate class implements the {@link ContentProvider} interface.
      * 
      * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
@@ -294,6 +288,32 @@ public class DelegateClass {
     public String getBasePackageName() {
 
         return mBasePackageName;
+    }
+
+    private MatcherUri registerPathAndQuery(String pathAndQuery) {
+
+        MatcherUri matcherUri = new MatcherUri(mAuthority, pathAndQuery);
+
+        if (!mMactherUris.contains(matcherUri)) {
+
+            matcherUri.setId(++mMatcherUriIdCount);
+            mMactherUris.add(matcherUri);
+        }
+
+        return matcherUri;
+    }
+
+    private UriMethodDelegateMapper getMapperForUri(DelegateUri delegateUri) {
+
+        UriMethodDelegateMapper uriMethodDelegateMapper = mDelegateUris.get(delegateUri);
+
+        if (uriMethodDelegateMapper == null) {
+
+            uriMethodDelegateMapper = new UriMethodDelegateMapper(delegateUri);
+            mDelegateUris.put(delegateUri, uriMethodDelegateMapper);
+        }
+
+        return uriMethodDelegateMapper;
     }
 
     /**

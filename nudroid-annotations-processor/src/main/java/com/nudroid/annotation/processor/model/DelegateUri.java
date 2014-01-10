@@ -52,7 +52,8 @@ public class DelegateUri {
         this.originalPathAndQuery = pathAndQuery;
 
         parsePlaceholders(pathAndQuery);
-        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*").replaceAll(LEADING_SLASH, EMPTY_STRING);
+        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*")
+                .replaceAll(LEADING_SLASH, EMPTY_STRING);
         URI uri;
 
         try {
@@ -129,6 +130,16 @@ public class DelegateUri {
     }
 
     /**
+     * Gets the number of query string parameters in this URI.
+     * 
+     * @return The number of query string parameters in this URI.
+     */
+    public int getQueryStringParameterCount() {
+
+        return queryParameterNames.size();
+    }
+
+    /**
      * Gets the placeholder type associated with the given placeholder name.
      * 
      * @param placeholderName
@@ -170,7 +181,7 @@ public class DelegateUri {
                 }
             }
         }
-        
+
         if (pathAndQueryString.length == 2) {
 
             String querySection = pathAndQueryString[1];
@@ -249,19 +260,28 @@ public class DelegateUri {
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         DelegateUri other = (DelegateUri) obj;
         if (mAuthority == null) {
-            if (other.mAuthority != null) return false;
-        } else if (!mAuthority.equals(other.mAuthority)) return false;
+            if (other.mAuthority != null)
+                return false;
+        } else if (!mAuthority.equals(other.mAuthority))
+            return false;
         if (mPath == null) {
-            if (other.mPath != null) return false;
-        } else if (!mPath.equals(other.mPath)) return false;
+            if (other.mPath != null)
+                return false;
+        } else if (!mPath.equals(other.mPath))
+            return false;
         if (queryParameterNames == null) {
-            if (other.queryParameterNames != null) return false;
-        } else if (!queryParameterNames.equals(other.queryParameterNames)) return false;
+            if (other.queryParameterNames != null)
+                return false;
+        } else if (!queryParameterNames.equals(other.queryParameterNames))
+            return false;
         return true;
     }
 

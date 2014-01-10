@@ -78,7 +78,6 @@ public class DelegateMethod {
     public void addInterceptor(InterceptorPoint interceptor) {
 
         this.mInterceptorElements.add(interceptor);
-        this.getDelegateClass().registerInterceptor(interceptor);
     }
 
     /**
