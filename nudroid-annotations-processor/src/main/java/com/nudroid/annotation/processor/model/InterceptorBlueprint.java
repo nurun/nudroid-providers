@@ -31,6 +31,7 @@ import com.nudroid.annotation.processor.LoggingUtils;
  */
 public class InterceptorBlueprint {
 
+    private static final String JAVA_LANG_STRING_CLASS_NAME = "java.lang.String";
     private String mInterceptorAnnotationQualifiedName;
     private String mConcreteClassName;
     private String mInterceptorAnnotationSimpleName;
@@ -341,11 +342,9 @@ public class InterceptorBlueprint {
 
         case DECLARED:
 
-            TypeElement stringType = elementUtils.getTypeElement("java.lang.String");
-
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (stringType.asType().toString().equals(arrayType.getComponentType().toString())) {
+            if (JAVA_LANG_STRING_CLASS_NAME.equals(arrayType.getComponentType().toString())) {
 
                 arrayInitializer.append("new String[] { \"");
                 Joiner.on("\", \"").skipNulls().appendTo(arrayInitializer, arrayElements);

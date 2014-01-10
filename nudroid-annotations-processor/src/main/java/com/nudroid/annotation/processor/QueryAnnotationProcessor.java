@@ -37,6 +37,8 @@ import com.nudroid.annotation.provider.delegate.UriPlaceholder;
  */
 class QueryAnnotationProcessor {
 
+    private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
+
     private LoggingUtils mLogger;
 
     private TypeMirror mContextType;
@@ -148,7 +150,7 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidAnnotations(queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
 
         if (!hasValidAnnotations) {
 
@@ -166,15 +168,22 @@ class QueryAnnotationProcessor {
 
             Parameter parameter = new Parameter();
 
-            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext(true);
-            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
-            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
-            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
-            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
-            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
+            if (methodParameter.getAnnotation(ContextRef.class) != null)
+                parameter.setContext(true);
+            if (methodParameter.getAnnotation(Projection.class) != null)
+                parameter.setProjection(true);
+            if (methodParameter.getAnnotation(Selection.class) != null)
+                parameter.setSelection(true);
+            if (methodParameter.getAnnotation(SelectionArgs.class) != null)
+                parameter.setSelectionArgs(true);
+            if (methodParameter.getAnnotation(SortOrder.class) != null)
+                parameter.setSortOrder(true);
+            if (methodParameter.getAnnotation(ContentUri.class) != null)
+                parameter.setContentUri(true);
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (methodParameter.asType().toString().equals(mStringType.toString())) parameter.setString(true);
+            if (methodParameter.asType().toString().equals(mStringType.toString()))
+                parameter.setString(true);
 
             final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 
@@ -195,9 +204,19 @@ class QueryAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidAnnotations(ExecutableElement method, Query query, DelegateUri uri) {
+    private boolean hasValidSignature(ExecutableElement method, Query query, DelegateUri uri) {
 
         boolean isValid = true;
+
+        TypeMirror returnType = method.getReturnType();
+
+        if (!ANDROID_DATABASE_CURSOR_CLASS_NAME.equals(returnType.toString())) {
+
+            mLogger.trace(String.format("        Query %s method does not return expected Android Cursor.", method));
+            mLogger.error(String.format("@Query annotated methods must return android.database.Cursor."), method);
+
+            isValid = false;
+        }
 
         List<? extends VariableElement> parameters = method.getParameters();
 
