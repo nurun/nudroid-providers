@@ -53,13 +53,6 @@ class ContentProviderDelegateAnnotationProcessor {
 
         mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
 
-        /*
-         * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
-         * TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation is
-         * applied to other elements even if it is correctly applied to a class, causing a class cast exception in the
-         * for loop below.
-         */
-        // Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
         Set<? extends Element> delegateClassTypes = continuation.getElementsAnotatedWith(ContentProvider.class,
                 roundEnv);
 
@@ -71,6 +64,12 @@ class ContentProviderDelegateAnnotationProcessor {
 
         for (Element delegateClassType : delegateClassTypes) {
 
+            /*
+             * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
+             * TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation is
+             * applied to other elements even if it is correctly applied to a class, causing a class cast exception in
+             * the for loop below.
+             */
             if (delegateClassType instanceof TypeElement) {
 
                 mLogger.trace("    Processing " + delegateClassType);

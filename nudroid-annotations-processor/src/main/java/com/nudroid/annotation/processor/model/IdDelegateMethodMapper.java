@@ -93,31 +93,31 @@ public class IdDelegateMethodMapper {
         return mHasQueryMethodsOnly;
     }
 
-    /**
-     * Maps a delegate method to this URI.
-     * 
-     * @param method
-     *            The delegate method to add.
-     * 
-     * @return
-     */
-    public boolean add(DelegateMethod method) {
-
-        if (method.getQueryStringParameterCount() == 0) {
-
-            mHasQueryMethodsOnly = false;
-        }
-
-        return mDelegateMethods.add(method);
-    }
-
-    /**
-     * Gets the methods registered for this URI.
-     * 
-     * @return The methods registered for this URI.
-     */
-    public List<DelegateMethod> getDelegateMethods() {
-
-        return mDelegateMethods;
-    }
+//    /**
+//     * Maps a delegate method to this URI.
+//     * 
+//     * @param method
+//     *            The delegate method to add.
+//     * 
+//     * @return
+//     */
+//    public boolean add(DelegateMethod method) {
+//
+//        if (method.getQueryStringParameterCount() == 0) {
+//
+//            mHasQueryMethodsOnly = false;
+//        }
+//
+//        return mDelegateMethods.add(method);
+//    }
+//
+//    /**
+//     * Gets the methods registered for this URI.
+//     * 
+//     * @return The methods registered for this URI.
+//     */
+//    public List<DelegateMethod> getDelegateMethods() {
+//
+//        return mDelegateMethods;
+//    }
 }

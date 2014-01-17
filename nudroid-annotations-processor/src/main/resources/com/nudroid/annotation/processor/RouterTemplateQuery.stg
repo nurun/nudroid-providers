@@ -97,27 +97,28 @@ generateQueryParameterIfStatement(queryParameterName) ::= <%
 
 
 
-generateDelegateMethodCode(delegateMethod) ::= <<
-<if(!delegateMethod.queryStringParameterNames.empty)>
-if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(); separator=" && ">) {
+generateDelegateMethodCode(delegateUri) ::= <<
+
+<if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
+if (<delegateUri.queryDelegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(); separator=" && ">) {
 <endif>
                 
-    <if(delegateMethod.uriPlaceholders)>
+    <if(delegateUri.queryDelegateMethod.uriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
     
     <endif>
     contentProviderContext = new ContentProviderContext(context, uri, projection,
             selection, selectionArgs, sortOrder, null);
             
-    <delegateMethod.queryStringPlaceholderParameters:populateQueryContextPlaceholder(); separator="\n">
-    <delegateMethod.PathPlaceholderParameters:populatePathContextPlaceholder(); separator="\n">
+    <delegateUri.queryDelegateMethod.queryStringPlaceholderParameters:populateQueryContextPlaceholder(); separator="\n">
+    <delegateUri.queryDelegateMethod.pathPlaceholderParameters:populatePathContextPlaceholder(); separator="\n">
     
-    <delegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
-    result = mDelegate.<delegateMethod.name>(<delegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
-    <delegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
+    <delegateUri.queryDelegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
+    result = mDelegate.<delegateUri.queryDelegateMethod.name>(<delegateUri.queryDelegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
+    <delegateUri.queryDelegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
     
     return result;
-<if(!delegateMethod.queryStringParameterNames.empty)>
+<if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
 }
 <endif>
 >>
@@ -125,15 +126,16 @@ if (<delegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(
 
 
 
-createCaseStatements(uriDelegateMethodEntry) ::= <<
-case <uriDelegateMethodEntry.uriId>:
+createCaseStatements(matcherUri) ::= <<
+<if(matcherUri.queryMethods)>
+case <matcherUri.id>:
 {
-    <uriDelegateMethodEntry.delegateMethods:generateDelegateMethodCode(); separator="\n">
-<if(uriDelegateMethodEntry.queryMethodsOnly)>
+    <matcherUri.delegateUris:generateDelegateMethodCode(); separator="\n">
+
     throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
             uri, mDelegate.getClass()));
-<endif>    
 }
+<endif>
 >>
 
 
@@ -151,7 +153,7 @@ public Cursor query(Context context, Uri uri, String[] projection, String select
     Cursor result = null;
 
     switch (URI_MATCHER.match(uri)) {
-    <delegateClass.uriToDelegateMethodMapperSet:createCaseStatements(); separator="\n">
+    <delegateClass.mactherUris:createCaseStatements(); separator="\n">
     default:
         
         throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",

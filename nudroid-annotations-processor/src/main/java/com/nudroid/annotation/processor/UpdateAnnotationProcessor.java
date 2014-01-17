@@ -161,7 +161,7 @@ class UpdateAnnotationProcessor {
         DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
         mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
-        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
+//        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
 
         List<? extends VariableElement> parameters = queryMethod.getParameters();
 
@@ -199,7 +199,7 @@ class UpdateAnnotationProcessor {
             delegateMethod.addParameter(parameter);
         }
 
-        delegateClass.addMethod(delegateMethod);
+//        delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }

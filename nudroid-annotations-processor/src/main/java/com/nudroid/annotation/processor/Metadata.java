@@ -6,11 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 
 /**
@@ -23,8 +21,15 @@ class Metadata {
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
     private Map<TypeElement, InterceptorBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorBlueprint>();
-    private Set<InterceptorBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorBlueprint>();
+
+    /*
+     * The stack is what tracks classes to be fed to the source code generator. Because of Eclipse's continuous build,
+     * sometimes multiple rounds will be triggered for the same class and source code generation will be triggered. The
+     * Filer utility class will then fail because it can't create multiple instances of the same source file. The stack
+     * is filled only once so each class is written only once.
+     */
     private Set<DelegateClass> mDelegateClassStack = new HashSet<DelegateClass>();
+    private Set<InterceptorBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorBlueprint>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.

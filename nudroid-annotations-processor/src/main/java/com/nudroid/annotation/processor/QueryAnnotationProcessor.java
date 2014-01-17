@@ -15,10 +15,10 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import com.google.common.base.Joiner;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.InterceptorBlueprint;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
@@ -129,7 +129,7 @@ class QueryAnnotationProcessor {
 
         try {
 
-            delegateUri = delegateClass.registerPathForQuery(queryMethod, pathAndQuery);
+            delegateUri = delegateClass.registerPathForQuery(pathAndQuery);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -157,10 +157,9 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
-        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
+        DelegateMethod delegateMethod = delegateUri.setQueryDelegateMethod(queryMethod);
 
-        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
+        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
         List<? extends VariableElement> parameters = queryMethod.getParameters();
 
@@ -198,7 +197,7 @@ class QueryAnnotationProcessor {
             delegateMethod.addParameter(parameter);
         }
 
-        delegateClass.addMethod(delegateMethod);
+//        delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }

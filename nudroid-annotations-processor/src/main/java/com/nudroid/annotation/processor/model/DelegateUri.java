@@ -2,11 +2,11 @@ package com.nudroid.annotation.processor.model;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.lang.model.element.ExecutableElement;
 
 import com.nudroid.annotation.processor.DuplicateUriPlaceholderException;
 import com.nudroid.annotation.processor.IllegalUriPathException;
@@ -19,11 +19,13 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
  */
 public class DelegateUri {
 
+    private static final String PLACEHOLDER_WILDCARD = "*";
     private static final String AMPERSAND = "\\&";
     private static final String LEADING_AMPERSANDS = "^\\&+";
     private static final String INTERROGATION_MARK = "\\?";
     private static final String LEADING_INTERROGATION_MARKS = "^\\?+";
     private static final String SLASH = "/";
+
     private static final String LEADING_SLASH = "^\\/";
     private static final String EMPTY_STRING = "";
     private static final String EQUALS_SIGN = "\\=";
@@ -35,7 +37,8 @@ public class DelegateUri {
     private String mPath;
     private String queryString;
     private Map<String, UriPlaceholderParameter> placeholders = new HashMap<String, UriPlaceholderParameter>();
-    private Set<String> queryParameterNames = new HashSet<String>();
+    private Map<String, String> queryParameterNamesAndValues = new HashMap<String, String>();
+    private DelegateMethod queryDelegateMethod;
 
     private String originalPathAndQuery;
 
@@ -52,8 +55,8 @@ public class DelegateUri {
         this.originalPathAndQuery = pathAndQuery;
 
         parsePlaceholders(pathAndQuery);
-        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, "*")
-                .replaceAll(LEADING_SLASH, EMPTY_STRING);
+        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, PLACEHOLDER_WILDCARD).replaceAll(
+                LEADING_SLASH, EMPTY_STRING);
         URI uri;
 
         try {
@@ -124,9 +127,9 @@ public class DelegateUri {
      * 
      * @return The list o query parameter names for this URI.
      */
-    public Set<String> getQueryParameterNames() {
+    public Map<String, String> getQueryParameterNamesAndValues() {
 
-        return queryParameterNames;
+        return queryParameterNamesAndValues;
     }
 
     /**
@@ -136,7 +139,7 @@ public class DelegateUri {
      */
     public int getQueryStringParameterCount() {
 
-        return queryParameterNames.size();
+        return queryParameterNamesAndValues.size();
     }
 
     /**
@@ -201,14 +204,15 @@ public class DelegateUri {
                             queryVars[position], originalPathAndQuery));
                 }
 
-                queryParameterNames.add(nameAndValue[0]);
-
                 Matcher m = placeholderPattern.matcher(nameAndValue[1]);
 
                 if (m.matches()) {
 
+                    queryParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
                     String placeholderName = m.group(1);
                     addQueryPlaceholder(placeholderName, nameAndValue[0]);
+                } else {
+                    queryParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
                 }
             }
         }
@@ -239,6 +243,8 @@ public class DelegateUri {
     }
 
     /**
+     * 
+     * <p/>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#hashCode()
@@ -249,11 +255,14 @@ public class DelegateUri {
         int result = 1;
         result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
         result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
-        result = prime * result + ((queryParameterNames == null) ? 0 : queryParameterNames.hashCode());
+        result = prime * result
+                + ((queryParameterNamesAndValues == null) ? 0 : queryParameterNamesAndValues.hashCode());
         return result;
     }
 
     /**
+     * 
+     * <p/>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#equals(java.lang.Object)
@@ -277,10 +286,10 @@ public class DelegateUri {
                 return false;
         } else if (!mPath.equals(other.mPath))
             return false;
-        if (queryParameterNames == null) {
-            if (other.queryParameterNames != null)
+        if (queryParameterNamesAndValues == null) {
+            if (other.queryParameterNamesAndValues != null)
                 return false;
-        } else if (!queryParameterNames.equals(other.queryParameterNames))
+        } else if (!queryParameterNamesAndValues.equals(other.queryParameterNamesAndValues))
             return false;
         return true;
     }
@@ -295,7 +304,36 @@ public class DelegateUri {
     @Override
     public String toString() {
         return "DelegateUri [mId=" + mId + ", mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString="
-                + queryString + ", placeholders=" + placeholders + ", queryParameterNames=" + queryParameterNames
-                + ", originalPathAndQuery=" + originalPathAndQuery + "]";
+                + queryString + "]";
+    }
+
+    /**
+     * Gets the delegate method for a query operation.
+     * 
+     * @return The DelegateMethod for the query operation or null if this URI does not answers to query requests.
+     */
+    public DelegateMethod getQueryDelegateMethod() {
+
+        return queryDelegateMethod;
+    }
+
+    /**
+     * Creates a new DelegateMethod instance and registers it as a query delegate. Overrides any previously set query
+     * DelegateMethod for this URI.
+     * 
+     * @param queryMethod
+     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
+     *            URI.
+     * 
+     * @return The newly create and registered query DelegateMethod.
+     */
+    public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
+
+        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
+        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
+        
+        queryDelegateMethod = delegateMethod;
+
+        return delegateMethod;
     }
 }
