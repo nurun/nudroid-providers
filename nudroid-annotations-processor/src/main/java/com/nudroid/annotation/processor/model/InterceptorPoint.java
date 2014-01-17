@@ -6,7 +6,7 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Information about delegate method interceptors.
+ * An interceptor for a delegate method.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -16,16 +16,16 @@ public class InterceptorPoint {
     private TypeElement mInterceptorAnnotationElement;
     private boolean mHasCustomConstructor;
     private boolean mHasDefaultConstructor;
-    private InterceptorBlueprint mConcreteAnnotation;
+    private InterceptorAnnotationBlueprint mConcreteAnnotation;
     private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<InterceptorAnnotationParameter>();
 
     /**
      * Creates a new Interceptor bean.
      * 
      * @param concreteAnnotation
-     *            The {@link InterceptorBlueprint} generated for this interceptor annotation type.
+     *            The {@link InterceptorAnnotationBlueprint} generated for this interceptor annotation type.
      */
-    public InterceptorPoint(InterceptorBlueprint concreteAnnotation) {
+    public InterceptorPoint(InterceptorAnnotationBlueprint concreteAnnotation) {
 
         this.mInterceptorAnnotationElement = concreteAnnotation.getTypeElement();
         this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
@@ -82,18 +82,6 @@ public class InterceptorPoint {
     }
 
     /**
-     * Adds an annotation constructor literal for the concrete annotation associated with this interceptor to the list
-     * of constructor arguments of the concrete annotation.
-     * 
-     * @param value
-     *            The literal to add.
-     */
-    public void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
-
-        mConcreteAnnotationConstructorArguments.add(value);
-    }
-
-    /**
      * Gets the qualified name of the concrete annotation implementation for this interceptor.
      * 
      * @return the qualified name of the concrete annotation implementation for this interceptor.
@@ -111,6 +99,18 @@ public class InterceptorPoint {
     public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;
+    }
+
+    /**
+     * Adds an annotation constructor literal for the concrete annotation associated with this interceptor to the list
+     * of constructor arguments of the concrete annotation.
+     * 
+     * @param value
+     *            The literal to add.
+     */
+    void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
+    
+        mConcreteAnnotationConstructorArguments.add(value);
     }
 
     /**

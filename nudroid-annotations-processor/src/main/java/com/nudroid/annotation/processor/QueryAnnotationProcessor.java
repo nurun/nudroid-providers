@@ -18,7 +18,7 @@ import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
@@ -328,7 +328,7 @@ class QueryAnnotationProcessor {
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
 
-        for (InterceptorBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+        for (InterceptorAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
 
             mLogger.trace(String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
 

@@ -23,6 +23,7 @@ public class MatcherUri {
     private int id;
     private Authority mAuthority;
     private String mPath;
+    private boolean mHasQueryStringMatchersOnly = true;
     private NavigableSet<DelegateUri> mDelegateUris = new TreeSet<DelegateUri>(new Comparator<DelegateUri>() {
 
         /**
@@ -37,25 +38,6 @@ public class MatcherUri {
             return o2.getQueryStringParameterCount() - o1.getQueryStringParameterCount();
         }
     });
-
-    public NavigableSet<DelegateUri> getDelegateUris() {
-
-        return mDelegateUris;
-    }
-
-    public boolean hasQueryMethods() {
-
-        NavigableSet<DelegateUri> queryDelegateUri = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
-
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return input.getQueryDelegateMethod() != null;
-            }
-        });
-
-        return queryDelegateUri.size() > 0;
-    }
 
     /**
      * Creates an instance of this class.
@@ -78,6 +60,35 @@ public class MatcherUri {
 
         this.mAuthority = authority;
         this.mPath = uri.getPath();
+    }
+
+    /**
+     * Gets the set of {@link DelegateUri}s for this {@link MatcherUri}.
+     * 
+     * @return The set of {@link DelegateUri}s
+     */
+    public NavigableSet<DelegateUri> getDelegateUris() {
+
+        return mDelegateUris;
+    }
+
+    /**
+     * Checks if this URI handles ContentProvider queries methods.
+     * 
+     * @return <tt>true</tt> if this URI handles @Query methods, <tt>false</tt> otherwise.
+     */
+    public boolean hasQueryMethods() {
+
+        NavigableSet<DelegateUri> queryDelegateUri = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
+
+            @Override
+            public boolean apply(DelegateUri input) {
+
+                return input.getQueryDelegateMethod() != null;
+            }
+        });
+
+        return queryDelegateUri.size() > 0;
     }
 
     /**
@@ -105,24 +116,12 @@ public class MatcherUri {
 
         mDelegateUris.add(candidateDelegateUri);
 
+        if (candidateDelegateUri.getQueryStringParameterCount() == 0) {
+
+            mHasQueryStringMatchersOnly = false;
+        }
+
         return candidateDelegateUri;
-    }
-
-    private DelegateUri findEquivalentDelegateUri(final DelegateUri candidateDelegateUri) {
-
-        NavigableSet<DelegateUri> matchingDelegateUris = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
-
-            /*
-             * Checks if the path and query has already been registered in the delegate uri set.
-             */
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return candidateDelegateUri.equals(input) && input.getQueryDelegateMethod() != null;
-            }
-        });
-
-        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.first();
     }
 
     /**
@@ -159,16 +158,9 @@ public class MatcherUri {
         return mPath;
     }
 
-    /**
-     * Sets the id of this URI to be mapped to a the id to be mapped to this URI in the <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @param uriId
-     *            The URI id.
-     */
-    void setId(int uriId) {
+    public boolean hasQueryStringMatchersOnly() {
 
-        this.id = uriId;
+        return mHasQueryStringMatchersOnly;
     }
 
     /**
@@ -222,5 +214,34 @@ public class MatcherUri {
     @Override
     public String toString() {
         return "MatcherUri [id=" + id + ", mAuthority=" + mAuthority + ", mPath=" + mPath + "]";
+    }
+
+    /**
+     * Sets the id of this URI to be mapped to a the id to be mapped to this URI in the <a
+     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
+     * 
+     * @param uriId
+     *            The URI id.
+     */
+    void setId(int uriId) {
+
+        this.id = uriId;
+    }
+
+    private DelegateUri findEquivalentDelegateUri(final DelegateUri candidateDelegateUri) {
+
+        NavigableSet<DelegateUri> matchingDelegateUris = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
+
+            /*
+             * Checks if the path and query has already been registered in the delegate uri set.
+             */
+            @Override
+            public boolean apply(DelegateUri input) {
+
+                return candidateDelegateUri.equals(input) && input.getQueryDelegateMethod() != null;
+            }
+        });
+
+        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.first();
     }
 }

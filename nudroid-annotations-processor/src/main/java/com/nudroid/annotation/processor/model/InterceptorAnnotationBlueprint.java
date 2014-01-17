@@ -25,11 +25,11 @@ import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.LoggingUtils;
 
 /**
- * Represents a concrete annotation implementation that will be created.
+ * Represents a concrete annotation implementation that will be created by the source code generator.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class InterceptorBlueprint {
+public class InterceptorAnnotationBlueprint {
 
     private static final String JAVA_LANG_STRING_CLASS_NAME = "java.lang.String";
     private String mInterceptorAnnotationQualifiedName;
@@ -49,7 +49,7 @@ public class InterceptorBlueprint {
      *            The {@link TypeElement} for the annotation this class represents.
      * 
      */
-    public InterceptorBlueprint(TypeElement typeElement) {
+    public InterceptorAnnotationBlueprint(TypeElement typeElement) {
 
         this.mInterceptorAnnotationTypeElement = typeElement;
         this.mInterceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();
@@ -157,8 +157,21 @@ public class InterceptorBlueprint {
         return mAttributes;
     }
 
-    public InterceptorPoint createInterceptorPoint(AnnotationMirror mirror, Elements elementUtils, Types typeUtils,
-            LoggingUtils logger) {
+    /**
+     * Creates the {@link InterceptorPoint}.
+     * 
+     * @param annotationMirror
+     *            The {@link AnnotationMirror} for the interceptor annotation.
+     * @param elementUtils
+     *            An {@link Elements} instance.
+     * @param typeUtils
+     *            An {@link Types} instance.
+     * @param logger
+     *            A {@link LoggingUtils} instance.
+     * @return
+     */
+    public InterceptorPoint createInterceptorPoint(AnnotationMirror annotationMirror, Elements elementUtils,
+            Types typeUtils, LoggingUtils logger) {
 
         InterceptorPoint interceptor = new InterceptorPoint(this);
         interceptor.setHasDefaultConstructor(mHasDefaultConstructor);
@@ -174,7 +187,7 @@ public class InterceptorBlueprint {
         });
 
         Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = elementUtils
-                .getElementValuesWithDefaults(mirror);
+                .getElementValuesWithDefaults(annotationMirror);
         methodKeys.addAll(annotationValues.keySet());
 
         for (ExecutableElement keyEntry : methodKeys) {
@@ -233,12 +246,12 @@ public class InterceptorBlueprint {
                     attributeValue.getValue()), float.class));
             break;
         case DOUBLE:
-            
+
             interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%s",
                     attributeValue.getValue()), double.class));
             break;
         case INT:
-            
+
             interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(String.format("%sL",
                     attributeValue.getValue()), long.class));
             break;
@@ -283,14 +296,14 @@ public class InterceptorBlueprint {
 
     private void generateAnnotationArrayLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
             AnnotationValue attributeValue, Elements elementUtils, Types typeUtils, LoggingUtils logger) {
-        
+
         ArrayType arrayType = (ArrayType) attribute.getReturnType();
         Class<?> arrayClass = null;
 
         @SuppressWarnings("unchecked")
         List<? extends AnnotationValue> annotationValues = (List<? extends AnnotationValue>) attributeValue.getValue();
         List<Object> arrayElements = new ArrayList<Object>();
-        
+
         for (AnnotationValue value : annotationValues) {
 
             arrayElements.add(value.getValue());

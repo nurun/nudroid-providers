@@ -32,12 +32,11 @@ public class DelegateUri {
 
     private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
 
-    private int mId;
     private String mAuthority;
     private String mPath;
     private String queryString;
     private Map<String, UriPlaceholderParameter> placeholders = new HashMap<String, UriPlaceholderParameter>();
-    private Map<String, String> queryParameterNamesAndValues = new HashMap<String, String>();
+    private Map<String, String> queryStringParameterNamesAndValues = new HashMap<String, String>();
     private DelegateMethod queryDelegateMethod;
 
     private String originalPathAndQuery;
@@ -46,9 +45,9 @@ public class DelegateUri {
      * Creates an instance of this class.
      * 
      * @param matcherUri
-     *            The matcher uri for this method.
+     *            The matcher uri this delegate uri is associated with.
      * @param pathAndQuery
-     *            The path and optional query string.
+     *            The path and optional query string this delegate URI must handle.
      */
     public DelegateUri(MatcherUri matcherUri, String pathAndQuery) {
 
@@ -68,20 +67,10 @@ public class DelegateUri {
         this.mAuthority = matcherUri.getAuthorityName();
         this.mPath = uri.getPath();
         this.queryString = uri.getQuery();
-        this.mId = matcherUri.getId();
     }
 
     /**
-     * Gets this delegate URI's id, as expected by a UrlMatcher.
-     * 
-     * @return This delegate URI's id.
-     */
-    public int getId() {
-        return mId;
-    }
-
-    /**
-     * Gets the path of this URI. The path will already be normalized for a <a
+     * Gets the path portion of this URI. The path will already be normalized for a <a
      * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a> (i.e. placeholder
      * names will be replaced by '*').
      * 
@@ -92,12 +81,13 @@ public class DelegateUri {
     }
 
     /**
-     * Checks if this URI has the provided named path placeholder.
+     * Checks if this URI has the specified placeholder name.
      * 
      * @param parameterName
      *            The name of the placeholder to check.
      * 
-     * @return <tt>true</tt> if this URI has a path placeholder named as parameterName, <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if this URI has a path or query string placeholder named as parameterName, <tt>false</tt>
+     *         otherwise.
      */
     public boolean containsPlaceholder(String parameterName) {
 
@@ -105,15 +95,14 @@ public class DelegateUri {
     }
 
     /**
-     * Gets a string representation of the position this named parameter appears in this URI's path.
+     * Gets a string representation of the position this named parameter appears in this URI's path and query string.
      * 
      * @param name
      *            The name of the path placeholder to check.
      * 
-     * @return The position this named parameter appears in this URI's path.
-     * 
-     * @throws NullPointerException
-     *             if this URI does not have the provided path parameter.
+     * @return The position this named parameter appears in this URI's path. Will return a position for a path
+     *         placeholder or a name for a query string placeholder. Returns <tt>null</tt> if the path does not contain
+     *         the named placeholder.
      */
     public String getParameterPosition(String name) {
 
@@ -123,23 +112,23 @@ public class DelegateUri {
     }
 
     /**
-     * Gets the list o query parameter names for this URI.
+     * Gets the map o query string parameter names and their values for this URI.
      * 
-     * @return The list o query parameter names for this URI.
+     * @return The map o query string parameter names and values for this URI.
      */
     public Map<String, String> getQueryParameterNamesAndValues() {
 
-        return queryParameterNamesAndValues;
+        return queryStringParameterNamesAndValues;
     }
 
     /**
-     * Gets the number of query string parameters in this URI.
+     * Gets the amount of query string parameters in this URI.
      * 
      * @return The number of query string parameters in this URI.
      */
     public int getQueryStringParameterCount() {
 
-        return queryParameterNamesAndValues.size();
+        return queryStringParameterNamesAndValues.size();
     }
 
     /**
@@ -155,6 +144,42 @@ public class DelegateUri {
         return placeholders.get(placeholderName).getUriPlaceholderType();
     }
 
+    /**
+     * Gets the delegate method for a query operation.
+     * 
+     * @return The DelegateMethod for the query operation or null if this URI does not answers to query requests.
+     */
+    public DelegateMethod getQueryDelegateMethod() {
+    
+        return queryDelegateMethod;
+    }
+
+    /**
+     * Creates a new DelegateMethod instance and registers it as a query delegate. Overrides any previously set query
+     * DelegateMethod for this URI.
+     * 
+     * @param queryMethod
+     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
+     *            URI.
+     * 
+     * @return The newly create and registered query DelegateMethod.
+     */
+    public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
+    
+        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
+        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
+    
+        queryDelegateMethod = delegateMethod;
+    
+        return delegateMethod;
+    }
+
+    /**
+     * Parses the path and query string and finds placeholders.
+     * 
+     * @param pathAndQuery
+     *            The path and query string to parse.
+     */
     private void parsePlaceholders(String pathAndQuery) {
 
         Pattern placeholderPattern = Pattern.compile(PLACEHOLDER_REGEXP);
@@ -208,11 +233,11 @@ public class DelegateUri {
 
                 if (m.matches()) {
 
-                    queryParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
+                    queryStringParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
                     String placeholderName = m.group(1);
                     addQueryPlaceholder(placeholderName, nameAndValue[0]);
                 } else {
-                    queryParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
+                    queryStringParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
                 }
             }
         }
@@ -256,7 +281,7 @@ public class DelegateUri {
         result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
         result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
         result = prime * result
-                + ((queryParameterNamesAndValues == null) ? 0 : queryParameterNamesAndValues.hashCode());
+                + ((queryStringParameterNamesAndValues == null) ? 0 : queryStringParameterNamesAndValues.hashCode());
         return result;
     }
 
@@ -286,10 +311,10 @@ public class DelegateUri {
                 return false;
         } else if (!mPath.equals(other.mPath))
             return false;
-        if (queryParameterNamesAndValues == null) {
-            if (other.queryParameterNamesAndValues != null)
+        if (queryStringParameterNamesAndValues == null) {
+            if (other.queryStringParameterNamesAndValues != null)
                 return false;
-        } else if (!queryParameterNamesAndValues.equals(other.queryParameterNamesAndValues))
+        } else if (!queryStringParameterNamesAndValues.equals(other.queryStringParameterNamesAndValues))
             return false;
         return true;
     }
@@ -303,37 +328,6 @@ public class DelegateUri {
      */
     @Override
     public String toString() {
-        return "DelegateUri [mId=" + mId + ", mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString="
-                + queryString + "]";
-    }
-
-    /**
-     * Gets the delegate method for a query operation.
-     * 
-     * @return The DelegateMethod for the query operation or null if this URI does not answers to query requests.
-     */
-    public DelegateMethod getQueryDelegateMethod() {
-
-        return queryDelegateMethod;
-    }
-
-    /**
-     * Creates a new DelegateMethod instance and registers it as a query delegate. Overrides any previously set query
-     * DelegateMethod for this URI.
-     * 
-     * @param queryMethod
-     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
-     *            URI.
-     * 
-     * @return The newly create and registered query DelegateMethod.
-     */
-    public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
-
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
-        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
-        
-        queryDelegateMethod = delegateMethod;
-
-        return delegateMethod;
+        return "DelegateUri [mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString=" + queryString + "]";
     }
 }

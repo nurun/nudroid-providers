@@ -15,7 +15,7 @@ import javax.lang.model.util.Types;
 
 import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
@@ -102,11 +102,11 @@ class InterceptorAnnotationProcessor {
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
     }
 
-    private InterceptorBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+    private InterceptorAnnotationBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
         if (interceptorAnnotation instanceof TypeElement) {
 
-            InterceptorBlueprint annotation = new InterceptorBlueprint((TypeElement) interceptorAnnotation);
+            InterceptorAnnotationBlueprint annotation = new InterceptorAnnotationBlueprint((TypeElement) interceptorAnnotation);
 
             final List<? extends Element> enclosedElements = new ArrayList<Element>(
                     interceptorAnnotation.getEnclosedElements());

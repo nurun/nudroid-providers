@@ -3,7 +3,7 @@ package com.nudroid.annotation.processor.model;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * An attribute from a {@link InterceptorBlueprint}.
+ * An annotation attribute (method) member of a {@link InterceptorAnnotationBlueprint}.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -17,7 +17,7 @@ public class AnnotationAttribute {
      * Creates an instance of this class.
      * 
      * @param method
-     *            The annotation method for this particular attribute.
+     *            The {@link ExecutableElement} for the attribute (method) of the annotation interceptor.
      */
     public AnnotationAttribute(ExecutableElement method) {
 
@@ -29,7 +29,7 @@ public class AnnotationAttribute {
     }
 
     /**
-     * Gets the type of this attribute.
+     * Gets the (return) type of this attribute.
      * 
      * @return The type of this attribute.
      */
@@ -54,7 +54,7 @@ public class AnnotationAttribute {
      * @return The capitalized name of this attribute.
      */
     public String getCapitalizedName() {
-        
+
         return mCapitalizedName;
     }
 }

@@ -132,8 +132,10 @@ case <matcherUri.id>:
 {
     <matcherUri.delegateUris:generateDelegateMethodCode(); separator="\n">
 
+<if(matcherUri.queryStringMatchersOnly)>
     throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
             uri, mDelegate.getClass()));
+<endif>            
 }
 <endif>
 >>

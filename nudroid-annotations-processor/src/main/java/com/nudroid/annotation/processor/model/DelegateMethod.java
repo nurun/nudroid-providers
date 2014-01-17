@@ -38,7 +38,7 @@ public class DelegateMethod {
      * Creates an instance of this class.
      * 
      * @param element
-     *            The element representing this delegate method.
+     *            The {@link ExecutableElement} representing this delegate method.
      * @param uri
      *            An {@link DelegateUri} describing the URI the method should match.
      */
@@ -70,7 +70,7 @@ public class DelegateMethod {
     }
 
     /**
-     * Adds an interceptor type to this method.
+     * Adds an interceptor point to this method. Interceptors work as an around advice around the delegate method.
      * 
      * @param interceptor
      *            The interceptor type to add.
@@ -81,44 +81,24 @@ public class DelegateMethod {
     }
 
     /**
-     * Sets the query parameter names for the URI mapped to this method.
+     * Sets the query string parameter names present in the URI mapped for this method.
      * 
-     * @param queryParameterNames
-     *            The set of query parameter names.
+     * @param queryStringParameterNames
+     *            The set of query string parameter names.
      */
-    public void setQueryParameterNames(Set<String> queryParameterNames) {
+    public void setQueryParameterNames(Set<String> queryStringParameterNames) {
 
-        this.mQueryStringParameterNames = queryParameterNames;
+        this.mQueryStringParameterNames = queryStringParameterNames;
     }
 
     /**
-     * Gets this method's delegate class.
+     * Gets the {@link ExecutableElement} of the method represented by this class.
      * 
-     * @return The delegate class this method is declared in.
-     */
-    public DelegateClass getDelegateClass() {
-        return mDelegateClass;
-    }
-
-    /**
-     * Gets the {@link ExecutableElement} representation of the method represented by this class.
-     * 
-     * @return The {@link ExecutableElement} representation of the method represented by this class.
+     * @return The {@link ExecutableElement} of the method represented by this class.
      */
     public ExecutableElement getExecutableElement() {
 
         return mExecutableElement;
-    }
-
-    /**
-     * Get's the URI id assigned to this method's URI in an Android <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @return the URI id assigned to this method's URI.
-     */
-    public int getUriId() {
-
-        return mUri.getId();
     }
 
     /**
@@ -142,7 +122,8 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the list of parameters this method accepts in the path portion. A subset of {@link #getParameters()}.
+     * Gets the list of parameters this method accepts mapped to a placeholder in the path portion or the URL. A subset
+     * of {@link #getParameters()}.
      * 
      * @return List of parameters.
      */
@@ -152,8 +133,8 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the list of parameters this method accepts in the query string portion. A subset of {@link #getParameters()}
-     * .
+     * Gets the list of parameters this method accepts mapped to a placeholder in the query string portion of the URL. A
+     * subset of {@link #getParameters()}.
      * 
      * @return List of parameters.
      */
@@ -198,7 +179,7 @@ public class DelegateMethod {
      * @return <tt>true</tt> if this method has any placeholder in its query string, <tt>false</tt> otherwise.
      */
     public boolean hasQueryStringPlaceholders() {
-        
+
         return mQueryStringPlaceholderParameters.size() > 0;
     }
 
@@ -243,26 +224,5 @@ public class DelegateMethod {
                 + mQueryStringPlaceholderParameters + ", mQueryStringParameterNames=" + mQueryStringParameterNames
                 + ", mUri=" + mUri + ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements="
                 + mInterceptorElements + ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
-    }
-
-    /**
-     * Adds a query string parameter name to the list of query string parameters of this method. This method is
-     * idempotent.
-     * 
-     * @param queryStringParameterName
-     *            The name of the query string parameter.
-     */
-    void addQueryStringParameter(String queryStringParameterName) {
-
-        mQueryStringParameterNames.add(queryStringParameterName);
-    }
-
-    /**
-     * Sets this method delegate class.
-     * 
-     * @param delegateClass
-     */
-    void setDelegateClass(DelegateClass delegateClass) {
-        this.mDelegateClass = delegateClass;
     }
 }

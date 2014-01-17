@@ -9,7 +9,7 @@ import java.util.Set;
 import javax.lang.model.element.TypeElement;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 
 /**
  * Gather all the information required to generate the source code for the content providers and router classes.
@@ -20,7 +20,7 @@ class Metadata {
 
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
-    private Map<TypeElement, InterceptorBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorBlueprint>();
+    private Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorAnnotationBlueprint>();
 
     /*
      * The stack is what tracks classes to be fed to the source code generator. Because of Eclipse's continuous build,
@@ -29,7 +29,7 @@ class Metadata {
      * is filled only once so each class is written only once.
      */
     private Set<DelegateClass> mDelegateClassStack = new HashSet<DelegateClass>();
-    private Set<InterceptorBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorBlueprint>();
+    private Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorAnnotationBlueprint>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
@@ -64,7 +64,7 @@ class Metadata {
      * @param annotation
      *            The concrete annotation bean to register.
      */
-    void registerConcreteAnnotation(InterceptorBlueprint annotation) {
+    void registerConcreteAnnotation(InterceptorAnnotationBlueprint annotation) {
 
         this.mInterceptorBlueprints.put(annotation.getTypeElement(), annotation);
         this.mInterceptorBlueprintStack.add(annotation);
@@ -76,7 +76,7 @@ class Metadata {
      * @param concreteAnnotation
      *            The concrete annotation class to pop out.
      */
-    void popInterceptorBlueprint(InterceptorBlueprint concreteAnnotation) {
+    void popInterceptorBlueprint(InterceptorAnnotationBlueprint concreteAnnotation) {
 
         mInterceptorBlueprintStack.remove(concreteAnnotation);
     }
@@ -124,7 +124,7 @@ class Metadata {
      * 
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Set<InterceptorBlueprint> getInterceptorBlueprintsForRound() {
+    Set<InterceptorAnnotationBlueprint> getInterceptorBlueprintsForRound() {
 
         return mInterceptorBlueprintStack;
     }
@@ -134,7 +134,7 @@ class Metadata {
      * 
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Collection<InterceptorBlueprint> getInterceptorBlueprints() {
+    Collection<InterceptorAnnotationBlueprint> getInterceptorBlueprints() {
 
         return mInterceptorBlueprints.values();
     }
@@ -147,7 +147,7 @@ class Metadata {
      * 
      * @return the interceptor blueprint for the given annotation.
      */
-    InterceptorBlueprint getInterceptorBlueprint(TypeElement interceptorAnnotationTypeElement) {
+    InterceptorAnnotationBlueprint getInterceptorBlueprint(TypeElement interceptorAnnotationTypeElement) {
 
         return mInterceptorBlueprints.get(interceptorAnnotationTypeElement);
     }

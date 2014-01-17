@@ -31,7 +31,7 @@ public class DelegateClass {
     private String mContentProviderSimpleName;
     private String mRouterSimpleName;
     private Authority mAuthority;
-    // private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
+
     private NavigableSet<MatcherUri> mMactherUris = new TreeSet<MatcherUri>(new Comparator<MatcherUri>() {
 
         /**
@@ -46,17 +46,6 @@ public class DelegateClass {
         }
     });
 
-    // private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
-    // private Map<Integer, IdDelegateMethodMapper> mUriIdToDelegateMethodsRegistry = new LinkedHashMap<Integer,
-    // IdDelegateMethodMapper>();
-    // private Map<DelegateUri, UriMethodDelegateMapper> mDelegateUris = new LinkedHashMap<DelegateUri,
-    // UriMethodDelegateMapper>();
-
-    public NavigableSet<MatcherUri> getMactherUris() {
-        
-        return mMactherUris;
-    }
-
     /**
      * Creates an instance of this class.
      * 
@@ -64,7 +53,7 @@ public class DelegateClass {
      *            The authority name being handled by the delegate class.
      * 
      * @param typeElement
-     *            The {@link TypeElement} for the delegate class as provided by a round environment.
+     *            The {@link TypeElement} for the delegate class as provided by the round environment.
      */
     public DelegateClass(String authorityName, TypeElement typeElement) {
 
@@ -102,27 +91,6 @@ public class DelegateClass {
         this.mContentProviderSimpleName = providerSimpleName.toString();
     }
 
-    // /**
-    // * Adds a delegate method to this class.
-    // *
-    // * @param delegateMethod
-    // * The method to be added.
-    // */
-    // public void addMethod(DelegateMethod delegateMethod) {
-    //
-    // mDelegateMethods.add(delegateMethod);
-    // delegateMethod.setDelegateClass(this);
-    // IdDelegateMethodMapper uriToDelegateMapper = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
-    //
-    // if (uriToDelegateMapper == null) {
-    //
-    // uriToDelegateMapper = new IdDelegateMethodMapper(delegateMethod.getUriId());
-    // mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), uriToDelegateMapper);
-    // }
-    //
-    // uriToDelegateMapper.add(delegateMethod);
-    // }
-
     /**
      * Registers a @Query path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
@@ -133,7 +101,7 @@ public class DelegateClass {
      * @return A new DelegateUri object representing this path and query string combination.
      * 
      * @throws DuplicatePathException
-     *             If the path and query string has already been associated with an existing DelegateMethod.
+     *             If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
     public DelegateUri registerPathForQuery(String pathAndQuery) {
 
@@ -144,32 +112,19 @@ public class DelegateClass {
     }
 
     /**
-     * Registers a path to be matched by the content provider uri matcher for an @Update method.
-     * 
-     * @param updateMethodElement
-     *            The method the path appears on.
+     * Registers a @Update path and query string to be handled by this delegate class. DelegateUris, as opposed to
+     * MatcherUri does take query string in consideration when differentiating between URIs.
      * 
      * @param pathAndQuery
-     *            The path to register.
+     *            The path and query string to register.
+     * 
+     * @return A new DelegateUri object representing this path and query string combination.
+     * 
+     * @throws DuplicatePathException
+     *             If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
     public DelegateUri registerPathForUpdate(ExecutableElement updateMethodElement, String pathAndQuery) {
 
-        // MatcherUri matcherUri = getMatcherUriFor(pathAndQuery);
-        //
-        // DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
-        //
-        // UriMethodDelegateMapper uriMethodDelegateMapper = getMapperForUri(delegateUri);
-        //
-        // ExecutableElement existingDelegateMethod = uriMethodDelegateMapper.getUpdateMethod();
-        //
-        // if (existingDelegateMethod != null) {
-        //
-        // throw new DuplicatePathException(existingDelegateMethod);
-        // }
-        //
-        // mDelegateUris.put(delegateUri, uriMethodDelegateMapper);
-        //
-        // return delegateUri;
         return null;
     }
 
@@ -222,31 +177,6 @@ public class DelegateClass {
         return mAuthority;
     }
 
-    // /**
-    // * Gets the mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-    // *
-    // * @return The mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-    // */
-    // public List<DelegateMethod> getMethodsForUriId(int uriId) {
-    //
-    // return mUriIdToDelegateMethodsRegistry.get(uriId).getDelegateMethods();
-    // }
-    //
-    // /**
-    // * Gets all the URI ids this class is responsible to process.
-    // *
-    // * @return All the URI ids this class is responsible to process.
-    // */
-    // public Set<Integer> getUriIds() {
-    //
-    // return mUriIdToDelegateMethodsRegistry.keySet();
-    // }
-    //
-    // public Collection<IdDelegateMethodMapper> getUriToDelegateMethodMapperSet() {
-    //
-    // return mUriIdToDelegateMethodsRegistry.values();
-    // }
-
     /**
      * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
      * the package name).
@@ -269,15 +199,15 @@ public class DelegateClass {
         return this.mContentProviderSimpleName;
     }
 
-    // /**
-    // * Gets the set of delegate methods declared in this delegate class.
-    // *
-    // * @return The set of delegate methods declared in this delegate class.
-    // */
-    // public Set<DelegateMethod> getDelegateMethods() {
-    //
-    // return mDelegateMethods;
-    // }
+    /**
+     * Gets the base package name for the generated class files.
+     * 
+     * @return The base package name for the generated source files.
+     */
+    public String getBasePackageName() {
+
+        return mBasePackageName;
+    }
 
     /**
      * Checks if the delegate class implements the {@link ContentProvider} interface.
@@ -291,15 +221,24 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the base package name for the generated class files.
+     * Gets the {@link MatcherUri}s this delegate class accepts.
      * 
-     * @return The base package name for the generated source files.
+     * @return The {@link MatcherUri}s this delegate class accepts.
      */
-    public String getBasePackageName() {
+    public NavigableSet<MatcherUri> getMactherUris() {
 
-        return mBasePackageName;
+        return mMactherUris;
     }
 
+    /**
+     * Checks if a {@link MatcherUri} has already been created for the path and query. If yes, returns that instance. If
+     * not, a new one is created and registered.
+     * 
+     * @param pathAndQuery
+     *            The path and query to check.
+     * 
+     * @return The {@link MatcherUri} for the path and query.
+     */
     private MatcherUri getMatcherUriFor(String pathAndQuery) {
 
         final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery);
@@ -323,28 +262,4 @@ public class DelegateClass {
 
         return matchingUris.first();
     }
-
-    // private UriMethodDelegateMapper getMapperForUri(DelegateUri delegateUri) {
-    //
-    // UriMethodDelegateMapper uriMethodDelegateMapper = mDelegateUris.get(delegateUri);
-    //
-    // if (uriMethodDelegateMapper == null) {
-    //
-    // uriMethodDelegateMapper = new UriMethodDelegateMapper(delegateUri);
-    // mDelegateUris.put(delegateUri, uriMethodDelegateMapper);
-    // }
-    //
-    // return uriMethodDelegateMapper;
-    // }
-
-    // /**
-    // * @see java.lang.Object#toString()
-    // */
-    // @Override
-    // public String toString() {
-    // return "DelegateClass [mQualifiedName=" + mQualifiedName + ", mSimpleName=" + mSimpleName
-    // + ", delegateMethods=" + mUriIdToDelegateMethodsRegistry + ", mMactherUris=" + mMactherUris
-    // + ", mDelegateUris=" + mDelegateUris + ", authority=" + mAuthority + ", mMatcherUriIdCount="
-    // + mMatcherUriIdCount + "]";
-    // }
 }
