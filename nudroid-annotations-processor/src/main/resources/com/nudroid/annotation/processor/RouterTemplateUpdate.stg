@@ -133,7 +133,7 @@ case <matcherUri.id>:
     <matcherUri.updateDelegateUris:update_generateDelegateMethodCode(); separator="\n">
 
 <if(matcherUri.queryStringMatchersOnly)>
-    throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+    throw new IllegalArgumentException(String.format("@Update URI %s is not mapped by content provider delegate %s",
             uri, mDelegate.getClass()));
 <endif>            
 }
@@ -157,7 +157,7 @@ public int update(Context context, Uri uri, ContentValues contentValues, String 
     <delegateClass.mactherUris:update_createCaseStatements(); separator="\n">
     default:
         
-        throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+        throw new IllegalArgumentException(String.format("Update URI %s is not mapped by content provider delegate %s",
                 uri, mDelegate.getClass()));
     }
 }

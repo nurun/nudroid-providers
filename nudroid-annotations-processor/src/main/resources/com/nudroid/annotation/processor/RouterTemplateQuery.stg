@@ -133,7 +133,7 @@ case <matcherUri.id>:
     <matcherUri.queryDelegateUris:query_generateDelegateMethodCode(); separator="\n">
 
 <if(matcherUri.queryStringMatchersOnly)>
-    throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+    throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
             uri, mDelegate.getClass()));
 <endif>            
 }
@@ -158,7 +158,7 @@ public Cursor query(Context context, Uri uri, String[] projection, String select
     <delegateClass.mactherUris:query_createCaseStatements(); separator="\n">
     default:
         
-        throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
+        throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
                 uri, mDelegate.getClass()));
     }
 }
