@@ -37,7 +37,7 @@ import com.nudroid.annotation.provider.delegate.UriPlaceholder;
  */
 class UpdateAnnotationProcessor {
 
-    private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
+    private static final String PRIMITIVE_INT_CLASS_NAME = "int";
 
     private LoggingUtils mLogger;
 
@@ -80,40 +80,39 @@ class UpdateAnnotationProcessor {
 
         mLogger.info("Start processing @Update annotations.");
 
-        Set<? extends Element> updateMethods = continuation.getElementsAnotatedWith(Update.class, roundEnv);
+        Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Update.class, roundEnv);
 
-        if (updateMethods.size() > 0) {
-            
+        if (queryMethods.size() > 0) {
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Update.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(updateMethods)));
+                    Update.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(queryMethods)));
         }
 
-        for (Element updateMethod : updateMethods) {
+        for (Element queryMethod : queryMethods) {
 
-            if (updateMethod instanceof ExecutableElement) {
+            if (queryMethod instanceof ExecutableElement) {
 
-                TypeElement enclosingClass = (TypeElement) updateMethod.getEnclosingElement();
+                TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
                 ContentProvider contentProviderDelegateAnnotation = enclosingClass.getAnnotation(ContentProvider.class);
 
                 if (contentProviderDelegateAnnotation == null) {
 
                     mLogger.error(String.format("Enclosing class must be annotated with @%s",
-                            ContentProvider.class.getName()), updateMethod);
+                            ContentProvider.class.getName()), queryMethod);
                     continue;
                 }
 
-                mLogger.trace("    Processing " + updateMethod);
+                mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processUpdateOnMethod((ExecutableElement) updateMethod, delegateClass,
+                DelegateMethod delegateMethod = processUpdateOnMethod((ExecutableElement) queryMethod, delegateClass,
                         metadata);
 
                 if (delegateMethod != null) {
 
-                    mLogger.trace("    Checking for interceptors on method " + updateMethod);
+                    mLogger.trace("    Checking for interceptors on method " + queryMethod);
                     processInterceptorsOnMethod(delegateMethod, metadata);
                 }
 
-                mLogger.trace("    Done processing " + updateMethod);
+                mLogger.trace("    Done processing " + queryMethod);
             }
         }
 
@@ -123,14 +122,14 @@ class UpdateAnnotationProcessor {
     private DelegateMethod processUpdateOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
             Metadata metadata) {
 
-        Update update = queryMethod.getAnnotation(Update.class);
-        String pathAndQuery = update.value();
+        Update query = queryMethod.getAnnotation(Update.class);
+        String pathAndQuery = query.value();
 
         DelegateUri delegateUri = null;
 
         try {
 
-            delegateUri = delegateClass.registerPathForUpdate(queryMethod, pathAndQuery);
+            delegateUri = delegateClass.registerPathForUpdate(pathAndQuery);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -151,17 +150,16 @@ class UpdateAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(queryMethod, update, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
-        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
+        DelegateMethod delegateMethod = delegateUri.setUpdateDelegateMethod(queryMethod);
 
-//        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
+        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
         List<? extends VariableElement> parameters = queryMethod.getParameters();
 
@@ -199,7 +197,7 @@ class UpdateAnnotationProcessor {
             delegateMethod.addParameter(parameter);
         }
 
-//        delegateClass.addMethod(delegateMethod);
+        // delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }
@@ -210,10 +208,10 @@ class UpdateAnnotationProcessor {
 
         TypeMirror returnType = method.getReturnType();
 
-        if (!ANDROID_DATABASE_CURSOR_CLASS_NAME.equals(returnType.toString())) {
+        if (!PRIMITIVE_INT_CLASS_NAME.equals(returnType.toString())) {
 
-            mLogger.trace(String.format("        Update %s method does not return expected Android Cursor.", method));
-            mLogger.error(String.format("@Update annotated methods must return android.database.Cursor."), method);
+            mLogger.trace(String.format("        Update %s method does not return expected int value.", method));
+            mLogger.error(String.format("@Update annotated methods must return int."), method);
 
             isValid = false;
         }

@@ -34,12 +34,13 @@ public class DelegateUri {
 
     private String mAuthority;
     private String mPath;
-    private String queryString;
-    private Map<String, UriPlaceholderParameter> placeholders = new HashMap<String, UriPlaceholderParameter>();
-    private Map<String, String> queryStringParameterNamesAndValues = new HashMap<String, String>();
-    private DelegateMethod queryDelegateMethod;
+    private String mQueryString;
+    private Map<String, UriPlaceholderParameter> mPlaceholders = new HashMap<String, UriPlaceholderParameter>();
+    private Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<String, String>();
+    private DelegateMethod mQueryDelegateMethod;
+    private DelegateMethod mUpdateDelegateMethod;
 
-    private String originalPathAndQuery;
+    private String mOriginalPathAndQuery;
 
     /**
      * Creates an instance of this class.
@@ -51,7 +52,7 @@ public class DelegateUri {
      */
     public DelegateUri(MatcherUri matcherUri, String pathAndQuery) {
 
-        this.originalPathAndQuery = pathAndQuery;
+        this.mOriginalPathAndQuery = pathAndQuery;
 
         parsePlaceholders(pathAndQuery);
         String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, PLACEHOLDER_WILDCARD).replaceAll(
@@ -66,7 +67,7 @@ public class DelegateUri {
 
         this.mAuthority = matcherUri.getAuthorityName();
         this.mPath = uri.getPath();
-        this.queryString = uri.getQuery();
+        this.mQueryString = uri.getQuery();
     }
 
     /**
@@ -91,7 +92,7 @@ public class DelegateUri {
      */
     public boolean containsPlaceholder(String parameterName) {
 
-        return placeholders.containsKey(parameterName);
+        return mPlaceholders.containsKey(parameterName);
     }
 
     /**
@@ -106,7 +107,7 @@ public class DelegateUri {
      */
     public String getParameterPosition(String name) {
 
-        UriPlaceholderParameter placeholder = placeholders.get(name);
+        UriPlaceholderParameter placeholder = mPlaceholders.get(name);
 
         return placeholder != null ? placeholder.getKey() : null;
     }
@@ -118,7 +119,7 @@ public class DelegateUri {
      */
     public Map<String, String> getQueryParameterNamesAndValues() {
 
-        return queryStringParameterNamesAndValues;
+        return mQueryStringParameterNamesAndValues;
     }
 
     /**
@@ -128,7 +129,7 @@ public class DelegateUri {
      */
     public int getQueryStringParameterCount() {
 
-        return queryStringParameterNamesAndValues.size();
+        return mQueryStringParameterNamesAndValues.size();
     }
 
     /**
@@ -141,17 +142,27 @@ public class DelegateUri {
      */
     public UriPlaceholderType getUriPlaceholderType(String placeholderName) {
 
-        return placeholders.get(placeholderName).getUriPlaceholderType();
+        return mPlaceholders.get(placeholderName).getUriPlaceholderType();
     }
 
     /**
      * Gets the delegate method for a query operation.
      * 
-     * @return The DelegateMethod for the query operation or null if this URI does not answers to query requests.
+     * @return The DelegateMethod for the query operation or null if this URI does not respond to query requests.
      */
     public DelegateMethod getQueryDelegateMethod() {
-    
-        return queryDelegateMethod;
+
+        return mQueryDelegateMethod;
+    }
+
+    /**
+     * Gets the delegate method for an update operation.
+     * 
+     * @return The DelegateMethod for the update operation or null if this URI does not respond to query requests.
+     */
+    public DelegateMethod getUpdateDelegateMethod() {
+
+        return mUpdateDelegateMethod;
     }
 
     /**
@@ -165,12 +176,32 @@ public class DelegateUri {
      * @return The newly create and registered query DelegateMethod.
      */
     public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
-    
+
         DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
         delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
-    
-        queryDelegateMethod = delegateMethod;
-    
+
+        mQueryDelegateMethod = delegateMethod;
+
+        return delegateMethod;
+    }
+
+    /**
+     * Creates a new DelegateMethod instance and registers it as an update delegate. Overrides any previously set update
+     * DelegateMethod for this URI.
+     * 
+     * @param updateMethod
+     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
+     *            URI.
+     * 
+     * @return The newly create and registered update DelegateMethod.
+     */
+    public DelegateMethod setUpdateDelegateMethod(ExecutableElement updateMethod) {
+
+        DelegateMethod delegateMethod = new DelegateMethod(updateMethod, this);
+        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
+
+        mUpdateDelegateMethod = delegateMethod;
+
         return delegateMethod;
     }
 
@@ -226,18 +257,18 @@ public class DelegateUri {
                 if (nameAndValue.length != 2) {
 
                     throw new IllegalUriPathException(String.format("Segment '%s' on path %s is invalid.",
-                            queryVars[position], originalPathAndQuery));
+                            queryVars[position], mOriginalPathAndQuery));
                 }
 
                 Matcher m = placeholderPattern.matcher(nameAndValue[1]);
 
                 if (m.matches()) {
 
-                    queryStringParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
+                    mQueryStringParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
                     String placeholderName = m.group(1);
                     addQueryPlaceholder(placeholderName, nameAndValue[0]);
                 } else {
-                    queryStringParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
+                    mQueryStringParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
                 }
             }
         }
@@ -245,53 +276,41 @@ public class DelegateUri {
 
     private void addPathPlaceholder(String placeholderName, int position) {
 
-        if (placeholders.containsKey(placeholderName)) {
+        if (mPlaceholders.containsKey(placeholderName)) {
 
-            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(placeholderName).getKey(),
+            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName).getKey(),
                     Integer.toString(position));
         }
 
         UriPlaceholderParameter pathPlaceholder = new UriPlaceholderParameter(placeholderName, position);
-        placeholders.put(placeholderName, pathPlaceholder);
+        mPlaceholders.put(placeholderName, pathPlaceholder);
     }
 
     private void addQueryPlaceholder(String placeholderName, String queryParameterName) {
 
-        if (placeholders.containsKey(placeholderName)) {
+        if (mPlaceholders.containsKey(placeholderName)) {
 
-            throw new DuplicateUriPlaceholderException(placeholderName, placeholders.get(placeholderName).getKey(),
+            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName).getKey(),
                     queryParameterName);
         }
 
         UriPlaceholderParameter queryPlaceholder = new UriPlaceholderParameter(placeholderName, queryParameterName);
-        placeholders.put(placeholderName, queryPlaceholder);
+        mPlaceholders.put(placeholderName, queryPlaceholder);
     }
 
-    /**
-     * 
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
         result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
+        result = prime * result + ((mQueryDelegateMethod == null) ? 0 : mQueryDelegateMethod.hashCode());
         result = prime * result
-                + ((queryStringParameterNamesAndValues == null) ? 0 : queryStringParameterNamesAndValues.hashCode());
+                + ((mQueryStringParameterNamesAndValues == null) ? 0 : mQueryStringParameterNamesAndValues.hashCode());
+        result = prime * result + ((mUpdateDelegateMethod == null) ? 0 : mUpdateDelegateMethod.hashCode());
         return result;
     }
 
-    /**
-     * 
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -311,10 +330,20 @@ public class DelegateUri {
                 return false;
         } else if (!mPath.equals(other.mPath))
             return false;
-        if (queryStringParameterNamesAndValues == null) {
-            if (other.queryStringParameterNamesAndValues != null)
+        if (mQueryDelegateMethod == null) {
+            if (other.mQueryDelegateMethod != null)
                 return false;
-        } else if (!queryStringParameterNamesAndValues.equals(other.queryStringParameterNamesAndValues))
+        } else if (!mQueryDelegateMethod.equals(other.mQueryDelegateMethod))
+            return false;
+        if (mQueryStringParameterNamesAndValues == null) {
+            if (other.mQueryStringParameterNamesAndValues != null)
+                return false;
+        } else if (!mQueryStringParameterNamesAndValues.equals(other.mQueryStringParameterNamesAndValues))
+            return false;
+        if (mUpdateDelegateMethod == null) {
+            if (other.mUpdateDelegateMethod != null)
+                return false;
+        } else if (!mUpdateDelegateMethod.equals(other.mUpdateDelegateMethod))
             return false;
         return true;
     }
@@ -328,6 +357,6 @@ public class DelegateUri {
      */
     @Override
     public String toString() {
-        return "DelegateUri [mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString=" + queryString + "]";
+        return "DelegateUri [mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString=" + mQueryString + "]";
     }
 }

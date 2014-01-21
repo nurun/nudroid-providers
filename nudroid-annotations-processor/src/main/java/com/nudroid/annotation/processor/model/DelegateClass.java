@@ -6,7 +6,6 @@ import java.util.TreeSet;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
@@ -123,9 +122,12 @@ public class DelegateClass {
      * @throws DuplicatePathException
      *             If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public DelegateUri registerPathForUpdate(ExecutableElement updateMethodElement, String pathAndQuery) {
+    public DelegateUri registerPathForUpdate(String pathAndQuery) {
 
-        return null;
+        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery);
+        DelegateUri delegateUri = matcherUri.registerUpdateDelegateUri(pathAndQuery);
+
+        return delegateUri;
     }
 
     /**
@@ -262,4 +264,42 @@ public class DelegateClass {
 
         return matchingUris.first();
     }
+
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mQualifiedName == null) ? 0 : mQualifiedName.hashCode());
+        return result;
+    }
+
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        DelegateClass other = (DelegateClass) obj;
+        if (mQualifiedName == null) {
+            if (other.mQualifiedName != null)
+                return false;
+        } else if (!mQualifiedName.equals(other.mQualifiedName))
+            return false;
+        return true;
+    }
+
 }

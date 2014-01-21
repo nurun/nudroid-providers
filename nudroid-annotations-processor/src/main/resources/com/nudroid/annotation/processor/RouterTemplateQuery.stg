@@ -2,7 +2,7 @@
 
 
 
-generateDelegateMethodParameterList(parameter) ::= <%
+query_generateDelegateMethodParameterList(parameter) ::= <%
     <if(parameter.context)>
         contentProviderContext.context
     <elseif(parameter.projection)>
@@ -37,7 +37,7 @@ generateDelegateMethodParameterList(parameter) ::= <%
 
 
 
-generateAfterMethodInterceptorInvocations(interceptor) ::= <%
+query_generateAfterMethodInterceptorInvocations(interceptor) ::= <%
 
     result = l<interceptor.simpleName>.afterQuery(contentProviderContext, result);
 %>
@@ -45,7 +45,7 @@ generateAfterMethodInterceptorInvocations(interceptor) ::= <%
 
 
 
-generateConcreteAnnotationConstructor(literal) ::= <%
+query_generateConcreteAnnotationConstructor(literal) ::= <%
     <if(literal.string)>
         contentProviderContext.expand(<literal.literalValue>)
     <else>
@@ -56,12 +56,12 @@ generateConcreteAnnotationConstructor(literal) ::= <%
 
 
 
-generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
+query_generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
 <if(interceptor.customConstructor)>
 <interceptor.qualifiedName> l<interceptor.simpleName> = 
     new <interceptor.qualifiedName>(
             new <interceptor.concreteAnnotationQualifiedName>(
-                <interceptor.concreteAnnotationConstructorArgumentLiterals:generateConcreteAnnotationConstructor(); separator=", ">));
+                <interceptor.concreteAnnotationConstructorArgumentLiterals:query_generateConcreteAnnotationConstructor(); separator=", ">));
                 
 <else>
 <interceptor.qualifiedName> l<interceptor.simpleName> = 
@@ -76,31 +76,31 @@ l<interceptor.simpleName>.beforeQuery(contentProviderContext);
 
 
 
-populatePathContextPlaceholder(placeholder) ::= <%
+query_populatePathContextPlaceholder(placeholder) ::= <%
     contentProviderContext.placeholders.put("<placeholder.placeholderName>", pathSegments.get(<placeholder.keyName>));
 %>
 
 
 
 
-populateQueryContextPlaceholder(placeholder) ::= <%
+query_populateQueryContextPlaceholder(placeholder) ::= <%
     contentProviderContext.placeholders.put("<placeholder.placeholderName>", uri.getQueryParameter("<placeholder.keyName>"));
 %>
 
 
 
 
-generateQueryParameterIfStatement(queryParameterName) ::= <%
+query_generateQueryParameterIfStatement(queryParameterName) ::= <%
     uri.getQueryParameterNames().contains("<queryParameterName>")
 %>
 
 
 
 
-generateDelegateMethodCode(delegateUri) ::= <<
+query_generateDelegateMethodCode(delegateUri) ::= <<
 
 <if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
-if (<delegateUri.queryDelegateMethod.queryStringParameterNames:generateQueryParameterIfStatement(); separator=" && ">) {
+if (<delegateUri.queryDelegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 <endif>
                 
     <if(delegateUri.queryDelegateMethod.uriPlaceholders)>
@@ -110,12 +110,12 @@ if (<delegateUri.queryDelegateMethod.queryStringParameterNames:generateQueryPara
     contentProviderContext = new ContentProviderContext(context, uri, projection,
             selection, selectionArgs, sortOrder, null);
             
-    <delegateUri.queryDelegateMethod.queryStringPlaceholderParameters:populateQueryContextPlaceholder(); separator="\n">
-    <delegateUri.queryDelegateMethod.pathPlaceholderParameters:populatePathContextPlaceholder(); separator="\n">
+    <delegateUri.queryDelegateMethod.queryStringPlaceholderParameters:query_populateQueryContextPlaceholder(); separator="\n">
+    <delegateUri.queryDelegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
     
-    <delegateUri.queryDelegateMethod.beforeInterceptorList:generateBeforeMethodInterceptorInvocations(); separator="\n">
-    result = mDelegate.<delegateUri.queryDelegateMethod.name>(<delegateUri.queryDelegateMethod.parameters:generateDelegateMethodParameterList(); separator=", ">);
-    <delegateUri.queryDelegateMethod.afterInterceptorList:generateAfterMethodInterceptorInvocations(); separator="\n">
+    <delegateUri.queryDelegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
+    result = mDelegate.<delegateUri.queryDelegateMethod.name>(<delegateUri.queryDelegateMethod.parameters:query_generateDelegateMethodParameterList(); separator=", ">);
+    <delegateUri.queryDelegateMethod.afterInterceptorList:query_generateAfterMethodInterceptorInvocations(); separator="\n">
     
     return result;
 <if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
@@ -126,11 +126,11 @@ if (<delegateUri.queryDelegateMethod.queryStringParameterNames:generateQueryPara
 
 
 
-createCaseStatements(matcherUri) ::= <<
-<if(matcherUri.queryMethods)>
+query_createCaseStatements(matcherUri) ::= <<
+<if(matcherUri.queryDelegateUris)>
 case <matcherUri.id>:
 {
-    <matcherUri.delegateUris:generateDelegateMethodCode(); separator="\n">
+    <matcherUri.queryDelegateUris:query_generateDelegateMethodCode(); separator="\n">
 
 <if(matcherUri.queryStringMatchersOnly)>
     throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",
@@ -155,7 +155,7 @@ public Cursor query(Context context, Uri uri, String[] projection, String select
     Cursor result = null;
 
     switch (URI_MATCHER.match(uri)) {
-    <delegateClass.mactherUris:createCaseStatements(); separator="\n">
+    <delegateClass.mactherUris:query_createCaseStatements(); separator="\n">
     default:
         
         throw new IllegalArgumentException(String.format("Uri %s is not properly mapped in content provider delegate %s",

@@ -215,6 +215,55 @@ public class DelegateMethod {
      * <p/>
      * {@inheritDoc}
      * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mDelegateClass == null) ? 0 : mDelegateClass.hashCode());
+        result = prime * result + ((mName == null) ? 0 : mName.hashCode());
+        result = prime * result + ((mParameters == null) ? 0 : mParameters.hashCode());
+        return result;
+    }
+
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        DelegateMethod other = (DelegateMethod) obj;
+        if (mDelegateClass == null) {
+            if (other.mDelegateClass != null)
+                return false;
+        } else if (!mDelegateClass.equals(other.mDelegateClass))
+            return false;
+        if (mName == null) {
+            if (other.mName != null)
+                return false;
+        } else if (!mName.equals(other.mName))
+            return false;
+        if (mParameters == null) {
+            if (other.mParameters != null)
+                return false;
+        } else if (!mParameters.equals(other.mParameters))
+            return false;
+        return true;
+    }
+
+    /**
+     * <p/>
+     * {@inheritDoc}
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
