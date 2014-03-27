@@ -38,7 +38,7 @@ public class MatcherUri {
 		}
 
 		this.mAuthority = authority;
-		this.mPath = uri.getPath();
+		this.mPath = uri.getPath().replaceAll(LEADING_SLASH_REGEXP, "");
 	}
 
 	/**
