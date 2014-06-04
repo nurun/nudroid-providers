@@ -172,39 +172,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
     }
 
-    // TODO Check if RouterTemplate.vm can be cleaned up to be easier to understand
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
-
-        // Properties p = generateVelocityConfigurationProperties();
-        // Velocity.init(p);
-        // VelocityContext context = new VelocityContext();
-        // context.put("delegateClass", delegateClass);
-        // context.put("newline", "\n");
-        //
-        // Template template = null;
-        //
-        // try {
-        // template = Velocity.getTemplate(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
-        //
-        // JavaFileObject javaFile = null;
-        //
-        // if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
-        //
-        // javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
-        // } else {
-        //
-        // javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
-        // delegateClass.getRouterSimpleName()));
-        // }
-        //
-        // Writer writerContentUriRegistry = javaFile.openWriter();
-        //
-        // template.merge(context, writerContentUriRegistry);
-        // writerContentUriRegistry.close();
-        // } catch (Exception e) {
-        // mLogger.error(String.format("Error processing velocity script '%s': %s",
-        // CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
-        // }
 
         try {
             STGroupFile g = new STGroupFile(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
@@ -237,39 +205,6 @@ class SourceCodeGenerator {
 
     private void generateConcreteAnnotationSourceCode(InterceptorAnnotationBlueprint annotation) {
 
-        // Properties p = generateVelocityConfigurationProperties();
-        // Velocity.init(p);
-        // VelocityContext context = new VelocityContext();
-        // context.put("annotation", annotation);
-        // context.put("newline", "\n");
-        //
-        // Template template = null;
-        //
-        // try {
-        // template = Velocity.getTemplate(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
-        //
-        // JavaFileObject javaFile = null;
-        //
-        // if (StringUtils.isEmpty(annotation.getConcretePackageName())) {
-        //
-        // javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
-        // } else {
-        //
-        // javaFile = mFiler.createSourceFile(String.format("%s.%s", annotation.getConcretePackageName(),
-        // annotation.getConcreteClassName()));
-        // }
-        //
-        // Writer writerContentUriRegistry = javaFile.openWriter();
-        //
-        // template.merge(context, writerContentUriRegistry);
-        // writerContentUriRegistry.close();
-        // } catch (Exception e) {
-        // mLogger.error(String.format("Error processing velocity script '%s': %s",
-        // CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
-        // }
-        //
-        // mLogger.trace("    Generating concrete annotation " + annotation.getConcreteClassName());
-
         try {
             STGroupFile g = new STGroupFile(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
             ST st = g.getInstanceOf(CONCRETE_ANNOTATION_TEMPLATE_NAME);
@@ -298,13 +233,4 @@ class SourceCodeGenerator {
 
         mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
     }
-
-    // private Properties generateVelocityConfigurationProperties() {
-    //
-    // Properties p = new Properties();
-    // p.put("resource.loader", "classpath");
-    // p.put("classpath.resource.loader.description", "Velocity Classpath Resource Loader");
-    // p.put("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-    // return p;
-    // }
 }
