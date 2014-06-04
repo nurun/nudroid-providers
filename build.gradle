@@ -38,6 +38,17 @@ allprojects {
 }
 
 /*
+ * Disables the pesky javadoc warnings on Java 8.
+ */
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+/*
  * =================================================================================================================
  * Base configuration for all subprojects projects.
  */
@@ -202,5 +213,5 @@ project(':nudroid-annotations-processor-all') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.9'
+    gradleVersion = '1.12'
 }

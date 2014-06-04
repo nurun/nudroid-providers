@@ -93,19 +93,18 @@ class QueryAnnotationProcessor {
 
     /**
      * Process the {@link Query} annotations on this round.
-     *
-     * @param continuation
-     *         The continuation environment.
-     * @param roundEnv
+     *  @param roundEnv
      *         The round environment to process.
      * @param metadata
-     *         The annotation metadata for the processor.
      */
-    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
+    //TODO Bug on nudroid annotations: If a parameter is added to the method signature but it is not present in the queryString (and also check path) it throws a NullPointerException.
+    // TODO If using primitive type, (like long) app crashes when converting placeholders. See convert() on router for
+    // details (it only Checks Long not long).
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info("Start processing @Query annotations.");
 
-        Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Query.class, roundEnv);
+        Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Query.class);
 
         if (queryMethods.size() > 0) {
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",

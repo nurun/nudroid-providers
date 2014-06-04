@@ -29,7 +29,7 @@ package com.nudroid.annotation.processor;
  */
 public class AnnotationProcessorException extends RuntimeException {
 
-    private static final long serialVersionUID = 379279303608925588L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * @see Exception#Exception()
@@ -39,6 +39,9 @@ public class AnnotationProcessorException extends RuntimeException {
     }
 
     /**
+     * @param   message   the detail message. The detail message is saved for
+     *          later retrieval by the {@link #getMessage()} method.
+     *
      * @see Exception#Exception(String)
      */
     public AnnotationProcessorException(String message) {
@@ -46,6 +49,10 @@ public class AnnotationProcessorException extends RuntimeException {
     }
 
     /**
+     * @param  cause the cause (which is saved for later retrieval by the
+     *         {@link #getCause()} method).  (A <tt>null</tt> value is
+     *         permitted, and indicates that the cause is nonexistent or
+     *         unknown.)
      * @see Exception#Exception(Throwable)
      */
     public AnnotationProcessorException(Throwable cause) {
@@ -53,6 +60,13 @@ public class AnnotationProcessorException extends RuntimeException {
     }
 
     /**
+     * @param  message the detail message (which is saved for later retrieval
+     *         by the {@link #getMessage()} method).
+     * @param  cause the cause (which is saved for later retrieval by the
+     *         {@link #getCause()} method).  (A <tt>null</tt> value is
+     *         permitted, and indicates that the cause is nonexistent or
+     *         unknown.)
+     *
      * @see Exception#Exception(String, Throwable)
      */
     public AnnotationProcessorException(String message, Throwable cause) {

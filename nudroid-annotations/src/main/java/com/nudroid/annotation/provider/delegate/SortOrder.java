@@ -27,13 +27,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Flags which parameter from a content provider delegate method will be passed the sort order provided to the original
- * content provider method.
- * <p></p>
- * This annotation bears meaning only on {@link Query} annotated methods.
+ * <p>Flags which parameter from a content provider delegate method will be passed the sort order provided to the original
+ * content provider method.</p>
+ *
+ * <p>This annotation bears meaning only on {@link Query} annotated methods.</p>
  * 
- * <p></p>
- * Example usage:
+ * <p>Example usage:</p>
  * 
  * <pre>
  * import import android.net.Uri;

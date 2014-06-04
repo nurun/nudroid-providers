@@ -108,40 +108,9 @@ class SourceCodeGenerator {
         }
     }
 
+    //TODO Bug: If the delegate is named, say SampleContentProvider, the generated provider will have the same class
+    // name in same package, causing compilation errors. Make sure the generated classes are unique.
     private void generateContentProviderSourceCode(DelegateClass delegateClass) {
-
-        // Properties p = generateVelocityConfigurationProperties();
-        // Velocity.init(p);
-        // VelocityContext context = new VelocityContext();
-        // context.put("delegateClass", delegateClass);
-        // context.put("newline", "\n");
-        //
-        // Template template = null;
-        //
-        // try {
-        // template = Velocity.getTemplate(CONTENT_PROVIDER_TEMPLATE_LOCATION);
-        //
-        // JavaFileObject javaFile = null;
-        //
-        // if (StringUtils.isEmpty(delegateClass.getBasePackageName())) {
-        //
-        // javaFile = mFiler.createSourceFile(delegateClass.getContentProviderSimpleName());
-        // } else {
-        //
-        // javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
-        // delegateClass.getContentProviderSimpleName()));
-        // }
-        //
-        // Writer writerContentUriRegistry = javaFile.openWriter();
-        //
-        // template.merge(context, writerContentUriRegistry);
-        // writerContentUriRegistry.close();
-        // } catch (Exception e) {
-        // mLogger.error(String.format("Error processing velocity script '%s': %s",
-        // CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
-        // }
-        //
-        // mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
 
         try {
             STGroupFile g = new STGroupFile(CONTENT_PROVIDER_TEMPLATE_LOCATION);

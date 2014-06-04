@@ -38,6 +38,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
+import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 /**
  * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
@@ -58,32 +59,28 @@ class ContentProviderDelegateAnnotationProcessor {
     ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        this.mDelegateTypeName = com.nudroid.provider.delegate.ContentProviderDelegate.class.getName()
+        this.mDelegateTypeName = ContentProviderDelegate.class.getName()
                 .toString();
     }
 
     /**
-     * Process the {@link ContentProvider} annotations on this round.
+     * Process the {@link ContentProvider} annotations on an annotation processor round.
      *
-     * @param continuation
-     *         The continuation environment.
      * @param roundEnv
      *         The round environment to process.
      * @param metadata
-     *         The annotation metadata for the processor.
      */
-    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
 
-        Set<? extends Element> delegateClassTypes =
-                continuation.getElementsAnotatedWith(ContentProvider.class, roundEnv);
+        Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
 
         if (delegateClassTypes.size() > 0) {
             mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
                     ContentProvider.class.getSimpleName(), Joiner.on("\n        - ")
-                    .skipNulls()
-                    .join(delegateClassTypes)));
+                            .skipNulls()
+                            .join(delegateClassTypes)));
         }
 
         for (Element delegateClassType : delegateClassTypes) {
@@ -113,7 +110,7 @@ class ContentProviderDelegateAnnotationProcessor {
 
             mLogger.trace("        Class is abstract. Signaling compilatoin error.");
             mLogger.error(String.format("@%s annotations are only allowed on concrete classes",
-                            ContentProvider.class.getSimpleName()), delegateClassType);
+                    ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassIsTopLevelOrStatic(delegateClassType)) {

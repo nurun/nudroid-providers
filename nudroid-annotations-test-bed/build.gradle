@@ -1,0 +1,24 @@
+apply plugin: 'java'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+def aptOutputDir = project.file("${project.projectDir}/generated/src")
+
+dependencies {
+    compile project(':nudroid-annotations-processor-all')
+}
+
+compileJava.doFirst {
+    println "Creating " + aptOutputDir.getPath()
+    aptOutputDir.mkdirs()
+}
+
+compileJava {
+    options.compilerArgs = ['-s',  aptOutputDir.getPath(), "-Acom.nudroid.annotation.processor.log.level=TRACE",
+                            "-proc:only"]
+}

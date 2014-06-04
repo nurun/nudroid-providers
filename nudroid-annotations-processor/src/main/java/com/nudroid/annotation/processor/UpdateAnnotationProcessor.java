@@ -71,19 +71,15 @@ class UpdateAnnotationProcessor {
 
     /**
      * Process the {@link Update} annotations on this round.
-     *
-     * @param continuation
-     *         The continuation environment.
-     * @param roundEnv
+     *  @param roundEnv
      *         The round environment to process.
      * @param metadata
-     *         The annotation metadata for the processor.
      */
-    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info("Start processing @Update annotations.");
 
-        Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Update.class, roundEnv);
+        Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Update.class);
 
         if (queryMethods.size() > 0) {
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",

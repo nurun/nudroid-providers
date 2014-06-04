@@ -294,7 +294,7 @@ public class DelegateClass {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#hashCode()
      */
@@ -307,7 +307,7 @@ public class DelegateClass {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */

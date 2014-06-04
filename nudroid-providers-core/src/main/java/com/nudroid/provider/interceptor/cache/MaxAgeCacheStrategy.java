@@ -62,7 +62,6 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
     /**
      * Checks the current time and calculates the cache age. If age is greater than the provided max age (in the
      * appropriate time unit) the cache is deemed stale.
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see CachingStrategy#isUpToDate(ContentProviderContext, String)
@@ -82,7 +81,6 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
 
     /**
      * Stores the new version date of the cache.
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see CachingStrategy#cacheUpdateFinished(ContentProviderContext, String, boolean)

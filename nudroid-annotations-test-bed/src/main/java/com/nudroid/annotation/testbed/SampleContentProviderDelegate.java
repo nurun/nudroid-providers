@@ -20,41 +20,23 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.annotation.provider.delegate;
+package com.nudroid.annotation.testbed;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+import android.database.Cursor;
+
+import com.nudroid.annotation.provider.delegate.ContentProvider;
+import com.nudroid.annotation.provider.delegate.Query;
+import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
- * <p>Flags which parameter from a content provider delegate method will be passed the reference for the Uri provided to
- * the original content provider method.</p>
- *
- * <p>This annotation bears meaning only on {@link Query}, {@link Update}, {@link Insert} or {@link Delete} annotated
- * methods.</p>
- *
- * <p>Example usage:</p>
- *
- * <pre>
- * import import android.net.Uri;
- *
- * &#064;Query(&quot;/users&quot;)
- * public Cursor listUsers(@ContentUri Uri uriPassedToTheQueryMethodInTheContentProvider) {
- *
- *     ...
- * }
- *
- * &#064;Update(&quot;/users&quot;)
- * public int updateUser(@ContentUri Uri uriPassedToTheUpdateMethodInTheContentProvider, ...) {
- *
- *     ...
- * }
- * </pre>
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * A sample delegate to test the annotation processor.
  */
-@Target({ElementType.PARAMETER})
-@Documented
-public @interface ContentUri {
+@ContentProvider(authority = "com.nudroid.samples")
+public class SampleContentProviderDelegate {
 
+    @Query("factions?name={name}")
+    public Cursor findFactionByName(@UriPlaceholder("name") String name) {
+
+        return null;
+    }
 }

@@ -290,7 +290,7 @@ public class Parameter {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#toString()
      */

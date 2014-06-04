@@ -27,13 +27,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Flags which parameter from a content provider delegate method will be passed the reference for the ContentValues
- * instance provided to the original content provider method.
- * <p></p>
- * This annotation bears meaning only on {@link Update} or {@link Insert} annotated methods.
+ * <p>Flags which parameter from a content provider delegate method will be passed the reference for the ContentValues
+ * instance provided to the original content provider method.</p>
+ *
+ * <p>This annotation bears meaning only on {@link Update} or {@link Insert} annotated methods.</p>
  * 
- * <p></p>
- * Example usage:
+ * <p>Example usage:</p>
  * 
  * <pre>
  * import android.content.ContentValues;

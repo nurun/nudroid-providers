@@ -27,11 +27,11 @@ import javax.lang.model.element.Element;
 import javax.tools.Diagnostic.Kind;
 
 /**
- * Utility class for logging messages while processing the annotations. To be compatible with IDEs, messages are logged
+ * <p>Utility class for logging messages while processing the annotations. To be compatible with IDEs, messages are logged
  * using the annotation processor's {@link Messager} object. This logging utility supports the standard logging levels,
- * TRACE, DEBUG, INFO, WARN and ERROR, which can be configured as it would be expected from any logging framework.
- * <p></p> The TRACE, DEBUG and INFO levels are logged as a compiler {@link Kind#NOTE}. The WARN level is logged as a
- * {@link Kind#WARNING} and the ERROR level as a {@link Kind#ERROR}.
+ * TRACE, DEBUG, INFO, WARN and ERROR, which can be configured as it would be expected from any logging framework.</p>
+ * <p> The TRACE, DEBUG and INFO levels are logged as a compiler {@link Kind#NOTE}. The WARN level is logged as a
+ * {@link Kind#WARNING} and the ERROR level as a {@link Kind#ERROR}.</p>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

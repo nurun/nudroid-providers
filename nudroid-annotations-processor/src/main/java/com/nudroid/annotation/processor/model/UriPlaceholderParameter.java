@@ -87,7 +87,7 @@ class UriPlaceholderParameter {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#hashCode()
      */
@@ -101,7 +101,7 @@ class UriPlaceholderParameter {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -119,7 +119,7 @@ class UriPlaceholderParameter {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#toString()
      */

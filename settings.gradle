@@ -20,5 +20,6 @@
  * THE SOFTWARE.
  */
 
-include 'nudroid-annotations', 'nudroid-providers-core', 'nudroid-annotations-processor', 'nudroid-annotations-processor-all'
-rootProject.name = 'nudroid'
+include 'nudroid-annotations', 'nudroid-providers-core', 'nudroid-annotations-processor',
+        'nudroid-annotations-processor-all', 'nudroid-annotations-test-bed'
+

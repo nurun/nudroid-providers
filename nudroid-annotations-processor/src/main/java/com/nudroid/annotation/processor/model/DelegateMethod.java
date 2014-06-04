@@ -36,8 +36,10 @@ import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Update;
 
 /**
- * Holds information about the delegate method for a content provider. <p></p> Delegate methods are methods annotated
- * with one of the delegate annotations: {@link Query}, {@link Update}, {@link Insert}, or {@link Delete}.
+ * <p>Holds information about the delegate method for a content provider.</p>
+ *
+ * <p>Delegate methods are methods annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link
+ * Insert}, or {@link Delete}.</p>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -233,7 +235,7 @@ public class DelegateMethod {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#hashCode()
      */
@@ -248,7 +250,7 @@ public class DelegateMethod {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -271,7 +273,7 @@ public class DelegateMethod {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#toString()
      */

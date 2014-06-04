@@ -280,7 +280,7 @@ public class MatcherUri {
     }
 
     /**
-     * <p></p> {@inheritDoc}
+     * {@inheritDoc}
      *
      * @see java.lang.Object#toString()
      */

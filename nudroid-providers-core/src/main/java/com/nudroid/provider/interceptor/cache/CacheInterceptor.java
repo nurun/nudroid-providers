@@ -38,48 +38,49 @@ import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
 
 /**
- * A content provider delegate interceptor which validates persisted data against staleness and updates the data if it
- * is deemed stale before proceeding with the request.
- * <p></p>
- * Staleness is determined according to a caching strategy that is to be provided by subclasses. See
- * {@link CacheInterceptor#onCreateCachingStrategy(ContentProviderContext)} for more details.
- * <p></p>
- * Synchronization is provided by a synchronization strategy that is to be provided by subclasses. See
- * {@link CacheInterceptor#onCreateSynchronizationStrategy(ContentProviderContext)} for more details.
- * <p></p>
- * If the cache is deemed stale by the caching strategy, the synchronizer will be invoked to synchronize the data. All
+ * <p>A content provider delegate interceptor which validates persisted data against staleness and updates the data if it
+ * is deemed stale before proceeding with the request.</p>
+ *
+ * <p>Staleness is determined according to a caching strategy that is to be provided by subclasses. See
+ * {@link CacheInterceptor#onCreateCachingStrategy(ContentProviderContext)} for more details.</p>
+ *
+ * <p>Synchronization is provided by a synchronization strategy that is to be provided by subclasses. See
+ * {@link CacheInterceptor#onCreateSynchronizationStrategy(ContentProviderContext)} for more details.</p>
+ *
+ * <p>If the cache is deemed stale by the caching strategy, the synchronizer will be invoked to synchronize the data. All
  * of it happens before the underlying storage is accessed by the content provider so the synchronizer has a chance to
- * download or update the data in the persistent storage before the content provider can access it.
- * <p></p>
- * Applying a cache interceptor to a content provider delegate follows the normal rules for provider interceptors.
+ * download or update the data in the persistent storage before the content provider can access it.</p>
+ *
+ * <p>Applying a cache interceptor to a content provider delegate follows the normal rules for provider interceptors.
  * Subclasses must include an annotation annotated with ProviderInterceptorPoint which is in turn applied to
  * specific provider delegate methods. Subclasses provide the caching and synchronization strategy to be used and this
- * class takes care of orchestrating the process.
- * <p></p>
+ * class takes care of orchestrating the process.</p>
+
  * <h1>Pagination</h1>
- * <p></p>
- * Cache interceptors supports pagination of content. If 'com.nudroid.provider.interceptor.cache.pagination' is passed
+ *
+ * <p>Cache interceptors supports pagination of content. If 'com.nudroid.provider.interceptor.cache.pagination' is passed
  * as a query string parameter in the content URI with a value of ALL or NEXT, the method
  * {@link SynchronizationStrategy#downloadPage(ContentProviderContext, String, int)} will be invoked instead. The page
  * number to download will be passed as a parameter and it is an abstraction of the page to download. It will be an
- * incremental integer number. The semantics of page download must be handled by synchronization strategy.
- * <p></p>
- * ***NOTE: *** Page numbers are tracked by cache id. Each cache id has it's own track of downloaded pages. When using
+ * incremental integer number. The semantics of page download must be handled by synchronization strategy.</p>
+ *
+ * <p>***NOTE: *** Page numbers are tracked by cache id. Each cache id has it's own track of downloaded pages. When using
  * pagination, care must be taken when selecting cache ids least a request ends up using pagination information from
- * another URL. The auto assigned cache id (which resolves to the qualified remote url) should be good for most cases.
- * <p></p>
- * A value of ALL for pagination will validate the cache using the caching strategy and if the cache is stale the
+ * another URL. The auto assigned cache id (which resolves to the qualified remote url) should be good for most cases
+ * .</p>
+ *
+ * <p>A value of ALL for pagination will validate the cache using the caching strategy and if the cache is stale the
  * download of the first page will be initiated. If cache is up to date, the synchronizatoin is not invoked and the
  * content provider will access whatever data has already been downloaded. This scenario should be used when accessing
  * an activity for the first time so either the first page is downloaded or cahced content is imediatelly served. As the
  * user scrolls to the end of the content (most probably on a list or grid view) requests can be sent with a value of
- * NEXT. This will request the synchronizer to download the next page of data.
- * <p></p>
- * A value of NEXT never triggers a cache validation.
- * <p></p>
+ * NEXT. This will request the synchronizer to download the next page of data.</p>
+ *
+ * <p>A value of NEXT never triggers a cache validation.</p>
+ *
  * <h1>Example</h1>
- * <p></p>
- * Here's an example of a caching interceptor.
+ *
+ * <p>Here's an example of a caching interceptor.</p>
  * 
  * <pre>
  * package com.example.test_anotations.vision.custom;
@@ -168,7 +169,7 @@ import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
  * }
  * </pre>
  * 
- * And how it can be applied to a provider delegate:
+ * <p>And how it can be applied to a provider delegate:</p>
  * 
  * <pre>
  * &#064;UserFavoritesCacheInterceptor.Annotation(
@@ -260,7 +261,6 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
     }
 
     /**
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see ContentProviderInterceptor#onCreate(ContentProviderContext)
@@ -273,13 +273,17 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * Called when the cache interceptor is being created to provide the strategy to use.
-     * 
+     *
+     * @param context A reference to the content provider context
+     *
      * @return The caching strategy to use for synchronizing the cache for this request.
      */
     public abstract SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context);
 
     /**
      * Called when the cache interceptor is being created to provide the strategy to use.
+     *
+     * @param context A reference to the content provider context
      * 
      * @return The caching strategy to use for verifying the cache for this request.
      */
@@ -289,8 +293,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
      * Gets the remote url to use. By default, returns the remote url passed in the constructor but can be overridden to
      * return something else.
      * 
-     * @param context
-     *            a reference to the content provider delegate context for this request.
+     * @param context A reference to the content provider context
      * 
      * @return The remote url to use for synchronization.
      */
@@ -303,8 +306,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
      * Gets the cache id to use. By default, returns the cache id passed in the constructor but can be overridden to
      * return something else.
      * 
-     * @param context
-     *            a reference to the content provider delegate context for this request.
+     * @param context A reference to the content provider context
      * 
      * @return The cache id to use for synchronization.
      */
@@ -315,7 +317,6 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * Orchestrates the logic for checking and updating the cache.
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see GenericContentProviderInterceptor#before(ContentProviderContext)
@@ -461,7 +462,6 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * No-op. There's nothing to do after the content provider gets the results.
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see GenericContentProviderInterceptor#after(ContentProviderContext, Object)

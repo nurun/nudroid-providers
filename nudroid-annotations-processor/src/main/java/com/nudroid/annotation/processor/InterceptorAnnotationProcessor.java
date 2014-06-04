@@ -22,6 +22,13 @@
 
 package com.nudroid.annotation.processor;
 
+import com.google.common.base.Joiner;
+import com.nudroid.annotation.processor.model.AnnotationAttribute;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
+import com.nudroid.annotation.provider.delegate.Query;
+import com.nudroid.provider.interceptor.ContentProviderInterceptor;
+import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,13 +41,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-
-import com.google.common.base.Joiner;
-import com.nudroid.annotation.processor.model.AnnotationAttribute;
-import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
-import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.provider.interceptor.ContentProviderInterceptor;
-import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 
 /**
  * Add validation to interceptor constructors. <br/> Processes @{@link ProviderInterceptorPoint} annotations.
@@ -73,22 +73,20 @@ class InterceptorAnnotationProcessor {
      *         The round environment to process.
      * @param metadata
      *         The annotation metadata for the processor.
-     * @param continuation
-     *         The continuation object for this processor.
      */
-    void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info(
                 String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
 
-        Set<? extends Element> interceptorAnnotations =
-                continuation.getElementsAnotatedWith(ProviderInterceptorPoint.class, roundEnv);
+        Set<? extends Element> interceptorAnnotations = roundEnv.getElementsAnnotatedWith(ProviderInterceptorPoint
+                .class);
 
         if (interceptorAnnotations.size() > 0) {
             mLogger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
                     ProviderInterceptorPoint.class.getSimpleName(), Joiner.on("\n        - ")
-                    .skipNulls()
-                    .join(interceptorAnnotations)));
+                            .skipNulls()
+                            .join(interceptorAnnotations)));
         }
 
         for (Element interceptorAnnotation : interceptorAnnotations) {
@@ -113,8 +111,6 @@ class InterceptorAnnotationProcessor {
                             ContentProviderInterceptor.class.getName()), interceptorAnnotation);
                     continue;
                 }
-
-                continuation.addTypeToContinuation((TypeElement) interceptorAnnotation);
 
                 createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
 

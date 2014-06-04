@@ -115,8 +115,6 @@ public class ContentProviderContext {
     }
 
     /**
-     * 
-     * <p></p>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#toString()
