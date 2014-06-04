@@ -39,7 +39,7 @@ import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 
 /**
  * Generates the source code for the content provider delegates based on the gathered metadata.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class SourceCodeGenerator {
@@ -48,18 +48,21 @@ class SourceCodeGenerator {
     private LoggingUtils mLogger;
     private Filer mFiler;
 
-    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/RouterTemplate.stg";
+    private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION =
+            "com/nudroid/annotation/processor/RouterTemplate.stg";
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_NAME = "RouterTemplate";
-    private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ContentProviderTemplate.stg";
+    private static final String CONTENT_PROVIDER_TEMPLATE_LOCATION =
+            "com/nudroid/annotation/processor/ContentProviderTemplate.stg";
     private static final String CONTENT_PROVIDER_TEMPLATE_NAME = "ContentProviderTemplate";
-    private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION = "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
+    private static final String CONCRETE_ANNOTATION_TEMPLATE_LOCATION =
+            "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
     private static final String CONCRETE_ANNOTATION_TEMPLATE_NAME = "ConcreteAnnotationTemplate";
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The processor context parameter object.
+     *         The processor context parameter object.
      */
     SourceCodeGenerator(ProcessorContext processorContext) {
 
@@ -71,11 +74,9 @@ class SourceCodeGenerator {
     /**
      * Generates the source code based on the gathered metadata. This method will generate the ContentUri registry and
      * the delegate classes.
-     * 
-     * @param continuation
-     * 
+     *
      * @param metadata
-     *            The metadata object containing the information gathered during the processor phase.
+     *         The metadata object containing the information gathered during the processor phase.
      */
     void generateCompanionSourceCode(Metadata metadata) {
 
@@ -92,13 +93,13 @@ class SourceCodeGenerator {
             mLogger.trace("Done generating source code for class " + delegateClass.getTypeElement());
         }
 
-        Set<InterceptorAnnotationBlueprint> concreteAnnotations = new HashSet<InterceptorAnnotationBlueprint>(
-                metadata.getInterceptorBlueprintsForRound());
+        Set<InterceptorAnnotationBlueprint> concreteAnnotations =
+                new HashSet<InterceptorAnnotationBlueprint>(metadata.getInterceptorBlueprintsForRound());
 
         for (InterceptorAnnotationBlueprint annotation : concreteAnnotations) {
 
-            mLogger.trace(String.format("Generating concrete annotation class %s.",
-                    annotation.getAnnotationQualifiedName()));
+            mLogger.trace(
+                    String.format("Generating concrete annotation class %s.", annotation.getAnnotationQualifiedName()));
             generateConcreteAnnotationSourceCode(annotation);
             metadata.popInterceptorBlueprint(annotation);
             mLogger.trace(String.format("Done generating concrete annotation class %s.",
@@ -163,8 +164,9 @@ class SourceCodeGenerator {
             writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
-            mLogger.error(String.format("Error processing velocity script '%s': %s",
-                    CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
+            mLogger.error(
+                    String.format("Error processing velocity script '%s': %s", CONCRETE_ANNOTATION_TEMPLATE_LOCATION,
+                            e));
         }
 
         mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
@@ -281,16 +283,17 @@ class SourceCodeGenerator {
                 javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
             } else {
 
-                javaFile = mFiler.createSourceFile(String.format("%s.%s", annotation.getConcretePackageName(),
-                        annotation.getConcreteClassName()));
+                javaFile = mFiler.createSourceFile(
+                        String.format("%s.%s", annotation.getConcretePackageName(), annotation.getConcreteClassName()));
             }
 
             Writer writerContentUriRegistry = javaFile.openWriter();
             writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
-            mLogger.error(String.format("Error processing velocity script '%s': %s",
-                    CONCRETE_ANNOTATION_TEMPLATE_LOCATION, e));
+            mLogger.error(
+                    String.format("Error processing velocity script '%s': %s", CONCRETE_ANNOTATION_TEMPLATE_LOCATION,
+                            e));
         }
 
         mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());

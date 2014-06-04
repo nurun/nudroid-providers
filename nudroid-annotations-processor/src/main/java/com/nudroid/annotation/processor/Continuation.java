@@ -36,13 +36,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 /**
- * Update continuation to all processed types. <br/>
- * Manages continuation of incremental compilation. On modern IDEs, compilation can be incremental (i.e. only the
- * modified classes are compiled on a round). Since the processor requires metadata extracted from other source files,
- * which might not be included in a particular compilation round on an IDE, not all information might be available to
- * Nudroid's annotation processor. This continuation utility class manages a store of processed elements from past
- * compilations.
- * 
+ * Update continuation to all processed types. <br/> Manages continuation of incremental compilation. On modern IDEs,
+ * compilation can be incremental (i.e. only the modified classes are compiled on a round). Since the processor requires
+ * metadata extracted from other source files, which might not be included in a particular compilation round on an IDE,
+ * not all information might be available to Nudroid's annotation processor. This continuation utility class manages a
+ * store of processed elements from past compilations.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class Continuation {
@@ -56,9 +55,9 @@ class Continuation {
 
     /**
      * Creates a new continuation.
-     * 
+     *
      * @param continuationFile
-     *            The path for the continuation file.
+     *         The path for the continuation file.
      */
     Continuation(ProcessorContext processorContext, String continuationFile) {
 
@@ -85,8 +84,8 @@ class Continuation {
 
         if (!mContinuationFile.exists()) {
 
-            mLogger.debug(String
-                    .format("Continuation file not found. First compilation interation.", mContinuationFile));
+            mLogger.debug(
+                    String.format("Continuation file not found. First compilation interation.", mContinuationFile));
             return;
         }
 
@@ -106,7 +105,8 @@ class Continuation {
 
                 if (typeElement != null) {
 
-                    mLogger.trace(String.format("    Type %s was found and added to continuation configuration.", line));
+                    mLogger.trace(
+                            String.format("    Type %s was found and added to continuation configuration.", line));
                     mContinuationTypes.add(typeElement);
                     mContinuationTypesStack.add(typeElement);
                 } else {
@@ -149,8 +149,8 @@ class Continuation {
 
                 if (!wasDeleted) {
 
-                    throw new IOException(String.format("Unable to delete existing continuation file '%s'",
-                            mContinuationFile));
+                    throw new IOException(
+                            String.format("Unable to delete existing continuation file '%s'", mContinuationFile));
                 }
 
                 mLogger.trace("    File existed and has been successfully deleted.");
@@ -159,7 +159,8 @@ class Continuation {
             if (mContinuationFile.getParentFile() != null) {
 
                 mLogger.trace("    Creating continuation file parent dirs.");
-                mContinuationFile.getParentFile().mkdirs();
+                mContinuationFile.getParentFile()
+                        .mkdirs();
                 mLogger.trace("    Done.");
             }
 
@@ -187,9 +188,9 @@ class Continuation {
 
     /**
      * Adds a {@link TypeElement} to this continuation environment.
-     * 
+     *
      * @param typeElement
-     *            The type element to add.
+     *         The type element to add.
      */
     void addTypeToContinuation(TypeElement typeElement) {
 
@@ -200,17 +201,17 @@ class Continuation {
     /**
      * Looks for elements annotated with the given annotation on the {@link RoundEnvironment} as well as the
      * continuation information.
-     * 
+     *
      * @param annotationClass
-     *            The class type of the annotation to check.
+     *         The class type of the annotation to check.
      * @param roundEnv
-     *            The {@link RoundEnvironment} for the round.
-     * 
+     *         The {@link RoundEnvironment} for the round.
+     *
      * @return The set of elements from the round environment as well as the continuation environment annotated with the
-     *         given annotation class.
+     * given annotation class.
      */
     Set<? extends Element> getElementsAnotatedWith(Class<? extends Annotation> annotationClass,
-            RoundEnvironment roundEnv) {
+                                                   RoundEnvironment roundEnv) {
 
         Set<Element> annotatedElementsForRound = new HashSet<Element>();
 
@@ -243,8 +244,8 @@ class Continuation {
                 Annotation annotation = continuationClass.getAnnotation(annotationClass);
 
                 if (annotation != null) {
-                    mLogger.trace(String.format("    Type %s was not part of round environment information but was"
-                            + " present in the continuation configuration. Adding to set of target elements.",
+                    mLogger.trace(String.format("    Type %s was not part of round environment information but was" +
+                                    " present in the continuation configuration. Adding to set of target elements.",
                             continuationClass));
                     annotatedElementsForRound.add(continuationClass);
                 }

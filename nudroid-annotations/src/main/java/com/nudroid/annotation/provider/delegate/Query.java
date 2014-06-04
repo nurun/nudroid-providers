@@ -28,10 +28,10 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a method responsible for handling a query operation sent to a content provider.
- * <p/>
+ * <p></p>
  * 
  * Methods annotated with Query must return a Cursor (or null) object.
- * <p/>
+ * <p></p>
  * 
  * Example usage:
  * 

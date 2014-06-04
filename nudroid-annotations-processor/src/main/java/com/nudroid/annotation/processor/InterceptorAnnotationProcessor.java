@@ -43,9 +43,8 @@ import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 
 /**
- * Add validation to interceptor constructors. <br/>
- * Processes @{@link ProviderInterceptorPoint} annotations.
- * 
+ * Add validation to interceptor constructors. <br/> Processes @{@link ProviderInterceptorPoint} annotations.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class InterceptorAnnotationProcessor {
@@ -56,9 +55,9 @@ class InterceptorAnnotationProcessor {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The processor context parameter object.
+     *         The processor context parameter object.
      */
     InterceptorAnnotationProcessor(ProcessorContext processorContext) {
 
@@ -69,25 +68,27 @@ class InterceptorAnnotationProcessor {
 
     /**
      * Process the {@link Query} annotations on this round.
-     * 
+     *
      * @param roundEnv
-     *            The round environment to process.
+     *         The round environment to process.
      * @param metadata
-     *            The annotation metadata for the processor.
+     *         The annotation metadata for the processor.
      * @param continuation
-     *            The continuation object for this processor.
+     *         The continuation object for this processor.
      */
     void process(RoundEnvironment roundEnv, Metadata metadata, Continuation continuation) {
 
-        mLogger.info(String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
+        mLogger.info(
+                String.format("Start processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
 
-        Set<? extends Element> interceptorAnnotations = continuation.getElementsAnotatedWith(
-                ProviderInterceptorPoint.class, roundEnv);
+        Set<? extends Element> interceptorAnnotations =
+                continuation.getElementsAnotatedWith(ProviderInterceptorPoint.class, roundEnv);
 
         if (interceptorAnnotations.size() > 0) {
             mLogger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
-                    ProviderInterceptorPoint.class.getSimpleName(),
-                    Joiner.on("\n        - ").skipNulls().join(interceptorAnnotations)));
+                    ProviderInterceptorPoint.class.getSimpleName(), Joiner.on("\n        - ")
+                    .skipNulls()
+                    .join(interceptorAnnotations)));
         }
 
         for (Element interceptorAnnotation : interceptorAnnotations) {
@@ -105,7 +106,8 @@ class InterceptorAnnotationProcessor {
                 }
 
                 if (!mTypeUtils.isAssignable(interceptorClass.asType(),
-                        mElementUtils.getTypeElement(ContentProviderInterceptor.class.getName()).asType())) {
+                        mElementUtils.getTypeElement(ContentProviderInterceptor.class.getName())
+                                .asType())) {
 
                     mLogger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
                             ContentProviderInterceptor.class.getName()), interceptorAnnotation);
@@ -116,27 +118,32 @@ class InterceptorAnnotationProcessor {
 
                 createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
 
-                mLogger.trace(String
-                        .format("    Interceptor class for %s: %s", interceptorAnnotation, interceptorClass));
+                mLogger.trace(
+                        String.format("    Interceptor class for %s: %s", interceptorAnnotation, interceptorClass));
             }
         }
 
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
     }
 
-    private InterceptorAnnotationBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
+    private InterceptorAnnotationBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation,
+                                                                            Metadata metadata) {
 
         if (interceptorAnnotation instanceof TypeElement) {
 
-            InterceptorAnnotationBlueprint annotation = new InterceptorAnnotationBlueprint((TypeElement) interceptorAnnotation);
+            InterceptorAnnotationBlueprint annotation =
+                    new InterceptorAnnotationBlueprint((TypeElement) interceptorAnnotation);
 
-            final List<? extends Element> enclosedElements = new ArrayList<Element>(
-                    interceptorAnnotation.getEnclosedElements());
+            final List<? extends Element> enclosedElements =
+                    new ArrayList<Element>(interceptorAnnotation.getEnclosedElements());
             Collections.sort(enclosedElements, new Comparator<Element>() {
 
                 @Override
                 public int compare(Element o1, Element o2) {
-                    return o1.getSimpleName().toString().compareTo(o2.getSimpleName().toString());
+                    return o1.getSimpleName()
+                            .toString()
+                            .compareTo(o2.getSimpleName()
+                                    .toString());
                 }
             });
 

@@ -36,7 +36,7 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
 /**
  * A uniquely mapped URI tied to a delegate method. This class extends the concept of a {@link MatcherUri} by adding
  * relevance to query string parameters.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DelegateUri {
@@ -66,19 +66,19 @@ public class DelegateUri {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param matcherUri
-     *            The matcher uri this delegate uri is associated with.
+     *         The matcher uri this delegate uri is associated with.
      * @param pathAndQuery
-     *            The path and optional query string this delegate URI must handle.
+     *         The path and optional query string this delegate URI must handle.
      */
     public DelegateUri(MatcherUri matcherUri, String pathAndQuery) {
 
         this.mOriginalPathAndQuery = pathAndQuery;
 
         parsePlaceholders(pathAndQuery);
-        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, PLACEHOLDER_WILDCARD).replaceAll(
-                LEADING_SLASH, EMPTY_STRING);
+        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, PLACEHOLDER_WILDCARD)
+                .replaceAll(LEADING_SLASH, EMPTY_STRING);
         URI uri;
 
         try {
@@ -96,7 +96,7 @@ public class DelegateUri {
      * Gets the path portion of this URI. The path will already be normalized for a <a
      * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a> (i.e. placeholder
      * names will be replaced by '*').
-     * 
+     *
      * @return The normalized path for this URI.
      */
     public String getNormalizedPath() {
@@ -105,12 +105,12 @@ public class DelegateUri {
 
     /**
      * Checks if this URI has the specified placeholder name.
-     * 
+     *
      * @param parameterName
-     *            The name of the placeholder to check.
-     * 
+     *         The name of the placeholder to check.
+     *
      * @return <tt>true</tt> if this URI has a path or query string placeholder named as parameterName, <tt>false</tt>
-     *         otherwise.
+     * otherwise.
      */
     public boolean containsPlaceholder(String parameterName) {
 
@@ -119,13 +119,13 @@ public class DelegateUri {
 
     /**
      * Gets a string representation of the position this named parameter appears in this URI's path and query string.
-     * 
+     *
      * @param name
-     *            The name of the path placeholder to check.
-     * 
+     *         The name of the path placeholder to check.
+     *
      * @return The position this named parameter appears in this URI's path. Will return a position for a path
-     *         placeholder or a name for a query string placeholder. Returns <tt>null</tt> if the path does not contain
-     *         the named placeholder.
+     * placeholder or a name for a query string placeholder. Returns <tt>null</tt> if the path does not contain the
+     * named placeholder.
      */
     public String getParameterPosition(String name) {
 
@@ -136,7 +136,7 @@ public class DelegateUri {
 
     /**
      * Gets the map o query string parameter names and their values for this URI.
-     * 
+     *
      * @return The map o query string parameter names and values for this URI.
      */
     public Map<String, String> getQueryParameterNamesAndValues() {
@@ -146,7 +146,7 @@ public class DelegateUri {
 
     /**
      * Gets the amount of query string parameters in this URI.
-     * 
+     *
      * @return The number of query string parameters in this URI.
      */
     public int getQueryStringParameterCount() {
@@ -156,20 +156,21 @@ public class DelegateUri {
 
     /**
      * Gets the placeholder type associated with the given placeholder name.
-     * 
+     *
      * @param placeholderName
-     *            The name of the placeholder.
-     * 
+     *         The name of the placeholder.
+     *
      * @return The type of placeholder associated to the given placeholder name.
      */
     public UriPlaceholderType getUriPlaceholderType(String placeholderName) {
 
-        return mPlaceholders.get(placeholderName).getUriPlaceholderType();
+        return mPlaceholders.get(placeholderName)
+                .getUriPlaceholderType();
     }
 
     /**
      * Gets the delegate method for a query operation.
-     * 
+     *
      * @return The DelegateMethod for the query operation or null if this URI does not respond to query requests.
      */
     public DelegateMethod getQueryDelegateMethod() {
@@ -179,7 +180,7 @@ public class DelegateUri {
 
     /**
      * Gets the delegate method for an update operation.
-     * 
+     *
      * @return The DelegateMethod for the update operation or null if this URI does not respond to query requests.
      */
     public DelegateMethod getUpdateDelegateMethod() {
@@ -190,17 +191,18 @@ public class DelegateUri {
     /**
      * Creates a new DelegateMethod instance and registers it as a query delegate. Overrides any previously set query
      * DelegateMethod for this URI.
-     * 
+     *
      * @param queryMethod
-     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
-     *            URI.
-     * 
+     *         The ExecutableElement for the method in the delegate class which will answer for queries against this
+     *         URI.
+     *
      * @return The newly create and registered query DelegateMethod.
      */
     public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
 
         DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
-        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
+        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues()
+                .keySet());
 
         mQueryDelegateMethod = delegateMethod;
 
@@ -210,17 +212,18 @@ public class DelegateUri {
     /**
      * Creates a new DelegateMethod instance and registers it as an update delegate. Overrides any previously set update
      * DelegateMethod for this URI.
-     * 
+     *
      * @param updateMethod
-     *            The ExecutableElement for the method in the delegate class which will answer for queries against this
-     *            URI.
-     * 
+     *         The ExecutableElement for the method in the delegate class which will answer for queries against this
+     *         URI.
+     *
      * @return The newly create and registered update DelegateMethod.
      */
     public DelegateMethod setUpdateDelegateMethod(ExecutableElement updateMethod) {
 
         DelegateMethod delegateMethod = new DelegateMethod(updateMethod, this);
-        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues().keySet());
+        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues()
+                .keySet());
 
         mUpdateDelegateMethod = delegateMethod;
 
@@ -229,9 +232,9 @@ public class DelegateUri {
 
     /**
      * Parses the path and query string and finds placeholders.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query string to parse.
+     *         The path and query string to parse.
      */
     private void parsePlaceholders(String pathAndQuery) {
 
@@ -278,8 +281,9 @@ public class DelegateUri {
 
                 if (nameAndValue.length != 2) {
 
-                    throw new IllegalUriPathException(String.format("Segment '%s' on path %s is invalid.",
-                            queryVars[position], mOriginalPathAndQuery));
+                    throw new IllegalUriPathException(
+                            String.format("Segment '%s' on path %s is invalid.", queryVars[position],
+                                    mOriginalPathAndQuery));
                 }
 
                 Matcher m = placeholderPattern.matcher(nameAndValue[1]);
@@ -300,8 +304,8 @@ public class DelegateUri {
 
         if (mPlaceholders.containsKey(placeholderName)) {
 
-            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName).getKey(),
-                    Integer.toString(position));
+            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName)
+                    .getKey(), Integer.toString(position));
         }
 
         UriPlaceholderParameter pathPlaceholder = new UriPlaceholderParameter(placeholderName, position);
@@ -312,8 +316,8 @@ public class DelegateUri {
 
         if (mPlaceholders.containsKey(placeholderName)) {
 
-            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName).getKey(),
-                    queryParameterName);
+            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName)
+                    .getKey(), queryParameterName);
         }
 
         UriPlaceholderParameter queryPlaceholder = new UriPlaceholderParameter(placeholderName, queryParameterName);
@@ -327,54 +331,39 @@ public class DelegateUri {
         result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
         result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
         result = prime * result + ((mQueryDelegateMethod == null) ? 0 : mQueryDelegateMethod.hashCode());
-        result = prime * result
-                + ((mQueryStringParameterNamesAndValues == null) ? 0 : mQueryStringParameterNamesAndValues.hashCode());
+        result = prime * result +
+                ((mQueryStringParameterNamesAndValues == null) ? 0 : mQueryStringParameterNamesAndValues.hashCode());
         result = prime * result + ((mUpdateDelegateMethod == null) ? 0 : mUpdateDelegateMethod.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         DelegateUri other = (DelegateUri) obj;
         if (mAuthority == null) {
-            if (other.mAuthority != null)
-                return false;
-        } else if (!mAuthority.equals(other.mAuthority))
-            return false;
+            if (other.mAuthority != null) return false;
+        } else if (!mAuthority.equals(other.mAuthority)) return false;
         if (mPath == null) {
-            if (other.mPath != null)
-                return false;
-        } else if (!mPath.equals(other.mPath))
-            return false;
+            if (other.mPath != null) return false;
+        } else if (!mPath.equals(other.mPath)) return false;
         if (mQueryDelegateMethod == null) {
-            if (other.mQueryDelegateMethod != null)
-                return false;
-        } else if (!mQueryDelegateMethod.equals(other.mQueryDelegateMethod))
-            return false;
+            if (other.mQueryDelegateMethod != null) return false;
+        } else if (!mQueryDelegateMethod.equals(other.mQueryDelegateMethod)) return false;
         if (mQueryStringParameterNamesAndValues == null) {
-            if (other.mQueryStringParameterNamesAndValues != null)
-                return false;
-        } else if (!mQueryStringParameterNamesAndValues.equals(other.mQueryStringParameterNamesAndValues))
-            return false;
+            if (other.mQueryStringParameterNamesAndValues != null) return false;
+        } else if (!mQueryStringParameterNamesAndValues.equals(other.mQueryStringParameterNamesAndValues)) return false;
         if (mUpdateDelegateMethod == null) {
-            if (other.mUpdateDelegateMethod != null)
-                return false;
-        } else if (!mUpdateDelegateMethod.equals(other.mUpdateDelegateMethod))
-            return false;
+            if (other.mUpdateDelegateMethod != null) return false;
+        } else if (!mUpdateDelegateMethod.equals(other.mUpdateDelegateMethod)) return false;
         return true;
     }
 
     /**
-     * 
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see java.lang.Object#toString()
      */
     @Override

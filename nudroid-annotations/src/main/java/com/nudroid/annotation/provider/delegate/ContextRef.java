@@ -26,7 +26,7 @@ package com.nudroid.annotation.provider.delegate;
  * Flags which parameter from a content provider delegate method will be passed the reference for the content provider's
  * <a href="http://developer.android.com/reference/android/content/Context.html">Context</a>.
  * 
- * <p/>
+ * <p></p>
  * Example usage:
  * 
  * <pre>

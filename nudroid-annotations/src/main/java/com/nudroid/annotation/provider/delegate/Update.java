@@ -28,10 +28,10 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a method responsible for handling an update operation sent to a content provider.
- * <p/>
+ * <p></p>
  * 
  * Methods annotated with Update must return an integer value denoting the number of rows affected.
- * <p/>
+ * <p></p>
  * 
  * Example usage:
  * 

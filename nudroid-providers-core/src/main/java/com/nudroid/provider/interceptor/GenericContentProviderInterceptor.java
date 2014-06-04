@@ -27,7 +27,7 @@ import android.net.Uri;
 
 /**
  * A generic interceptor which can apply the same aspect to all types of delegate methods.
- * <p/>
+ * <p></p>
  * Extending classes only need to implement the generic required abstract methods before and after.
  * 
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
@@ -52,7 +52,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     public abstract <T> T after(ContentProviderContext contentProviderContext, T result);
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -64,7 +64,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -77,7 +77,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -89,7 +89,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -102,7 +102,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -114,7 +114,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -127,7 +127,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -139,7 +139,7 @@ public abstract class GenericContentProviderInterceptor implements ContentProvid
     }
 
     /**
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(com.nudroid.provider.interceptor.ContentProviderContext,

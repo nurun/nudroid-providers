@@ -30,39 +30,40 @@ buildscript {
 
 /*
  * =================================================================================================================
- * subprojects
  * Base configuration for all projects.
  */
 allprojects {
     apply plugin: 'eclipse'
+    apply plugin: 'idea'
 }
 
 /*
  * =================================================================================================================
- * subprojects
- * Base configuration for all projects.
+ * Base configuration for all subprojects projects.
  */
 subprojects {
 
     apply plugin: "java"
     apply plugin: 'maven'
-    apply from:   '../emma.gradle'
+    apply from: '../emma.gradle'
 
     version = '2.0-MILESTONE-2-SNAPSHOT'
     group = 'com.nudroid'
-    sourceCompatibility = JavaVersion.VERSION_1_6
-    targetCompatibility = JavaVersion.VERSION_1_6
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
+    /*
+     * =============================================================================================================
+     * Creates a new classpath configuration for classes required only during compile time.
+     */
     configurations { compileOnly }
 
     repositories {
         mavenCentral()
-        maven {
-            url 'http://repo.springsource.org/libs-release'
-            url 'http://repo.springsource.org/libs-milestone'
-            url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local'
-            url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local'
-        }
+        maven { url 'http://repo.springsource.org/libs-release' }
+        maven { url 'http://repo.springsource.org/libs-milestone' }
+        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local' }
+        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local' }
     }
 
     dependencies {
@@ -72,43 +73,69 @@ subprojects {
 
     test { useTestNG() }
 
+    /*
+     * =============================================================================================================
+     * Adds the compileOnly dependencies to the compile, test and javadoc classpaths and eclipse and idea project files.
+     * Sets-up idea to download sources and javadoc.
+     */
     sourceSets.main.compileClasspath += configurations.compileOnly
     sourceSets.test.compileClasspath += configurations.compileOnly
-    
-    javadoc  {
+
+    javadoc {
         classpath += configurations.compileOnly
-    } 
+    }
 
     eclipse.classpath.plusConfigurations += [configurations.compileOnly]
-    
+
+    idea {
+
+        module {
+            //if you need to put 'provided' dependencies on the classpath
+            scopes.PROVIDED.plus += configurations.compileOnly
+
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+
+    /*
+     * =============================================================================================================
+     * Configure source and javadoc export.
+     * Sets up idea to download sources and javadoc.
+     */
     task sourceJar(type: Jar) {
         classifier = 'sources'
         from sourceSets.main.allSource
     }
-    
+
     task javadocJar(type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from javadoc.destinationDir
     }
-    
+
     artifacts {
         archives sourceJar
         archives javadocJar
     }
-    
-    uploadArchives { 
-        repositories.mavenDeployer { 
-            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {    
-                authentication(userName: "pubandroid", password: "androidpub") 
+
+    /*
+     * =============================================================================================================
+     * Sets up Nurun's Artifactory upload.
+     * TODO Remove this before publishing to Open Source.
+     */
+    uploadArchives {
+        repositories.mavenDeployer {
+            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {
+                authentication(userName: "pubandroid", password: "androidpub")
                 releases(updatePolicy: 'always')
-                snapshots(updatePolicy: 'never')   
+                snapshots(updatePolicy: 'never')
             }
-            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {    
-                authentication(userName: "pubandroid", password: "androidpub") 
+            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {
+                authentication(userName: "pubandroid", password: "androidpub")
                 releases(updatePolicy: 'never')
-                snapshots(updatePolicy: 'always')   
+                snapshots(updatePolicy: 'always')
             }
-        }     
+        }
     }
 }
 

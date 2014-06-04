@@ -36,7 +36,7 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
 
 /**
  * Represents a URI to be mapped by a UriMatcher.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class MatcherUri {
@@ -54,15 +54,16 @@ public class MatcherUri {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param authority
-     *            The authority for this URI.
+     *         The authority for this URI.
      * @param path
-     *            The mapped URI path.
+     *         The mapped URI path.
      */
     public MatcherUri(Authority authority, String path) {
 
-        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*").replaceAll(LEADING_SLASH_REGEXP, "");
+        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*")
+                .replaceAll(LEADING_SLASH_REGEXP, "");
         URI uri;
 
         try {
@@ -72,12 +73,13 @@ public class MatcherUri {
         }
 
         this.mAuthority = authority;
-		this.mPath = uri.getPath().replaceAll(LEADING_SLASH_REGEXP, "");
+        this.mPath = uri.getPath()
+                .replaceAll(LEADING_SLASH_REGEXP, "");
     }
 
     /**
      * Gets the set of {@link DelegateUri}s for this {@link MatcherUri} which responds to @Query.
-     * 
+     *
      * @return The set of {@link DelegateUri}s
      */
     public NavigableSet<DelegateUri> getQueryDelegateUris() {
@@ -108,7 +110,7 @@ public class MatcherUri {
 
     /**
      * Gets the set of {@link DelegateUri}s for this {@link MatcherUri} which responds to @Update.
-     * 
+     *
      * @return The set of {@link DelegateUri}s
      */
     public NavigableSet<DelegateUri> getUpdateDelegateUris() {
@@ -140,14 +142,14 @@ public class MatcherUri {
     /**
      * Registers a new {@link DelegateUri} for a query method for the provided path and query string. Delegate uris (as
      * opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query to register as a query delegate uri.
-     * 
+     *         The path and query to register as a query delegate uri.
+     *
      * @return A new DelegateUri for the path and query.
-     * 
+     *
      * @throws DuplicatePathException
-     *             If the path and query string has already been associated with an existing @Query DelegateMethod.
+     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
     public DelegateUri registerQueryDelegateUri(String pathAndQuery) {
 
@@ -157,7 +159,8 @@ public class MatcherUri {
 
         if (registeredDelegateUri != null) {
 
-            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod().getExecutableElement());
+            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod()
+                    .getExecutableElement());
         }
 
         mDelegateUris.add(candidateDelegateUri);
@@ -174,14 +177,14 @@ public class MatcherUri {
     /**
      * Registers a new {@link DelegateUri} for an update method for the provided path and query string. Delegate uris
      * (as opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query to register as a query delegate uri.
-     * 
+     *         The path and query to register as a query delegate uri.
+     *
      * @return A new DelegateUri for the path and query.
-     * 
+     *
      * @throws DuplicatePathException
-     *             If the path and query string has already been associated with an existing @Update DelegateMethod.
+     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
     public DelegateUri registerUpdateDelegateUri(String pathAndQuery) {
 
@@ -191,7 +194,8 @@ public class MatcherUri {
 
         if (registeredDelegateUri != null) {
 
-            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod().getExecutableElement());
+            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod()
+                    .getExecutableElement());
         }
 
         mDelegateUris.add(candidateDelegateUri);
@@ -206,11 +210,9 @@ public class MatcherUri {
     }
 
     /**
-     * Gets the id to be mapped to this URI in the <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @return The id to be mapped to this URI in the <a
-     *         href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
+     * Gets the id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
+     *
+     * @return The id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
      */
     public int getId() {
 
@@ -219,7 +221,7 @@ public class MatcherUri {
 
     /**
      * Gets the authority name of this URI.
-     * 
+     *
      * @return The authority name of this URI.
      */
     public String getAuthorityName() {
@@ -228,10 +230,9 @@ public class MatcherUri {
     }
 
     /**
-     * Gets the path of this URI. The path will already be normalized for a <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a> (i.e. placeholder
-     * names will be replaced by '*').
-     * 
+     * Gets the path of this URI. The path will already be normalized for a <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
+     * (i.e. placeholder names will be replaced by '*').
+     *
      * @return The normalized path for this URI.
      */
     public String getNormalizedPath() {
@@ -246,7 +247,7 @@ public class MatcherUri {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -260,36 +261,27 @@ public class MatcherUri {
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         MatcherUri other = (MatcherUri) obj;
         if (mAuthority == null) {
-            if (other.mAuthority != null)
-                return false;
-        } else if (!mAuthority.equals(other.mAuthority))
-            return false;
+            if (other.mAuthority != null) return false;
+        } else if (!mAuthority.equals(other.mAuthority)) return false;
         if (mPath == null) {
-            if (other.mPath != null)
-                return false;
-        } else if (!mPath.equals(other.mPath))
-            return false;
+            if (other.mPath != null) return false;
+        } else if (!mPath.equals(other.mPath)) return false;
         return true;
     }
 
     /**
-     * 
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see java.lang.Object#toString()
      */
     @Override
@@ -300,9 +292,9 @@ public class MatcherUri {
     /**
      * Sets the id of this URI to be mapped to a the id to be mapped to this URI in the <a
      * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
+     *
      * @param uriId
-     *            The URI id.
+     *         The URI id.
      */
     void setId(int uriId) {
 
@@ -323,7 +315,8 @@ public class MatcherUri {
             }
         });
 
-        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator().next();
+        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator()
+                .next();
     }
 
     private DelegateUri findEquivalentUpdateDelegateUri(final DelegateUri candidateDelegateUri) {
@@ -340,6 +333,7 @@ public class MatcherUri {
             }
         });
 
-        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator().next();
+        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator()
+                .next();
     }
 }

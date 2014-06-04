@@ -38,7 +38,7 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 /**
  * Holds information about the delegate class for a content provider.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DelegateClass {
@@ -57,7 +57,7 @@ public class DelegateClass {
 
         /**
          * Sorts the matcher uris by uri id.
-         * 
+         *
          * @see Comparator#compare(Object, Object)
          */
         @Override
@@ -69,40 +69,46 @@ public class DelegateClass {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param authorityName
-     *            The authority name being handled by the delegate class.
-     * 
+     *         The authority name being handled by the delegate class.
      * @param typeElement
-     *            The {@link TypeElement} for the delegate class as provided by the round environment.
+     *         The {@link TypeElement} for the delegate class as provided by the round environment.
      */
     public DelegateClass(String authorityName, TypeElement typeElement) {
 
         this.mTypeElement = typeElement;
         this.mQualifiedName = typeElement.toString();
-        this.mSimpleName = typeElement.getSimpleName().toString();
+        this.mSimpleName = typeElement.getSimpleName()
+                .toString();
         this.mAuthority = new Authority(authorityName);
 
         String baseName = this.mSimpleName;
-        baseName = baseName.replaceAll("(?i)Delegate", "").replaceAll("(?i)ContentProvider", "");
+        baseName = baseName.replaceAll("(?i)Delegate", "")
+                .replaceAll("(?i)ContentProvider", "");
 
         StringBuilder providerSimpleName = new StringBuilder(baseName);
         StringBuilder routerSimpleName = new StringBuilder(this.mSimpleName);
         Element parentElement = typeElement.getEnclosingElement();
 
-        while (parentElement != null && !parentElement.getKind().equals(ElementKind.PACKAGE)) {
+        while (parentElement != null && !parentElement.getKind()
+                .equals(ElementKind.PACKAGE)) {
 
-            providerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
-            routerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
+            providerSimpleName.insert(0, "$")
+                    .insert(0, parentElement.getSimpleName());
+            routerSimpleName.insert(0, "$")
+                    .insert(0, parentElement.getSimpleName());
             parentElement = parentElement.getEnclosingElement();
         }
 
         providerSimpleName.append("ContentProvider");
         routerSimpleName.append("Router");
 
-        if (parentElement != null && parentElement.getKind().equals(ElementKind.PACKAGE)) {
+        if (parentElement != null && parentElement.getKind()
+                .equals(ElementKind.PACKAGE)) {
 
-            this.mBasePackageName = ((PackageElement) parentElement).getQualifiedName().toString();
+            this.mBasePackageName = ((PackageElement) parentElement).getQualifiedName()
+                    .toString();
         } else {
 
             this.mBasePackageName = "";
@@ -115,14 +121,14 @@ public class DelegateClass {
     /**
      * Registers a @Query path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query string to register.
-     * 
+     *         The path and query string to register.
+     *
      * @return A new DelegateUri object representing this path and query string combination.
-     * 
+     *
      * @throws DuplicatePathException
-     *             If the path and query string has already been associated with an existing @Query DelegateMethod.
+     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
     public DelegateUri registerPathForQuery(String pathAndQuery) {
 
@@ -135,14 +141,14 @@ public class DelegateClass {
     /**
      * Registers a @Update path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query string to register.
-     * 
+     *         The path and query string to register.
+     *
      * @return A new DelegateUri object representing this path and query string combination.
-     * 
+     *
      * @throws DuplicatePathException
-     *             If the path and query string has already been associated with an existing @Update DelegateMethod.
+     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
     public DelegateUri registerPathForUpdate(String pathAndQuery) {
 
@@ -154,10 +160,10 @@ public class DelegateClass {
 
     /**
      * Sets if the delegate class implements the delegate interface.
-     * 
+     *
      * @param doesImplementDelegateInterface
-     *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *            otherwise.
+     *         <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *         otherwise.
      */
     public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
         this.mHasImplementedDelegateInterface = doesImplementDelegateInterface;
@@ -165,7 +171,7 @@ public class DelegateClass {
 
     /**
      * Gets the {@link TypeElement} mapped by this class.
-     * 
+     *
      * @return The {@link TypeElement} mapped by this class.
      */
     public TypeElement getTypeElement() {
@@ -174,7 +180,7 @@ public class DelegateClass {
 
     /**
      * Gets the fully qualified name of the delegate class.
-     * 
+     *
      * @return The fully qualified name of the delegate class.
      */
     public String getQualifiedName() {
@@ -184,7 +190,7 @@ public class DelegateClass {
 
     /**
      * Gets the simple name of the delegate class (i.e. without the package name).
-     * 
+     *
      * @return The qualified name of the delegate class (i.e. without the package name).
      */
     public String getSimpleName() {
@@ -193,7 +199,7 @@ public class DelegateClass {
 
     /**
      * Gets the authority associated with this class.
-     * 
+     *
      * @return The authority associated with this class.
      */
     public Authority getAuthority() {
@@ -204,9 +210,9 @@ public class DelegateClass {
     /**
      * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
      * the package name).
-     * 
+     *
      * @return The simple name of the router class which will be created to route calls to the delegate class (i.e.
-     *         without the package name).
+     * without the package name).
      */
     public String getRouterSimpleName() {
 
@@ -215,7 +221,7 @@ public class DelegateClass {
 
     /**
      * Gets the simple name of this delegate's content provider (i.e. without the package name).
-     * 
+     *
      * @return The simple name of this delegate's content provider.
      */
     public String getContentProviderSimpleName() {
@@ -225,7 +231,7 @@ public class DelegateClass {
 
     /**
      * Gets the base package name for the generated class files.
-     * 
+     *
      * @return The base package name for the generated source files.
      */
     public String getBasePackageName() {
@@ -235,9 +241,9 @@ public class DelegateClass {
 
     /**
      * Checks if the delegate class implements the {@link ContentProvider} interface.
-     * 
+     *
      * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *         otherwise.
+     * otherwise.
      */
     public boolean hasContentProviderDelegateInterface() {
 
@@ -246,7 +252,7 @@ public class DelegateClass {
 
     /**
      * Gets the {@link MatcherUri}s this delegate class accepts.
-     * 
+     *
      * @return The {@link MatcherUri}s this delegate class accepts.
      */
     public NavigableSet<MatcherUri> getMactherUris() {
@@ -257,10 +263,10 @@ public class DelegateClass {
     /**
      * Checks if a {@link MatcherUri} has already been created for the path and query. If yes, returns that instance. If
      * not, a new one is created and registered.
-     * 
+     *
      * @param pathAndQuery
-     *            The path and query to check.
-     * 
+     *         The path and query to check.
+     *
      * @return The {@link MatcherUri} for the path and query.
      */
     private MatcherUri getMatcherUriFor(String pathAndQuery) {
@@ -288,9 +294,8 @@ public class DelegateClass {
     }
 
     /**
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -302,25 +307,19 @@ public class DelegateClass {
     }
 
     /**
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         DelegateClass other = (DelegateClass) obj;
         if (mQualifiedName == null) {
-            if (other.mQualifiedName != null)
-                return false;
-        } else if (!mQualifiedName.equals(other.mQualifiedName))
-            return false;
+            if (other.mQualifiedName != null) return false;
+        } else if (!mQualifiedName.equals(other.mQualifiedName)) return false;
         return true;
     }
 

@@ -48,8 +48,7 @@ public class UriIdDelegateMethodMapper {
 
             // This is equivalent to
             // if (index < 0), index = Math.abs(index) + 1;
-            if (index < 0)
-                index = ~index;
+            if (index < 0) index = ~index;
 
             super.add(index, delegateMethod);
             return true;
@@ -76,7 +75,7 @@ public class UriIdDelegateMethodMapper {
     public boolean add(DelegateMethod e) {
 
         if (e.getQueryStringParameterCount() == 0) {
-            
+
             mHasQueryMethodsOnly = false;
         }
 

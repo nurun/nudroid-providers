@@ -24,7 +24,7 @@ package com.nudroid.annotation.processor;
 
 /**
  * Signal an internal error while processing the persistence annotations.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class AnnotationProcessorException extends RuntimeException {

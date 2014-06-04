@@ -24,7 +24,7 @@ package com.nudroid.annotation.processor;
 
 /**
  * Exception raised when the URI provided to the delegate method is not valid.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class IllegalUriPathException extends AnnotationProcessorException {

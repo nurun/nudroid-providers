@@ -27,20 +27,20 @@ import java.lang.annotation.Target;
 
 /**
  * Flags an annotation as an interceptor point for content provider delegates.
- * <p/>
+ * <p></p>
  * Annotations annotated with {@link ProviderInterceptorPoint} can be used to apply interceptors to content provider
  * delegate methods. Interceptor annotations must be defined as a static inner class of the corresponding interceptor
  * class.
- * <p/>
+ * <p></p>
  * When applied to a delegate method, interceptors will execute code before and after the delegate method, in the order
  * they were annotated in the source code before the delegate invocation and in reverse order they were annotated in the
  * source code after the delegate method invocation, just like an onion or around aspect invocation.
- * <p/>
+ * <p></p>
  * Interceptors must implement ContentProviderInterceptor
- * <p/>
+ * <p></p>
  * Interceptor classes must provide either a default constructor or a constructor with a
  * {@link ProviderInterceptorPoint} annotation as a parameter (see example below for more details).
- * <p/>
+ * <p></p>
  * 
  * <pre>
  * //1 - Create an interceptor for logging
@@ -111,7 +111,7 @@ import java.lang.annotation.Target;
  * 
  * The query delegate method annotated with the Log annotation will then be intercepted by the LogInterceptor which will
  * execute the relevant before and after methods around listAllUsers().
- * <p/>
+ * <p></p>
  * <tt>beforeXXX</tt> methods will receive all parameters that will be passed to the delegate method. The interceptor
  * can inspect and even change these parameters and the changes will be carried over to the delegate method and
  * subsequent interceptors. Similarly, <tt>afterXXX</tt> methods will receive these parameters plus the result returned

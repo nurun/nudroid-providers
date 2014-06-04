@@ -54,7 +54,7 @@ import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
  * Processes the Query annotations on a class.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class QueryAnnotationProcessor {
@@ -72,9 +72,9 @@ class QueryAnnotationProcessor {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The processor context parameter object.
+     *         The processor context parameter object.
      */
     QueryAnnotationProcessor(ProcessorContext processorContext) {
 
@@ -82,21 +82,24 @@ class QueryAnnotationProcessor {
         this.mElementUtils = processorContext.elementUtils;
         this.mLogger = processorContext.logger;
 
-        mContextType = processorContext.elementUtils.getTypeElement("android.content.Context").asType();
-        mStringType = processorContext.elementUtils.getTypeElement(String.class.getName()).asType();
+        mContextType = processorContext.elementUtils.getTypeElement("android.content.Context")
+                .asType();
+        mStringType = processorContext.elementUtils.getTypeElement(String.class.getName())
+                .asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
+        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri")
+                .asType();
     }
 
     /**
      * Process the {@link Query} annotations on this round.
-     * 
+     *
      * @param continuation
-     *            The continuation environment.
+     *         The continuation environment.
      * @param roundEnv
-     *            The round environment to process.
+     *         The round environment to process.
      * @param metadata
-     *            The annotation metadata for the processor.
+     *         The annotation metadata for the processor.
      */
     void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
@@ -106,7 +109,9 @@ class QueryAnnotationProcessor {
 
         if (queryMethods.size() > 0) {
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Query.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(queryMethods)));
+                    Query.class.getSimpleName(), Joiner.on("\n        - ")
+                    .skipNulls()
+                    .join(queryMethods)));
         }
 
         for (Element queryMethod : queryMethods) {
@@ -125,8 +130,8 @@ class QueryAnnotationProcessor {
 
                 mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass,
-                        metadata);
+                DelegateMethod delegateMethod =
+                        processQueryOnMethod((ExecutableElement) queryMethod, delegateClass, metadata);
 
                 if (delegateMethod != null) {
 
@@ -142,7 +147,7 @@ class QueryAnnotationProcessor {
     }
 
     private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
-            Metadata metadata) {
+                                                Metadata metadata) {
 
         Query query = queryMethod.getAnnotation(Query.class);
         String pathAndQuery = query.value();
@@ -158,8 +163,7 @@ class QueryAnnotationProcessor {
             mLogger.trace(String.format(
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
-            mLogger.error(
-                    String.format("An equivalent path has already been registered by method '%s'",
+            mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
                             e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
@@ -189,29 +193,25 @@ class QueryAnnotationProcessor {
 
             Parameter parameter = new Parameter();
 
-            if (methodParameter.getAnnotation(ContextRef.class) != null)
-                parameter.setContext(true);
-            if (methodParameter.getAnnotation(Projection.class) != null)
-                parameter.setProjection(true);
-            if (methodParameter.getAnnotation(Selection.class) != null)
-                parameter.setSelection(true);
-            if (methodParameter.getAnnotation(SelectionArgs.class) != null)
-                parameter.setSelectionArgs(true);
-            if (methodParameter.getAnnotation(SortOrder.class) != null)
-                parameter.setSortOrder(true);
-            if (methodParameter.getAnnotation(ContentUri.class) != null)
-                parameter.setContentUri(true);
+            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext(true);
+            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
+            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
+            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
+            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
+            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (methodParameter.asType().toString().equals(mStringType.toString()))
-                parameter.setString(true);
+            if (methodParameter.asType()
+                    .toString()
+                    .equals(mStringType.toString())) parameter.setString(true);
 
             final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 
             if (uriPlaceholder != null) {
 
                 parameter.setPlaceholderName(uriPlaceholder.value());
-                parameter.setParameterType(methodParameter.asType().toString());
+                parameter.setParameterType(methodParameter.asType()
+                        .toString());
                 parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
                 parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
             }
@@ -219,7 +219,7 @@ class QueryAnnotationProcessor {
             delegateMethod.addParameter(parameter);
         }
 
-//        delegateClass.addMethod(delegateMethod);
+        //        delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }
@@ -248,8 +248,9 @@ class QueryAnnotationProcessor {
 
             isValid = validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, Projection.class, parameterType,
-                    mArrayOfStringsType, accumulatedAnnotations);
+            isValid =
+                    validateParameterAnnotation(parameterElement, Projection.class, parameterType, mArrayOfStringsType,
+                            accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
                     accumulatedAnnotations);
             isValid = validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
@@ -265,9 +266,10 @@ class QueryAnnotationProcessor {
         return isValid;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private boolean validateParameterAnnotation(VariableElement parameterElement, Class annotationClass,
-            TypeMirror parameterType, TypeMirror requiredType, List<Class<?>> accumulatedAnnotations) {
+                                                TypeMirror parameterType, TypeMirror requiredType,
+                                                List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -279,25 +281,24 @@ class QueryAnnotationProcessor {
 
                 isValid = false;
 
-                mLogger.trace(String
-                        .format("        Multiple incompatible annotatoins on same parameter [%s]. Signaling compilatoin error.",
-                                accumulatedAnnotations));
-                mLogger.error(
-                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                mLogger.trace(String.format(
+                        "        Multiple incompatible annotatoins on same parameter [%s]. Signaling compilatoin error.",
+                        accumulatedAnnotations));
+                mLogger.error(String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
                         parameterElement);
             }
 
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (!parameterType.toString().equals(requiredType.toString())) {
+            if (!parameterType.toString()
+                    .equals(requiredType.toString())) {
 
                 isValid = false;
 
-                mLogger.trace(String.format(
-                        "        Parameter is not of expected type %s. Signaling compilatoin error.", requiredType,
-                        parameterElement));
-                mLogger.error(
-                        String.format("Parameters annotated with @%s must be of type %s.",
+                mLogger.trace(
+                        String.format("        Parameter is not of expected type %s. Signaling compilatoin error.",
+                                requiredType, parameterElement));
+                mLogger.error(String.format("Parameters annotated with @%s must be of type %s.",
                                 annotationClass.getSimpleName(), requiredType), parameterElement);
             }
         }
@@ -306,7 +307,7 @@ class QueryAnnotationProcessor {
     }
 
     private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
-            List<Class<?>> accumulatedAnnotations) {
+                                                     List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -326,18 +327,17 @@ class QueryAnnotationProcessor {
 
                 isValid = false;
 
-                mLogger.trace(String.format("        Multiple annotatoins on same parameter."
-                        + " Signaling compilatoin error."));
-                mLogger.error(
-                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                mLogger.trace(String.format(
+                        "        Multiple annotatoins on same parameter." + " Signaling compilatoin error."));
+                mLogger.error(String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
                         parameterElement);
             }
 
             if (!uri.containsPlaceholder(placeholderName)) {
 
-                mLogger.trace(String.format(
-                        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
-                        placeholderName));
+                mLogger.trace(
+                        String.format("        Couldn't find placeholder %s on URI path. Signaling compilation error.",
+                                placeholderName));
                 mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
                         uriPathAndQuery), parameterElement);
 
@@ -363,10 +363,13 @@ class QueryAnnotationProcessor {
 
                 // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same
                 // qualified name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (mirror.getAnnotationType().toString().equals(annotationTypeElement.asType().toString())) {
+                if (mirror.getAnnotationType()
+                        .toString()
+                        .equals(annotationTypeElement.asType()
+                                .toString())) {
 
-                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptorPoint(mirror, mElementUtils,
-                            mTypeUtils, mLogger));
+                    delegateMethod.addInterceptor(
+                            concreteAnnotation.createInterceptorPoint(mirror, mElementUtils, mTypeUtils, mLogger));
                     mLogger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

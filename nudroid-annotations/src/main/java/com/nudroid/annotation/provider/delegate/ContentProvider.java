@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
 /**
  * Registers a content provider delegate. A ContentProvider class will be automatically generated and will forward
  * methods to the annotated delegate class.
- * <p/>
+ * <p></p>
  * Example usage:
  * 
  * <pre>

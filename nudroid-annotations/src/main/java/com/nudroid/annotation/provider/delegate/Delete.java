@@ -28,10 +28,10 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a method responsible for handling a delete operation sent to a content provider.
- * <p/>
+ * <p></p>
  * 
  * Methods annotated with Delete must return an integer value denoting the number of rows affected.
- * <p/>
+ * <p></p>
  * 
  * Example usage:
  * 

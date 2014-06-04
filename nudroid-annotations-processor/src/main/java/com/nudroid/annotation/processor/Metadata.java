@@ -35,14 +35,15 @@ import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 
 /**
  * Gather all the information required to generate the source code for the content providers and router classes.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class Metadata {
 
     private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<String, DelegateClass>();
     private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<TypeElement, DelegateClass>();
-    private Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints = new HashMap<TypeElement, InterceptorAnnotationBlueprint>();
+    private Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints =
+            new HashMap<TypeElement, InterceptorAnnotationBlueprint>();
 
     /*
      * The stack is what tracks classes to be fed to the source code generator. Because of Eclipse's continuous build,
@@ -51,15 +52,16 @@ class Metadata {
      * is filled only once so each class is written only once.
      */
     private Set<DelegateClass> mDelegateClassStack = new HashSet<DelegateClass>();
-    private Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack = new HashSet<InterceptorAnnotationBlueprint>();
+    private Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack =
+            new HashSet<InterceptorAnnotationBlueprint>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
-     * 
+     *
      * @param authorityName
-     *            The authority name.
+     *         The authority name.
      * @param delegateClassType
-     *            The delegate class responsible for handling the authority.
+     *         The delegate class responsible for handling the authority.
      */
     void registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
 
@@ -71,9 +73,9 @@ class Metadata {
 
     /**
      * Pops a delegate class from the metadata (should be called after source code is generated).
-     * 
+     *
      * @param delegateClass
-     *            The delegate class to pop out.
+     *         The delegate class to pop out.
      */
     void popDelegateClass(DelegateClass delegateClass) {
 
@@ -82,9 +84,9 @@ class Metadata {
 
     /**
      * Stores a new concrete annotation metadata.
-     * 
+     *
      * @param annotation
-     *            The concrete annotation bean to register.
+     *         The concrete annotation bean to register.
      */
     void registerConcreteAnnotation(InterceptorAnnotationBlueprint annotation) {
 
@@ -94,9 +96,9 @@ class Metadata {
 
     /**
      * Pops a concrete annotation class from the metadata (should be called after source code is generated).
-     * 
+     *
      * @param concreteAnnotation
-     *            The concrete annotation class to pop out.
+     *         The concrete annotation class to pop out.
      */
     void popInterceptorBlueprint(InterceptorAnnotationBlueprint concreteAnnotation) {
 
@@ -105,7 +107,7 @@ class Metadata {
 
     /**
      * Gets the set of delegate classes to generate source code for.
-     * 
+     *
      * @return The set of delegate classes to generate source code for.
      */
     Set<DelegateClass> getDelegateClassesForRound() {
@@ -115,12 +117,12 @@ class Metadata {
 
     /**
      * Checks if the authority has already been registered.
-     * 
+     *
      * @param authorityName
-     *            The authority to check for.
-     * 
+     *         The authority to check for.
+     *
      * @return The {@link DelegateClass} responsible for handling the given authority. <tt>null</tt> if the authority
-     *         name has not yet been registered.
+     * name has not yet been registered.
      */
     DelegateClass getDelegateClassForAuthority(String authorityName) {
 
@@ -129,12 +131,12 @@ class Metadata {
 
     /**
      * Gets the {@link DelegateClass} representation of the provided type element.
-     * 
+     *
      * @param typeElement
-     *            The {@link TypeElement} to check.
-     * 
+     *         The {@link TypeElement} to check.
+     *
      * @return The {@link DelegateClass} for the {@link TypeElement}, or <tt>null</tt> the type element is not a
-     *         delegate class.
+     * delegate class.
      */
     DelegateClass getDelegateClassForTypeElement(TypeElement typeElement) {
 
@@ -143,7 +145,7 @@ class Metadata {
 
     /**
      * Gets the set of registered concrete annotations to generate source code for.
-     * 
+     *
      * @return The set of registered concrete annotations to generate source code for.
      */
     Set<InterceptorAnnotationBlueprint> getInterceptorBlueprintsForRound() {
@@ -153,7 +155,7 @@ class Metadata {
 
     /**
      * Gets the set of registered concrete annotations to generate source code for.
-     * 
+     *
      * @return The set of registered concrete annotations to generate source code for.
      */
     Collection<InterceptorAnnotationBlueprint> getInterceptorBlueprints() {
@@ -163,10 +165,10 @@ class Metadata {
 
     /**
      * Gets the interceptor blueprint for the given annotation.
-     * 
+     *
      * @param interceptorAnnotationTypeElement
-     *            The annotation to get the blueprint for.
-     * 
+     *         The annotation to get the blueprint for.
+     *
      * @return the interceptor blueprint for the given annotation.
      */
     InterceptorAnnotationBlueprint getInterceptorBlueprint(TypeElement interceptorAnnotationTypeElement) {
@@ -175,16 +177,15 @@ class Metadata {
     }
 
     /**
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses="
-                + mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorBlueprints
-                + ", \nmConcreteAnnotationValues=" + mInterceptorBlueprintStack + ", \nmDelegateClassValues="
-                + mDelegateClassStack + "]";
+        return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses=" +
+                mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorBlueprints +
+                ", \nmConcreteAnnotationValues=" + mInterceptorBlueprintStack + ", \nmDelegateClassValues=" +
+                mDelegateClassStack + "]";
     }
 }

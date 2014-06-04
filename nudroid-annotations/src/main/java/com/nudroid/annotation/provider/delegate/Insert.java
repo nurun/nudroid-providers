@@ -28,10 +28,10 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a method responsible for handling an insert operation sent to a content provider.
- * <p/>
+ * <p></p>
  * 
  * Methods annotated with Insert must return the URI for the newly inserted item.
- * <p/>
+ * <p></p>
  * 
  * Example usage:
  * 

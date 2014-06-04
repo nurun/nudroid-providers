@@ -29,16 +29,16 @@ import java.util.Scanner;
 
 /**
  * Utility classes for managing files and streams.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class FileUtils {
 
     /**
      * Closes the specified scanner.
-     * 
+     *
      * @param scanner
-     *            The scanner to close.
+     *         The scanner to close.
      */
     static void close(Scanner scanner) {
 
@@ -49,11 +49,12 @@ class FileUtils {
 
     /**
      * Closes the specified reader.
-     * 
+     *
      * @param reader
-     *            The reader to close.
+     *         The reader to close.
+     *
      * @throws RuntimeException
-     *             if there's an error while closing the reader.
+     *         if there's an error while closing the reader.
      */
     static void close(Reader reader) {
 
@@ -68,11 +69,12 @@ class FileUtils {
 
     /**
      * Closes the specified writer.
-     * 
+     *
      * @param writer
-     *            The writer to close.
+     *         The writer to close.
+     *
      * @throws RuntimeException
-     *             if there's an error while closing the writer.
+     *         if there's an error while closing the writer.
      */
     static void close(Writer writer) {
 

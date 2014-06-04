@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * Binds a URI placeholder to one of the parameters on the delegate method. Placeholder are identified as a name
  * enclosed in braces ({}). This name can be used to bind values in the content URI to parameters in the delegate
  * method.
- * <p/>
+ * <p></p>
  * Example usage:
  * 
  * <pre>

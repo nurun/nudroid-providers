@@ -24,3 +24,5 @@ build
 .project
 /.settings
 *.iml
+*.ipr
+*.iws

@@ -116,7 +116,7 @@ public class ContentProviderContext {
 
     /**
      * 
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see java.lang.Object#toString()
@@ -130,7 +130,7 @@ public class ContentProviderContext {
     }
 
     /**
-     * Expands the passed string by replacing placeholders (in the form {<placeholder_name>}) by the values captured in
+     * Expands the passed string by replacing placeholders (in the form {&lt;placeholder_name&gt;}) by the values captured in
      * property map <tt>placeholders</tt>
      * 
      * @param stringToExpand
@@ -159,7 +159,7 @@ public class ContentProviderContext {
     }
 
     /**
-     * Expands the passed array of string by replacing placeholders (in the form {<placeholder_name>}) by the values
+     * Expands the passed array of string by replacing placeholders (in the form {&lt;placeholder_name&gt;}) by the values
      * captured in property map <tt>placeholders</tt>
      * 
      * @param stringsToExpand

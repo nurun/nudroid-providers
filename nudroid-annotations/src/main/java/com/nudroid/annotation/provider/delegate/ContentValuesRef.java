@@ -29,10 +29,10 @@ import java.lang.annotation.Target;
 /**
  * Flags which parameter from a content provider delegate method will be passed the reference for the ContentValues
  * instance provided to the original content provider method.
- * <p/>
+ * <p></p>
  * This annotation bears meaning only on {@link Update} or {@link Insert} annotated methods.
  * 
- * <p/>
+ * <p></p>
  * Example usage:
  * 
  * <pre>

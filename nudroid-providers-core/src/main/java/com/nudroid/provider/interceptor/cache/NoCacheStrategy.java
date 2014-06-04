@@ -34,7 +34,7 @@ public class NoCacheStrategy implements CachingStrategy {
 
     /**
      * Skips cache validation, allowing the {@link SynchronizationStrategy} to always execute.
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see CachingStrategy#isUpToDate(ContentProviderContext, String)
@@ -47,7 +47,7 @@ public class NoCacheStrategy implements CachingStrategy {
 
     /**
      * No-op.
-     * <p/>
+     * <p></p>
      * {@inheritDoc}
      * 
      * @see CachingStrategy#cacheUpdateFinished(ContentProviderContext, String, boolean)

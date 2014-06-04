@@ -38,29 +38,26 @@ import javax.lang.model.util.Types;
 
 /**
  * Annotation processor creating the bindings necessary for Android content provider delegates.
- * 
+ * <p>
  * <h1>Logging</h1> This processor can be configured to display log messages during the annotation processing rounds.
  * Log messages are delivered through the processors {@link Messager} objects. In other words, they are issued as
- * compiler notes, warning or errors.
- * <p/>
- * The logging level can be configured through the property com.nudroid.annotation.processor.log.level. The logging
- * level can either be configured through a processor property (with the -A option) or a system property (with a -D
- * option). Processor property configuration takes precedence over the system property.
- * 
+ * compiler notes, warning or errors. <p></p> The logging level can be configured through the property
+ * com.nudroid.annotation.processor.log.level. The logging level can either be configured through a processor property
+ * (with the -A option) or a system property (with a -D option). Processor property configuration takes precedence over
+ * the system property.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 // @f[off]
-@SupportedAnnotationTypes({
-    "com.nudroid.annotation.provider.delegate.ContentProvider",
-    "com.nudroid.annotation.provider.delegate.Delete",
-    "com.nudroid.annotation.provider.delegate.Insert",
-    "com.nudroid.annotation.provider.delegate.Query",
-    "com.nudroid.annotation.provider.delegate.Update",
+@SupportedAnnotationTypes(
+        {"com.nudroid.annotation.provider.delegate.ContentProvider", "com.nudroid.annotation.provider.delegate.Delete",
+                "com.nudroid.annotation.provider.delegate.Insert", "com.nudroid.annotation.provider.delegate.Query",
+                "com.nudroid.annotation.provider.delegate.Update",
 
-    "com.nudroid.provider.interceptor.ProviderInterceptorPoint" })
+                "com.nudroid.provider.interceptor.ProviderInterceptorPoint"})
 // @f[on]
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedOptions({ "com.nudroid.annotation.processor.log.level", "com.nudroid.annotation.processor.continuation.file" })
+@SupportedOptions({"com.nudroid.annotation.processor.log.level", "com.nudroid.annotation.processor.continuation.file"})
 public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private static final String CONTINUATION_FILE_PROPERTY_NAME = "com.nudroid.annotation.processor.continuation.file";
@@ -87,9 +84,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     private Metadata mMetadata;
 
     /**
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * <p></p> {@inheritDoc}
+     *
      * @see javax.annotation.processing.AbstractProcessor#init(javax.annotation.processing.ProcessingEnvironment)
      */
     @Override
@@ -97,7 +93,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
         super.init(env);
 
-        String logLevel = env.getOptions().get(LOG_LEVEL_PROPERTY_NAME);
+        String logLevel = env.getOptions()
+                .get(LOG_LEVEL_PROPERTY_NAME);
 
         if (logLevel == null) {
             logLevel = System.getProperty(LOG_LEVEL_PROPERTY_NAME);
@@ -105,7 +102,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
         mLogger = new LoggingUtils(env.getMessager(), logLevel);
 
-        String continuationFile = env.getOptions().get(CONTINUATION_FILE_PROPERTY_NAME);
+        String continuationFile = env.getOptions()
+                .get(CONTINUATION_FILE_PROPERTY_NAME);
 
         if (continuationFile == null) {
             continuationFile = System.getProperty(CONTINUATION_FILE_PROPERTY_NAME);
@@ -118,12 +116,12 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
         try {
 
-            final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils,
-                    mLogger);
+            final ProcessorContext processorContext =
+                    new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
             mContinuation = new Continuation(processorContext, continuationFile);
             mContinuation.loadContinuation();
-            contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(
-                    processorContext);
+            contentProviderDelegateAnnotationProcessor =
+                    new ContentProviderDelegateAnnotationProcessor(processorContext);
             queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
             updateAnnotationProcessor = new UpdateAnnotationProcessor(processorContext);
             interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
@@ -140,11 +138,9 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     }
 
     /**
-     * <p/>
-     * {@inheritDoc}
-     * 
-     * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set,
-     *      javax.annotation.processing.RoundEnvironment)
+     * <p></p> {@inheritDoc}
+     *
+     * @see javax.annotation.processing.AbstractProcessor#process(java.util.Set, javax.annotation.processing.RoundEnvironment)
      */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

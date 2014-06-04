@@ -26,7 +26,7 @@ import javax.lang.model.element.ExecutableElement;
 
 /**
  * An annotation attribute (method) member of a {@link InterceptorAnnotationBlueprint}.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class AnnotationAttribute {
@@ -37,22 +37,24 @@ public class AnnotationAttribute {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param method
-     *            The {@link ExecutableElement} for the attribute (method) of the annotation interceptor.
+     *         The {@link ExecutableElement} for the attribute (method) of the annotation interceptor.
      */
     public AnnotationAttribute(ExecutableElement method) {
 
-        this.mType = method.getReturnType().toString();
+        this.mType = method.getReturnType()
+                .toString();
 
-        final String methodName = method.getSimpleName().toString();
+        final String methodName = method.getSimpleName()
+                .toString();
         this.mName = methodName;
         this.mCapitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
     }
 
     /**
      * Gets the (return) type of this attribute.
-     * 
+     *
      * @return The type of this attribute.
      */
     public String getType() {
@@ -62,7 +64,7 @@ public class AnnotationAttribute {
 
     /**
      * Gets the name of this attribute.
-     * 
+     *
      * @return The name of this attribute.
      */
     public String getName() {
@@ -72,7 +74,7 @@ public class AnnotationAttribute {
 
     /**
      * Gets the capitalized name of this attribute.
-     * 
+     *
      * @return The capitalized name of this attribute.
      */
     public String getCapitalizedName() {

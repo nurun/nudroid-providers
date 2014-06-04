@@ -41,7 +41,7 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 /**
  * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class ContentProviderDelegateAnnotationProcessor {
@@ -51,37 +51,39 @@ class ContentProviderDelegateAnnotationProcessor {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The context for the provider annotation processor.
+     *         The context for the provider annotation processor.
      */
     ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        this.mDelegateTypeName = com.nudroid.provider.delegate.ContentProviderDelegate.class.getName().toString();
+        this.mDelegateTypeName = com.nudroid.provider.delegate.ContentProviderDelegate.class.getName()
+                .toString();
     }
 
     /**
      * Process the {@link ContentProvider} annotations on this round.
-     * 
+     *
      * @param continuation
-     *            The continuation environment.
+     *         The continuation environment.
      * @param roundEnv
-     *            The round environment to process.
+     *         The round environment to process.
      * @param metadata
-     *            The annotation metadata for the processor.
+     *         The annotation metadata for the processor.
      */
     void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
 
-        Set<? extends Element> delegateClassTypes = continuation.getElementsAnotatedWith(ContentProvider.class,
-                roundEnv);
+        Set<? extends Element> delegateClassTypes =
+                continuation.getElementsAnotatedWith(ContentProvider.class, roundEnv);
 
         if (delegateClassTypes.size() > 0) {
             mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
-                    ContentProvider.class.getSimpleName(),
-                    Joiner.on("\n        - ").skipNulls().join(delegateClassTypes)));
+                    ContentProvider.class.getSimpleName(), Joiner.on("\n        - ")
+                    .skipNulls()
+                    .join(delegateClassTypes)));
         }
 
         for (Element delegateClassType : delegateClassTypes) {
@@ -110,8 +112,7 @@ class ContentProviderDelegateAnnotationProcessor {
         if (ElementUtils.isAbstract(delegateClassType)) {
 
             mLogger.trace("        Class is abstract. Signaling compilatoin error.");
-            mLogger.error(
-                    String.format("@%s annotations are only allowed on concrete classes",
+            mLogger.error(String.format("@%s annotations are only allowed on concrete classes",
                             ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
@@ -140,15 +141,15 @@ class ContentProviderDelegateAnnotationProcessor {
 
         if (delegateClassForAuthority != null) {
 
-            mLogger.trace(String.format(
-                    "        Authority is already registered by class %s. Signaling compilation error.",
-                    delegateClassForAuthority));
+            mLogger.trace(
+                    String.format("        Authority is already registered by class %s. Signaling compilation error.",
+                            delegateClassForAuthority));
             mLogger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
                     delegateClassForAuthority.getQualifiedName()), delegateClassType);
         }
 
-        mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
-                authorityName));
+        mLogger.trace(
+                String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
         metadata.registerNewDelegateClass(authorityName, delegateClassType);
 
@@ -157,9 +158,9 @@ class ContentProviderDelegateAnnotationProcessor {
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
             mLogger.trace("            Class is in the default package. Signaling compilatoin error.");
-            mLogger.error(String.format("Content providers can not be created in the default package."
-                    + " Android will prefix the content provider name with the application name, making it unable to"
-                    + " find the correct class at runtime."), delegateClassType);
+            mLogger.error(String.format("Content providers can not be created in the default package." +
+                    " Android will prefix the content provider name with the application name, making it unable to" +
+                    " find the correct class at runtime."), delegateClassType);
         }
 
         // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
@@ -187,8 +188,8 @@ class ContentProviderDelegateAnnotationProcessor {
 
         Element enclosingDelegateClassElement = delegateClassType.getEnclosingElement();
 
-        if (ElementUtils.isClassOrInterface(enclosingDelegateClassElement)
-                && !delegateClassModifiers.contains(Modifier.STATIC)) {
+        if (ElementUtils.isClassOrInterface(enclosingDelegateClassElement) &&
+                !delegateClassModifiers.contains(Modifier.STATIC)) {
 
             return false;
         }
@@ -202,7 +203,9 @@ class ContentProviderDelegateAnnotationProcessor {
 
         for (ExecutableElement constructor : ElementFilter.constructorsIn(enclosedElements)) {
 
-            if (constructor.getParameters().size() == 0 && constructor.getModifiers().contains(Modifier.PUBLIC)) {
+            if (constructor.getParameters()
+                    .size() == 0 && constructor.getModifiers()
+                    .contains(Modifier.PUBLIC)) {
 
                 return true;
             }

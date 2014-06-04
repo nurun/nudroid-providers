@@ -24,7 +24,7 @@ package com.nudroid.annotation.processor.model;
 
 /**
  * Represents an interceptor annotation parameter.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class InterceptorAnnotationParameter {
@@ -35,11 +35,11 @@ public class InterceptorAnnotationParameter {
 
     /**
      * Creates an interceptor annotation parameter.
-     * 
+     *
      * @param literalValue
-     *            The literal value for this parameter, as it appears in the source code.
+     *         The literal value for this parameter, as it appears in the source code.
      * @param parameterType
-     *            The type of this parameter.
+     *         The type of this parameter.
      */
     public InterceptorAnnotationParameter(String literalValue, Class<?> parameterType) {
 
@@ -51,7 +51,7 @@ public class InterceptorAnnotationParameter {
 
     /**
      * Gets the literal representation of this parameter (as it appears in the source code).
-     * 
+     *
      * @return The literal representation of this parameter (as it appears in the source code).
      */
     public String getLiteralValue() {
@@ -60,7 +60,7 @@ public class InterceptorAnnotationParameter {
 
     /**
      * Gets the parameter type.
-     * 
+     *
      * @return The parameter type.
      */
     public Class<?> getParameterType() {
@@ -69,7 +69,7 @@ public class InterceptorAnnotationParameter {
 
     /**
      * Checks if this parameter is a String or an array of Strings.
-     * 
+     *
      * @return <tt>true</tt> if this parameter is a String or array of Strings, <tt>false</tt> otherwise
      */
     public boolean isString() {
