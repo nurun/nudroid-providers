@@ -21,7 +21,7 @@
  */
 
 /**
- * This package contatins the modules responsible for processing Nudroid's annotations.
+ * This package contains the annotation processor and accompanying classes for processing Nudroid's annotations.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

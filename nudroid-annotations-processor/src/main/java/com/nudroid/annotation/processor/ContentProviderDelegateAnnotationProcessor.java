@@ -25,6 +25,7 @@ package com.nudroid.annotation.processor;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -154,7 +155,7 @@ class ContentProviderDelegateAnnotationProcessor {
 
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
-            mLogger.trace("            Class is in the default package. Signaling compilatoin error.");
+            mLogger.trace("            Class is in the default package. Signaling compilation error.");
             mLogger.error(String.format("Content providers can not be created in the default package." +
                     " Android will prefix the content provider name with the application name, making it unable to" +
                     " find the correct class at runtime."), delegateClassType);
@@ -162,11 +163,10 @@ class ContentProviderDelegateAnnotationProcessor {
 
         // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
         // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-        Set<String> interfaceNames = new HashSet<String>();
-
-        for (TypeMirror e : delegateClassType.getInterfaces()) {
-            interfaceNames.add(e.toString());
-        }
+        Set<String> interfaceNames = delegateClassType.getInterfaces()
+                .stream()
+                .map(TypeMirror::toString)
+                .collect(Collectors.toSet());
 
         if (interfaceNames.contains(mDelegateTypeName)) {
 
