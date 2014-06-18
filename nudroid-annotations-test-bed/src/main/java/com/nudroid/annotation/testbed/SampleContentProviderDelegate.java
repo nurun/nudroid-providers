@@ -39,4 +39,22 @@ public class SampleContentProviderDelegate {
 
         return null;
     }
+
+    @Query("{type}")
+    public Cursor listType(@UriPlaceholder("type") String name) {
+
+        return null;
+    }
+
+    @Query("{type}/{id}")
+    public Cursor listTypeById(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+
+        return null;
+    }
+
+    @Query("page/{type}/{id}")
+    public Cursor listPage(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+
+        return null;
+    }
 }

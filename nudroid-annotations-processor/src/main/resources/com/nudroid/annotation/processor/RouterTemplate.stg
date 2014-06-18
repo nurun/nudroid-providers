@@ -33,7 +33,7 @@ public class <delegateClass.routerSimpleName> {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
-        <delegateClass.mactherUris:addMatcherUris(); separator="\n">
+        <delegateClass.matcherUris:addMatcherUris(); separator="\n">
     }
 
     private <delegateClass.qualifiedName> mDelegate;

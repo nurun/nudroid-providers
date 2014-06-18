@@ -18,7 +18,10 @@ public class SampleContentProviderDelegateRouter {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
+        URI_MATCHER.addURI("com.nudroid.samples", "page/*/*", 4);
         URI_MATCHER.addURI("com.nudroid.samples", "factions", 1);
+        URI_MATCHER.addURI("com.nudroid.samples", "*/*", 3);
+        URI_MATCHER.addURI("com.nudroid.samples", "*", 2);
     }
 
     private com.nudroid.annotation.testbed.SampleContentProviderDelegate mDelegate;
@@ -39,6 +42,25 @@ public class SampleContentProviderDelegateRouter {
         Cursor result = null;
 
         switch (URI_MATCHER.match(uri)) {
+        case 4:
+        {
+
+                java.util.List<String> pathSegments = uri.getPathSegments();
+
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+
+                contentProviderContext.placeholders.put("type", pathSegments.get(1));
+                contentProviderContext.placeholders.put("id", pathSegments.get(2));
+
+                result = mDelegate.listPage(contentProviderContext.placeholders.get("type"), contentProviderContext.placeholders.get("id"));
+
+                return result;
+
+
+                    
+        }
+
         case 1:
         {
             if (uri.getQueryParameterNames().contains("name")) {
@@ -56,6 +78,43 @@ public class SampleContentProviderDelegateRouter {
 
             throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
                     uri, mDelegate.getClass()));
+                    
+        }
+
+        case 3:
+        {
+
+                java.util.List<String> pathSegments = uri.getPathSegments();
+
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+
+                contentProviderContext.placeholders.put("type", pathSegments.get(0));
+                contentProviderContext.placeholders.put("id", pathSegments.get(1));
+
+                result = mDelegate.listTypeById(contentProviderContext.placeholders.get("type"), contentProviderContext.placeholders.get("id"));
+
+                return result;
+
+
+                    
+        }
+
+        case 2:
+        {
+
+                java.util.List<String> pathSegments = uri.getPathSegments();
+
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+
+                contentProviderContext.placeholders.put("type", pathSegments.get(0));
+
+                result = mDelegate.listType(contentProviderContext.placeholders.get("type"));
+
+                return result;
+
+
                     
         }
 

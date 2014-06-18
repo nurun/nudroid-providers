@@ -57,7 +57,7 @@ import javax.lang.model.util.Types;
                 "com.nudroid.annotation.provider.delegate.Insert", "com.nudroid.annotation.provider.delegate.Query",
                 "com.nudroid.annotation.provider.delegate.Update",
                 "com.nudroid.provider.interceptor.ProviderInterceptorPoint"})
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({"com.nudroid.annotation.processor.log.level"})
 public class ProviderAnnotationProcessor extends AbstractProcessor {
 

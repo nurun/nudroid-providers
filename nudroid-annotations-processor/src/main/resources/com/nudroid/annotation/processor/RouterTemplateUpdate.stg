@@ -150,7 +150,7 @@ public int update(Context context, Uri uri, ContentValues contentValues, String 
     int result = 0;
 
     switch (URI_MATCHER.match(uri)) {
-    <delegateClass.mactherUris:update_createCaseStatements(); separator="\n">
+    <delegateClass.matcherUris:update_createCaseStatements(); separator="\n">
     default:
         
         throw new IllegalArgumentException(String.format("Update URI %s is not mapped by content provider delegate %s",

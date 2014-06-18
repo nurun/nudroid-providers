@@ -151,7 +151,7 @@ public Cursor query(Context context, Uri uri, String[] projection, String select
     Cursor result = null;
 
     switch (URI_MATCHER.match(uri)) {
-    <delegateClass.mactherUris:query_createCaseStatements(); separator="\n">
+    <delegateClass.matcherUris:query_createCaseStatements(); separator="\n">
     default:
         
         throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",

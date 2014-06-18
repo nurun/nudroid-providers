@@ -22,7 +22,6 @@
 
 package com.nudroid.annotation.processor.model;
 
-import java.util.Comparator;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
@@ -31,7 +30,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
@@ -53,27 +51,52 @@ public class DelegateClass {
     private String mRouterSimpleName;
     private Authority mAuthority;
 
-    private NavigableSet<MatcherUri> mMactherUris = new TreeSet<MatcherUri>(new Comparator<MatcherUri>() {
+    //TODO Check if there's a more performing way of doing this check.
+    /* UriMatcher has an undocumented matching algorithm. It will match the first path (in the order they have been
+     * added) and ignore the rest of the entries even if the selected match fail later on. For example:
+     *
+     *     * / *
+     *     page / * / *
+     *
+     * will not match 'page/section/33'. 'page' will match the first '*' so UriMatcher will try to use that entry to
+     * validate the path. Since the path has three segments while the pattern only has 2, it will fail BUT IT WILL NOT
+     * TRY TO MATCH against THE NEXT (and correct) PATTERN.
+     *
+     * However, if we do so:
+     *
+     *     page / * / *
+     *     * / *
+     *
+     * Then it will match since the first entry will be selected. Basically, it traverses the list of patterns and stops
+     * as soon as it finds an entry whose first item match the input string.
+     *
+     * The sorting algorithm below sorts the entries by listing the explicit patterns (non wildcards) first based
+     * on their position in the path segments.
+     */
+    private NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
 
-        /**
-         * Sorts the matcher uris by uri id.
-         *
-         * @see Comparator#compare(Object, Object)
-         */
-        @Override
-        public int compare(MatcherUri o1, MatcherUri o2) {
+        String[] uri1Paths = uri1.getNormalizedPath().split("/");
+        String[] uri2Paths = uri2.getNormalizedPath().split("/");
 
-            return o1.getId() - o2.getId();
+        for (int i = 0; i < Math.min(uri1Paths.length, uri2Paths.length); i++) {
+
+            if (!uri1Paths[i].equals("*") && uri2Paths[i].equals("*")) {
+                return -1;
+            }
+
+            if (uri1Paths[i].equals("*") && !uri2Paths[i].equals("*")) {
+                return 1;
+            }
         }
+
+        return uri2Paths.length - uri1Paths.length;
     });
 
     /**
      * Creates an instance of this class.
      *
-     * @param authorityName
-     *         The authority name being handled by the delegate class.
-     * @param typeElement
-     *         The {@link TypeElement} for the delegate class as provided by the round environment.
+     * @param authorityName The authority name being handled by the delegate class.
+     * @param typeElement   The {@link TypeElement} for the delegate class as provided by the round environment.
      */
     public DelegateClass(String authorityName, TypeElement typeElement) {
 
@@ -122,13 +145,9 @@ public class DelegateClass {
      * Registers a @Query path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
      *
-     * @param pathAndQuery
-     *         The path and query string to register.
-     *
+     * @param pathAndQuery The path and query string to register.
      * @return A new DelegateUri object representing this path and query string combination.
-     *
-     * @throws DuplicatePathException
-     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
+     * @throws DuplicatePathException If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
     public DelegateUri registerPathForQuery(String pathAndQuery) {
 
@@ -142,13 +161,9 @@ public class DelegateClass {
      * Registers a @Update path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
      *
-     * @param pathAndQuery
-     *         The path and query string to register.
-     *
+     * @param pathAndQuery The path and query string to register.
      * @return A new DelegateUri object representing this path and query string combination.
-     *
-     * @throws DuplicatePathException
-     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
+     * @throws DuplicatePathException If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
     public DelegateUri registerPathForUpdate(String pathAndQuery) {
 
@@ -161,9 +176,8 @@ public class DelegateClass {
     /**
      * Sets if the delegate class implements the delegate interface.
      *
-     * @param doesImplementDelegateInterface
-     *         <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *         otherwise.
+     * @param doesImplementDelegateInterface <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *                                       otherwise.
      */
     public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
         this.mHasImplementedDelegateInterface = doesImplementDelegateInterface;
@@ -255,37 +269,28 @@ public class DelegateClass {
      *
      * @return The {@link MatcherUri}s this delegate class accepts.
      */
-    public NavigableSet<MatcherUri> getMactherUris() {
+    public NavigableSet<MatcherUri> getMatcherUris() {
 
-        return mMactherUris;
+        return mMatcherUris;
     }
 
     /**
      * Checks if a {@link MatcherUri} has already been created for the path and query. If yes, returns that instance. If
      * not, a new one is created and registered.
      *
-     * @param pathAndQuery
-     *         The path and query to check.
-     *
+     * @param pathAndQuery The path and query to check.
      * @return The {@link MatcherUri} for the path and query.
      */
     private MatcherUri getMatcherUriFor(String pathAndQuery) {
 
         final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery);
 
-        NavigableSet<MatcherUri> matchingUris = Sets.filter(mMactherUris, new Predicate<MatcherUri>() {
-
-            @Override
-            public boolean apply(MatcherUri input) {
-
-                return newCandidate.equals(input);
-            }
-        });
+        NavigableSet<MatcherUri> matchingUris = Sets.filter(mMatcherUris, input -> newCandidate.equals(input));
 
         if (matchingUris.size() == 0) {
 
             newCandidate.setId(++mMatcherUriIdCount);
-            mMactherUris.add(newCandidate);
+            mMatcherUris.add(newCandidate);
 
             return newCandidate;
         }
