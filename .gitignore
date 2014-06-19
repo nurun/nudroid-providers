@@ -12,6 +12,7 @@ tmp
 dist
 .gradle
 build
+generated
 /.idea
 /*.iml
 /out
