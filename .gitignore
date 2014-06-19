@@ -26,3 +26,4 @@ build
 *.iml
 *.ipr
 *.iws
+copyfiles.sh

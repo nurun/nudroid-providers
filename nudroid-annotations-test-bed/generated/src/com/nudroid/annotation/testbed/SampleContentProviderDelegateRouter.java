@@ -18,10 +18,7 @@ public class SampleContentProviderDelegateRouter {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
-        URI_MATCHER.addURI("com.nudroid.samples", "page/*/*", 4);
-        URI_MATCHER.addURI("com.nudroid.samples", "factions", 1);
-        URI_MATCHER.addURI("com.nudroid.samples", "*/*", 3);
-        URI_MATCHER.addURI("com.nudroid.samples", "*", 2);
+        URI_MATCHER.addURI("com.nudroid.samples", "*", 1);
     }
 
     private com.nudroid.annotation.testbed.SampleContentProviderDelegate mDelegate;
@@ -42,75 +39,91 @@ public class SampleContentProviderDelegateRouter {
         Cursor result = null;
 
         switch (URI_MATCHER.match(uri)) {
-        case 4:
+        case 1:
         {
-
+            if (contentProviderContext.uri.getQueryParameter("com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId") != null && contentProviderContext.uri.getQueryParameter("extra") != null) {
                 java.util.List<String> pathSegments = uri.getPathSegments();
 
                 contentProviderContext = new ContentProviderContext(context, uri, projection,
                         selection, selectionArgs, sortOrder, null);
 
-                contentProviderContext.placeholders.put("type", pathSegments.get(1));
-                contentProviderContext.placeholders.put("id", pathSegments.get(2));
+                contentProviderContext.placeholders.put("extra", contentProviderContext.uri.getQueryParameter("extra"));
+                contentProviderContext.placeholders.put("cacheId", contentProviderContext.uri.getQueryParameter("com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId"));
+                contentProviderContext.placeholders.put("contentType", pathSegments.get(0));
 
-                result = mDelegate.listPage(contentProviderContext.placeholders.get("type"), contentProviderContext.placeholders.get("id"));
+                com.nudroid.annotation.testbed.MyCacheInterceptor lMyCacheInterceptor = 
+                        new com.nudroid.annotation.testbed.MyCacheInterceptor();
 
-                return result;
+                lMyCacheInterceptor.onCreate(contentProviderContext);
+                lMyCacheInterceptor.beforeQuery(contentProviderContext);
 
 
-                    
-        }
-
-        case 1:
-        {
-            if (uri.getQueryParameterNames().contains("name")) {
-
-                contentProviderContext = new ContentProviderContext(context, uri, projection,
-                        selection, selectionArgs, sortOrder, null);
-
-                contentProviderContext.placeholders.put("name", uri.getQueryParameter("name"));
-
-                result = mDelegate.findFactionByName(contentProviderContext.placeholders.get("name"));
+                result = mDelegate.contentTypeExtraCache(contentProviderContext.placeholders.get("contentType"), contentProviderContext.placeholders.get("extra"), contentProviderContext.placeholders.get("cacheId"));
+                result = lMyCacheInterceptor.afterQuery(contentProviderContext, result);
 
                 return result;
             }
 
-
-            throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
-                    uri, mDelegate.getClass()));
-                    
-        }
-
-        case 3:
-        {
-
+            if (contentProviderContext.uri.getQueryParameter("com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId") != null) {
                 java.util.List<String> pathSegments = uri.getPathSegments();
 
                 contentProviderContext = new ContentProviderContext(context, uri, projection,
                         selection, selectionArgs, sortOrder, null);
 
-                contentProviderContext.placeholders.put("type", pathSegments.get(0));
-                contentProviderContext.placeholders.put("id", pathSegments.get(1));
+                contentProviderContext.placeholders.put("cacheId", contentProviderContext.uri.getQueryParameter("com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId"));
+                contentProviderContext.placeholders.put("contentType", pathSegments.get(0));
 
-                result = mDelegate.listTypeById(contentProviderContext.placeholders.get("type"), contentProviderContext.placeholders.get("id"));
+                com.nudroid.annotation.testbed.MyCacheInterceptor lMyCacheInterceptor = 
+                        new com.nudroid.annotation.testbed.MyCacheInterceptor();
+
+                lMyCacheInterceptor.onCreate(contentProviderContext);
+                lMyCacheInterceptor.beforeQuery(contentProviderContext);
+
+
+                result = mDelegate.contentTypeCache(contentProviderContext.placeholders.get("contentType"), contentProviderContext.placeholders.get("cacheId"));
+                result = lMyCacheInterceptor.afterQuery(contentProviderContext, result);
 
                 return result;
+            }
+
+            if (contentProviderContext.uri.getQueryParameter("extra") != null) {
+                java.util.List<String> pathSegments = uri.getPathSegments();
+
+                contentProviderContext = new ContentProviderContext(context, uri, projection,
+                        selection, selectionArgs, sortOrder, null);
+
+                contentProviderContext.placeholders.put("extra", contentProviderContext.uri.getQueryParameter("extra"));
+                contentProviderContext.placeholders.put("contentType", pathSegments.get(0));
+
+                com.nudroid.annotation.testbed.MyCacheInterceptor lMyCacheInterceptor = 
+                        new com.nudroid.annotation.testbed.MyCacheInterceptor();
+
+                lMyCacheInterceptor.onCreate(contentProviderContext);
+                lMyCacheInterceptor.beforeQuery(contentProviderContext);
 
 
-                    
-        }
+                result = mDelegate.contentTypeExtra(contentProviderContext.placeholders.get("contentType"), contentProviderContext.placeholders.get("extra"));
+                result = lMyCacheInterceptor.afterQuery(contentProviderContext, result);
 
-        case 2:
-        {
+                return result;
+            }
 
                 java.util.List<String> pathSegments = uri.getPathSegments();
 
                 contentProviderContext = new ContentProviderContext(context, uri, projection,
                         selection, selectionArgs, sortOrder, null);
 
-                contentProviderContext.placeholders.put("type", pathSegments.get(0));
+                contentProviderContext.placeholders.put("contentType", pathSegments.get(0));
 
-                result = mDelegate.listType(contentProviderContext.placeholders.get("type"));
+                com.nudroid.annotation.testbed.MyCacheInterceptor lMyCacheInterceptor = 
+                        new com.nudroid.annotation.testbed.MyCacheInterceptor();
+
+                lMyCacheInterceptor.onCreate(contentProviderContext);
+                lMyCacheInterceptor.beforeQuery(contentProviderContext);
+
+
+                result = mDelegate.contentType(contentProviderContext.placeholders.get("contentType"));
+                result = lMyCacheInterceptor.afterQuery(contentProviderContext, result);
 
                 return result;
 

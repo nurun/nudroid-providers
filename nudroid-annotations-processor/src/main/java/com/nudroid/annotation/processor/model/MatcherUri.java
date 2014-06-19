@@ -23,8 +23,12 @@
 package com.nudroid.annotation.processor.model;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -88,22 +92,34 @@ public class MatcherUri {
             return mQueryDelegateUrisCache;
         }
 
-        mQueryDelegateUrisCache = new TreeSet<DelegateUri>(new Comparator<DelegateUri>() {
+        mQueryDelegateUrisCache = new TreeSet<>((DelegateUri uri1, DelegateUri uri2) -> {
 
-            @Override
-            public int compare(DelegateUri o1, DelegateUri o2) {
-                return (o2.getQueryStringParameterCount()) - (o1.getQueryStringParameterCount());
+        /* Duplicated query strings are already filtered out at this point. So just simply compare each query
+        parameter until one of them differs. */
+            if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+
+                List<String> uri1Parameters = new ArrayList<>(uri1.getQueryParameterNamesAndValues()
+                        .keySet());
+                List<String> uri2Parameters = new ArrayList<>(uri2.getQueryParameterNamesAndValues()
+                        .keySet());
+
+                Collections.sort(uri1Parameters);
+                Collections.sort(uri2Parameters);
+
+                for (int i = 0; i < uri1Parameters.size(); i++) {
+
+                    if (uri1Parameters.get(i) != uri2Parameters.get(i)) {
+
+                        return uri1Parameters.get(i)
+                                .compareTo(uri2Parameters.get(i));
+                    }
+                }
             }
+
+            return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
         });
 
-        mQueryDelegateUrisCache.addAll(Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
-
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return input.getQueryDelegateMethod() != null;
-            }
-        }));
+        mQueryDelegateUrisCache.addAll(Sets.filter(mDelegateUris, input -> input.getQueryDelegateMethod() != null));
 
         return mQueryDelegateUrisCache;
     }
@@ -119,22 +135,10 @@ public class MatcherUri {
             return mUpdateDelegateUrisCache;
         }
 
-        mUpdateDelegateUrisCache = new TreeSet<DelegateUri>(new Comparator<DelegateUri>() {
+        mUpdateDelegateUrisCache =
+                new TreeSet<>((o1, o2) -> (o2.getQueryStringParameterCount()) - (o1.getQueryStringParameterCount()));
 
-            @Override
-            public int compare(DelegateUri o1, DelegateUri o2) {
-                return (o2.getQueryStringParameterCount()) - (o1.getQueryStringParameterCount());
-            }
-        });
-
-        mUpdateDelegateUrisCache.addAll(Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
-
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return input.getUpdateDelegateMethod() != null;
-            }
-        }));
+        mUpdateDelegateUrisCache.addAll(Sets.filter(mDelegateUris, input -> input.getUpdateDelegateMethod() != null));
 
         return mUpdateDelegateUrisCache;
     }

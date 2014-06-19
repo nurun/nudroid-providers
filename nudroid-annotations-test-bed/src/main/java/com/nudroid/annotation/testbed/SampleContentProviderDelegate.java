@@ -24,9 +24,7 @@ package com.nudroid.annotation.testbed;
 
 import android.database.Cursor;
 
-import com.nudroid.annotation.provider.delegate.ContentProvider;
-import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.UriPlaceholder;
+import com.nudroid.annotation.provider.delegate.*;
 
 /**
  * A sample delegate to test the annotation processor.
@@ -34,26 +32,58 @@ import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 @ContentProvider(authority = "com.nudroid.samples")
 public class SampleContentProviderDelegate {
 
-    @Query("factions?name={name}")
-    public Cursor findFactionByName(@UriPlaceholder("name") String name) {
+    //    @Query("factions?name={name}")
+    //    public Cursor findFactionByName(@UriPlaceholder("name") String name) {
+    //
+    //        return null;
+    //    }
+    //
+    //    @Query("{type}/{id}")
+    //    public Cursor listTypeById(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+    //
+    //        return null;
+    //    }
+    //
+    //    @Query("page/{type}/{id}")
+    //    public Cursor listPage(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+    //
+    //        return null;
+    //    }
+    //
+    //
+    //    @Query("{type}")
+    //    public Cursor type(@UriPlaceholder("type") String name) {
+    //
+    //        return null;
+    //    }
+
+    @MyCacheInterceptor.Interceptor("{contentType}")
+    @Query("{contentType}")
+    public Cursor contentType(@UriPlaceholder("contentType") String contentType) {
 
         return null;
     }
 
-    @Query("{type}")
-    public Cursor listType(@UriPlaceholder("type") String name) {
+    @MyCacheInterceptor.Interceptor("{contentType}")
+    @Query("{contentType}?extra={extra}")
+    public Cursor contentTypeExtra(@UriPlaceholder("contentType") String name, @UriPlaceholder("extra") String extra) {
 
         return null;
     }
 
-    @Query("{type}/{id}")
-    public Cursor listTypeById(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+    @MyCacheInterceptor.Interceptor("{contentType}")
+    @Query("{contentType}?com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
+    public Cursor contentTypeCache(@UriPlaceholder("contentType") String contentType,
+                                   @UriPlaceholder("cacheId") String cacheId) {
 
         return null;
     }
 
-    @Query("page/{type}/{id}")
-    public Cursor listPage(@UriPlaceholder("type") String name, @UriPlaceholder("id") String id) {
+    @MyCacheInterceptor.Interceptor("{contentType}")
+    @Query("{contentType}?extra={extra}&com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
+    public Cursor contentTypeExtraCache(@UriPlaceholder("contentType") String name,
+                                        @UriPlaceholder("extra") String extra,
+                                        @UriPlaceholder("cacheId") String cacheId) {
 
         return null;
     }

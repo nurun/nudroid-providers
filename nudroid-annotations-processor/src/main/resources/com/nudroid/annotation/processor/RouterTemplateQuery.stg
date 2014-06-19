@@ -80,25 +80,23 @@ query_populatePathContextPlaceholder(placeholder) ::= <%
 
 
 query_populateQueryContextPlaceholder(placeholder) ::= <%
-    contentProviderContext.placeholders.put("<placeholder.placeholderName>", uri.getQueryParameter("<placeholder.keyName>"));
+    contentProviderContext.placeholders.put("<placeholder.placeholderName>", contentProviderContext.uri.getQueryParameter("<placeholder.keyName>"));
 %>
 
 
 
 
 query_generateQueryParameterIfStatement(queryParameterName) ::= <%
-    uri.getQueryParameterNames().contains("<queryParameterName>")
+    contentProviderContext.uri.getQueryParameter("<queryParameterName>") != null
 %>
 
 
 
 
 query_generateDelegateMethodCode(delegateUri) ::= <<
-
 <if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
 if (<delegateUri.queryDelegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 <endif>
-                
     <if(delegateUri.queryDelegateMethod.uriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
     
@@ -110,6 +108,7 @@ if (<delegateUri.queryDelegateMethod.queryStringParameterNames:query_generateQue
     <delegateUri.queryDelegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
     
     <delegateUri.queryDelegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
+
     result = mDelegate.<delegateUri.queryDelegateMethod.name>(<delegateUri.queryDelegateMethod.parameters:query_generateDelegateMethodParameterList(); separator=", ">);
     <delegateUri.queryDelegateMethod.afterInterceptorList:query_generateAfterMethodInterceptorInvocations(); separator="\n">
     
