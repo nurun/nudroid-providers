@@ -59,32 +59,32 @@ public class SampleContentProviderDelegate {
 
     @MyCacheInterceptor.Interceptor("{contentType}")
     @Query("{contentType}")
-    public Cursor contentType(@UriPlaceholder("contentType") String contentType) {
+    public Cursor contentType(@UriPlaceholder("contentType") String contentType, @Selection String selection) {
 
         return null;
     }
 
-    @MyCacheInterceptor.Interceptor("{contentType}")
-    @Query("{contentType}?extra={extra}")
-    public Cursor contentTypeExtra(@UriPlaceholder("contentType") String name, @UriPlaceholder("extra") String extra) {
-
-        return null;
-    }
-
-    @MyCacheInterceptor.Interceptor("{contentType}")
-    @Query("{contentType}?com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
-    public Cursor contentTypeCache(@UriPlaceholder("contentType") String contentType,
-                                   @UriPlaceholder("cacheId") String cacheId) {
-
-        return null;
-    }
-
-    @MyCacheInterceptor.Interceptor("{contentType}")
-    @Query("{contentType}?extra={extra}&com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
-    public Cursor contentTypeExtraCache(@UriPlaceholder("contentType") String name,
-                                        @UriPlaceholder("extra") String extra,
-                                        @UriPlaceholder("cacheId") String cacheId) {
-
-        return null;
-    }
+//    @MyCacheInterceptor.Interceptor("{contentType}")
+//    @Query("{contentType}?extra={extra}")
+//    public Cursor contentTypeExtra(@UriPlaceholder("contentType") String name, @UriPlaceholder("extra") String extra) {
+//
+//        return null;
+//    }
+//
+//    @MyCacheInterceptor.Interceptor("{contentType}")
+//    @Query("{contentType}?com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
+//    public Cursor contentTypeCache(@UriPlaceholder("contentType") String contentType,
+//                                   @UriPlaceholder("cacheId") String cacheId) {
+//
+//        return null;
+//    }
+//
+//    @MyCacheInterceptor.Interceptor("{contentType}")
+//    @Query("{contentType}?extra={extra}&com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
+//    public Cursor contentTypeExtraCache(@UriPlaceholder("contentType") String name,
+//                                        @UriPlaceholder("extra") String extra,
+//                                        @UriPlaceholder("cacheId") String cacheId) {
+//
+//        return null;
+//    }
 }

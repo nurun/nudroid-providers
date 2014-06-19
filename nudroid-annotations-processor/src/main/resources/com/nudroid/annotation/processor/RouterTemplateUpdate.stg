@@ -3,7 +3,7 @@ update_generateDelegateMethodParameterList(parameter) ::= <%
         contentProviderContext.context
     <elseif(parameter.projection)>
         contentProviderContext.projection
-    <elseif(parameter.isSelection)>
+    <elseif(parameter.selection)>
         contentProviderContext.selection
     <elseif(parameter.selectionArgs)>
         contentProviderContext.selectionArgs
