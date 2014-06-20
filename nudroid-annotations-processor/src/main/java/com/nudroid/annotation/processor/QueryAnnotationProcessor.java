@@ -93,7 +93,8 @@ class QueryAnnotationProcessor {
 
     /**
      * Process the {@link Query} annotations on this round.
-     *  @param roundEnv
+     *
+     * @param roundEnv
      *         The round environment to process.
      * @param metadata
      */
@@ -109,8 +110,8 @@ class QueryAnnotationProcessor {
         if (queryMethods.size() > 0) {
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
                     Query.class.getSimpleName(), Joiner.on("\n        - ")
-                    .skipNulls()
-                    .join(queryMethods)));
+                            .skipNulls()
+                            .join(queryMethods)));
         }
 
         for (Element queryMethod : queryMethods) {
@@ -163,7 +164,7 @@ class QueryAnnotationProcessor {
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
             mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
-                            e.getOriginalMethod()), queryMethod);
+                    e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -298,7 +299,7 @@ class QueryAnnotationProcessor {
                         String.format("        Parameter is not of expected type %s. Signaling compilatoin error.",
                                 requiredType, parameterElement));
                 mLogger.error(String.format("Parameters annotated with @%s must be of type %s.",
-                                annotationClass.getSimpleName(), requiredType), parameterElement);
+                        annotationClass.getSimpleName(), requiredType), parameterElement);
             }
         }
 
@@ -349,14 +350,20 @@ class QueryAnnotationProcessor {
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
 
-        for (InterceptorAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+        if (metadata.getInterceptorBlueprints()
+                .size() == 0) {
+            return;
+        }
 
-            mLogger.trace(String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
+        List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
+                .getAnnotationMirrors();
 
-            List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
-                    .getAnnotationMirrors();
+        for (AnnotationMirror mirror : annotationsMirrors) {
 
-            for (AnnotationMirror mirror : annotationsMirrors) {
+            for (InterceptorAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+
+                mLogger.trace(
+                        String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
 
                 final TypeElement annotationTypeElement = concreteAnnotation.getTypeElement();
 

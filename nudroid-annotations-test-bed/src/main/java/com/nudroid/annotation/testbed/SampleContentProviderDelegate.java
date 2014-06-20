@@ -57,6 +57,7 @@ public class SampleContentProviderDelegate {
     //        return null;
     //    }
 
+    @BeforeInterceptor.Interceptor
     @MyCacheInterceptor.Interceptor("{contentType}")
     @Query("{contentType}")
     public Cursor contentType(@UriPlaceholder("contentType") String contentType, @Selection String selection) {
