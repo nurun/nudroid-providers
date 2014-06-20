@@ -22,21 +22,24 @@
 
 package com.nudroid.provider.interceptor.cache;
 
-import java.util.concurrent.TimeUnit;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 import com.nudroid.provider.interceptor.ContentProviderContext;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A caching strategy which uses an age to validate caches against staleness. If the cache is older than the specified
  * max age, the cache is deemed stale.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class MaxAgeCacheStrategy implements CachingStrategy {
+
+    private static final String CACHE_PAGINATION_PREFERENCES_FILE =
+            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
 
     private Clock mClock;
     private long mTimeToLive;
@@ -44,13 +47,13 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param clock
-     *            The clock instance used to get the current time.
+     *         The clock instance used to get the current time.
      * @param maxAge
-     *            The maximum age of the cache.
+     *         The maximum age of the cache.
      * @param timeUnit
-     *            The time unit for the age.
+     *         The time unit for the age.
      */
     public MaxAgeCacheStrategy(Clock clock, long maxAge, TimeUnit timeUnit) {
 
@@ -61,17 +64,17 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
 
     /**
      * Checks the current time and calculates the cache age. If age is greater than the provided max age (in the
-     * appropriate time unit) the cache is deemed stale.
-     * {@inheritDoc}
-     * 
+     * appropriate time unit) the cache is deemed stale. {@inheritDoc}
+     *
      * @see CachingStrategy#isUpToDate(ContentProviderContext, String)
      */
     @Override
     public boolean isUpToDate(ContentProviderContext context, String cacheId) {
 
-        SharedPreferences preferences = context.context.getSharedPreferences(cacheId, Context.MODE_PRIVATE);
+        SharedPreferences preferences =
+                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
 
-        long lastUpdateDate = preferences.getLong("VERSION", 0);
+        long lastUpdateDate = preferences.getLong(cacheId, 0);
 
         long currentDateAndTime = mClock.currentTime();
         long age = mTimeUnit.convert(currentDateAndTime - lastUpdateDate, TimeUnit.MILLISECONDS);
@@ -80,9 +83,8 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
     }
 
     /**
-     * Stores the new version date of the cache.
-     * {@inheritDoc}
-     * 
+     * Stores the new version date of the cache. {@inheritDoc}
+     *
      * @see CachingStrategy#cacheUpdateFinished(ContentProviderContext, String, boolean)
      */
     @Override
@@ -90,13 +92,31 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
 
         if (wasUpdated) {
 
-            SharedPreferences preferences = context.context.getSharedPreferences(cacheId, Context.MODE_PRIVATE);
+            SharedPreferences preferences =
+                    context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
 
             final long version = mClock.currentTime();
 
             Editor editor = preferences.edit();
-            editor.putLong("VERSION", version);
+            editor.putLong(cacheId, version);
             editor.commit();
         }
+    }
+
+    /**
+     * Clears the metadata for the cached content. This will not clear the actual cached data, just the accompanying
+     * metadata, forcing a cache update.
+     *
+     * @param context
+     *         an android context to access.
+     */
+    public static void clearCacheMetadata(Context context) {
+
+        SharedPreferences preferences =
+                context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
+
+        Editor editor = preferences.edit();
+        editor.clear();
+        editor.commit();
     }
 }

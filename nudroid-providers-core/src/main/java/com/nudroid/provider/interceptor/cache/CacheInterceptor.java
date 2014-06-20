@@ -198,6 +198,8 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
     private static final String REMOTE_URL_PROPERTY_NAME = "remoteUrl";
     private static final String PAGE_REMOVAL_REG_EXP =
             "\\&?com\\.nudroid\\.provider\\.interceptor\\.cache\\.pagination\\=[^\\&]*(\\&+)?";
+    private static final String CACHE_PAGINATION_PREFERENCES_FILE =
+            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
     private static Map<String, Semaphore> sSemaphoresForCacheId = new HashMap<String, Semaphore>();
 
     /**
@@ -400,7 +402,8 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                     if (wasSynchronized) {
 
                         SharedPreferences preferences =
-                                context.context.getSharedPreferences("PAGE_BY_CACHE", Context.MODE_PRIVATE);
+                                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE,
+                                        Context.MODE_PRIVATE);
                         Editor editor = preferences.edit();
                         editor.clear();
                         editor.commit();
@@ -428,7 +431,8 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                     if (pageDownloaded) {
 
                         SharedPreferences preferences =
-                                context.context.getSharedPreferences("PAGE_BY_CACHE", Context.MODE_PRIVATE);
+                                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE,
+                                        Context.MODE_PRIVATE);
                         Editor editor = preferences.edit();
                         editor.putInt(cacheId, 1);
                         editor.commit();
@@ -446,7 +450,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                 boolean pageDownloaded = false;
 
                 SharedPreferences preferences =
-                        context.context.getSharedPreferences("PAGE_BY_CACHE", Context.MODE_PRIVATE);
+                        context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
                 int currentPage = preferences.getInt(cacheId, 1);
 
                 try {
