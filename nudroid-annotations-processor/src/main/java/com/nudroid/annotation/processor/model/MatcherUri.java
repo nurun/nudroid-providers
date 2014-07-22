@@ -25,10 +25,8 @@ package com.nudroid.annotation.processor.model;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -45,6 +43,7 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
  */
 public class MatcherUri {
 
+    private static String QUERY_STRING_REGEXP = "\\?.*";
     private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
     private static String LEADING_SLASH_REGEXP = "^\\/";
 
@@ -62,23 +61,27 @@ public class MatcherUri {
      * @param authority
      *         The authority for this URI.
      * @param path
-     *         The mapped URI path.
+     *         the uri path, with placeholders
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
      */
-    public MatcherUri(Authority authority, String path) {
+    //TODO This was a quick fix for a BUG faced on illico. Review this and refactor it better. For now,
+    // we assume anything which is not a string is a number. Do a proper assessment. Keep a collection of mappings
+    // and utilities, map all supported types and their corresponding ParamTypePattern and get from that map,
+    // throwing an exception if the type is not supported.
+    public MatcherUri(Authority authority, String path, List<ParamTypePattern> placeholderTargetTypes) {
 
-        String normalizedPath = path.replaceAll(PLACEHOLDER_REGEXP, "*")
-                .replaceAll(LEADING_SLASH_REGEXP, "");
-        URI uri;
+        String normalizedPath = path.replaceAll(QUERY_STRING_REGEXP, "");
 
-        try {
-            uri = URI.create(String.format("content://%s/%s", authority.getName(), normalizedPath));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalUriPathException(e);
+        for (ParamTypePattern type : placeholderTargetTypes) {
+
+            normalizedPath = normalizedPath.replaceFirst(PLACEHOLDER_REGEXP, type.getPattern());
         }
 
+        normalizedPath = normalizedPath.replaceAll(LEADING_SLASH_REGEXP, "");
+
         this.mAuthority = authority;
-        this.mPath = uri.getPath()
-                .replaceAll(LEADING_SLASH_REGEXP, "");
+        this.mPath = normalizedPath;
     }
 
     /**

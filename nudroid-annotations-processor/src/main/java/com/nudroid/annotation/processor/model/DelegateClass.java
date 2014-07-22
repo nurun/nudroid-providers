@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 
@@ -75,8 +76,10 @@ public class DelegateClass {
      */
     private NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
 
-        String[] uri1Paths = uri1.getNormalizedPath().split("/");
-        String[] uri2Paths = uri2.getNormalizedPath().split("/");
+        String[] uri1Paths = uri1.getNormalizedPath()
+                .split("/");
+        String[] uri2Paths = uri2.getNormalizedPath()
+                .split("/");
 
         for (int i = 0; i < Math.min(uri1Paths.length, uri2Paths.length); i++) {
 
@@ -95,8 +98,10 @@ public class DelegateClass {
     /**
      * Creates an instance of this class.
      *
-     * @param authorityName The authority name being handled by the delegate class.
-     * @param typeElement   The {@link TypeElement} for the delegate class as provided by the round environment.
+     * @param authorityName
+     *         The authority name being handled by the delegate class.
+     * @param typeElement
+     *         The {@link TypeElement} for the delegate class as provided by the round environment.
      */
     public DelegateClass(String authorityName, TypeElement typeElement) {
 
@@ -145,13 +150,19 @@ public class DelegateClass {
      * Registers a @Query path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
      *
-     * @param pathAndQuery The path and query string to register.
+     * @param pathAndQuery
+     *         The path and query string to register.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
      * @return A new DelegateUri object representing this path and query string combination.
-     * @throws DuplicatePathException If the path and query string has already been associated with an existing @Query DelegateMethod.
+     *
+     * @throws DuplicatePathException
+     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public DelegateUri registerPathForQuery(String pathAndQuery) {
+    public DelegateUri registerPathForQuery(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
 
-        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery);
+        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
         DelegateUri delegateUri = matcherUri.registerQueryDelegateUri(pathAndQuery);
 
         return delegateUri;
@@ -161,13 +172,19 @@ public class DelegateClass {
      * Registers a @Update path and query string to be handled by this delegate class. DelegateUris, as opposed to
      * MatcherUri does take query string in consideration when differentiating between URIs.
      *
-     * @param pathAndQuery The path and query string to register.
+     * @param pathAndQuery
+     *         The path and query string to register.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
      * @return A new DelegateUri object representing this path and query string combination.
-     * @throws DuplicatePathException If the path and query string has already been associated with an existing @Update DelegateMethod.
+     *
+     * @throws DuplicatePathException
+     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public DelegateUri registerPathForUpdate(String pathAndQuery) {
+    public DelegateUri registerPathForUpdate(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
 
-        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery);
+        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
         DelegateUri delegateUri = matcherUri.registerUpdateDelegateUri(pathAndQuery);
 
         return delegateUri;
@@ -176,8 +193,9 @@ public class DelegateClass {
     /**
      * Sets if the delegate class implements the delegate interface.
      *
-     * @param doesImplementDelegateInterface <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *                                       otherwise.
+     * @param doesImplementDelegateInterface
+     *         <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *         otherwise.
      */
     public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
         this.mHasImplementedDelegateInterface = doesImplementDelegateInterface;
@@ -278,12 +296,16 @@ public class DelegateClass {
      * Checks if a {@link MatcherUri} has already been created for the path and query. If yes, returns that instance. If
      * not, a new one is created and registered.
      *
-     * @param pathAndQuery The path and query to check.
+     * @param pathAndQuery
+     *         The path and query to check.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
      * @return The {@link MatcherUri} for the path and query.
      */
-    private MatcherUri getMatcherUriFor(String pathAndQuery) {
+    private MatcherUri getMatcherUriFor(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
 
-        final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery);
+        final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery, placeholderTargetTypes);
 
         NavigableSet<MatcherUri> matchingUris = Sets.filter(mMatcherUris, input -> newCandidate.equals(input));
 

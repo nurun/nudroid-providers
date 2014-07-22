@@ -41,6 +41,7 @@ import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.DelegateUri;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.ParamTypePattern;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
@@ -156,7 +157,22 @@ class QueryAnnotationProcessor {
 
         try {
 
-            delegateUri = delegateClass.registerPathForQuery(pathAndQuery);
+            //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
+            List<ParamTypePattern> placeholderTypes = new ArrayList<>();
+
+            List<? extends VariableElement> parameters = queryMethod.getParameters();
+
+            for (VariableElement param : parameters) {
+
+                UriPlaceholder annotation = param.getAnnotation(UriPlaceholder.class);
+
+                if (annotation != null) {
+
+                    placeholderTypes.add(ParamTypePattern.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                }
+            }
+
+            delegateUri = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 

@@ -58,11 +58,23 @@ public class SampleContentProviderDelegate {
     //    }
 
     @BeforeInterceptor.Interceptor
-    @MyCacheInterceptor.Interceptor("{contentType}")
-    @Query("{contentType}")
-    public Cursor contentType(@UriPlaceholder("contentType") String contentType, @Selection String selection) {
+    @MyCacheInterceptor.Interceptor("{contentType}/{id}")
+    @Query("{contentType}/{id}?yadayada={yada}")
+    public Cursor contentType(@UriPlaceholder("contentType") String contentType,
+                              @UriPlaceholder("id") Long id, @UriPlaceholder("yada") Long yada,
+                              @Selection String selection) {
 
         return null;
+    }
+
+    @BeforeInterceptor.Interceptor
+    @MyCacheInterceptor.Interceptor("{contentType}/{id}")
+    @Update("{contentType}/{id}?yadayada={yada}")
+    public int updateContentType(@UriPlaceholder("contentType") String contentType,
+                              @UriPlaceholder("id") Long id, @UriPlaceholder("yada") Long yada,
+                              @Selection String selection) {
+
+        return 0;
     }
 
 //    @MyCacheInterceptor.Interceptor("{contentType}")
