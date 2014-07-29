@@ -119,7 +119,13 @@ public class MatcherUri {
                 }
             }
 
-            return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+            int diff = uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+
+            if (diff == 0) {
+                return uri1.getNormalizedPath().compareTo(uri2.getNormalizedPath());
+            }
+
+            return diff;
         });
 
         mQueryDelegateUrisCache.addAll(Sets.filter(mDelegateUris, input -> input.getQueryDelegateMethod() != null));

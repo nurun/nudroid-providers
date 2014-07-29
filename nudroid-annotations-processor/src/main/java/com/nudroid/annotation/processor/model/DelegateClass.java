@@ -92,7 +92,22 @@ public class DelegateClass {
             }
         }
 
-        return uri2Paths.length - uri1Paths.length;
+        int diff = uri2Paths.length - uri1Paths.length;
+
+        /* If the path has the same number of elements, compare each component. */
+        if (diff == 0) {
+
+            for (int i = 0; i < uri1Paths.length; i++) {
+
+                diff = uri1Paths[i].compareTo(uri2Paths[i]);
+
+                if (diff != 0) {
+                    return diff;
+                }
+            }
+        }
+
+        return diff;
     });
 
     /**
