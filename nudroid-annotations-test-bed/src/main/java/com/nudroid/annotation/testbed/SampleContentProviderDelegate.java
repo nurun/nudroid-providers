@@ -39,8 +39,8 @@ public class SampleContentProviderDelegate {
         return null;
     }
 
-    @Query("terminals")
-    public Cursor terminals() {
+    @Query("terminals?a={baba}")
+    public Cursor terminals(@UriPlaceholder("baba") String ba) {
 
         //... perform query
         return null;

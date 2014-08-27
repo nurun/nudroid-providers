@@ -94,6 +94,10 @@ query_generateQueryParameterIfStatement(queryParameterName) ::= <%
 
 
 query_generateDelegateMethodCode(delegateUri) ::= <<
+
+contentProviderContext = new ContentProviderContext(context, uri, projection,
+            selection, selectionArgs, sortOrder, null);
+
 <if(!delegateUri.queryDelegateMethod.queryStringParameterNames.empty)>
 if (<delegateUri.queryDelegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 <endif>
@@ -101,8 +105,6 @@ if (<delegateUri.queryDelegateMethod.queryStringParameterNames:query_generateQue
     java.util.List\<String> pathSegments = uri.getPathSegments();
     
     <endif>
-    contentProviderContext = new ContentProviderContext(context, uri, projection,
-            selection, selectionArgs, sortOrder, null);
             
     <delegateUri.queryDelegateMethod.queryStringPlaceholderParameters:query_populateQueryContextPlaceholder(); separator="\n">
     <delegateUri.queryDelegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
