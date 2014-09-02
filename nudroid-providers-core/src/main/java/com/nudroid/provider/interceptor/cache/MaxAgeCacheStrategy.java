@@ -38,8 +38,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class MaxAgeCacheStrategy implements CachingStrategy {
 
-    private static final String CACHE_PAGINATION_PREFERENCES_FILE =
-            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
+    private static final String CACHE_VERSION_SUFFIX = "_CACHE_VERSION";
 
     private Clock mClock;
     private long mTimeToLive;
@@ -72,9 +71,10 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
     public boolean isUpToDate(ContentProviderContext context, String cacheId) {
 
         SharedPreferences preferences =
-                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
+                context.context.getSharedPreferences(CacheInterceptor.CACHE_PAGINATION_PREFERENCES_FILE,
+                        Context.MODE_PRIVATE);
 
-        long lastUpdateDate = preferences.getLong(cacheId, 0);
+        long lastUpdateDate = preferences.getLong(cacheId + CACHE_VERSION_SUFFIX, 0);
 
         long currentDateAndTime = mClock.currentTime();
         long age = mTimeUnit.convert(currentDateAndTime - lastUpdateDate, TimeUnit.MILLISECONDS);
@@ -93,12 +93,13 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
         if (wasUpdated) {
 
             SharedPreferences preferences =
-                    context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
+                    context.context.getSharedPreferences(CacheInterceptor.CACHE_PAGINATION_PREFERENCES_FILE,
+                            Context.MODE_PRIVATE);
 
             final long version = mClock.currentTime();
 
             Editor editor = preferences.edit();
-            editor.putLong(cacheId, version);
+            editor.putLong(cacheId + CACHE_VERSION_SUFFIX, version);
             editor.commit();
         }
     }
@@ -113,7 +114,7 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
     public static void clearCacheMetadata(Context context) {
 
         SharedPreferences preferences =
-                context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
+                context.getSharedPreferences(CacheInterceptor.CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
 
         Editor editor = preferences.edit();
         editor.clear();

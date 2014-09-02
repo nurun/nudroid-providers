@@ -195,11 +195,16 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
     public static final String CACHE_ID_QUERY_STRING_PARAM_NAME =
             "com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId";
 
+    /**
+     * Preferences file where cache information is stored.
+     */
+    protected static final String CACHE_PAGINATION_PREFERENCES_FILE =
+            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
+
     private static final String REMOTE_URL_PROPERTY_NAME = "remoteUrl";
     private static final String PAGE_REMOVAL_REG_EXP =
             "\\&?com\\.nudroid\\.provider\\.interceptor\\.cache\\.pagination\\=[^\\&]*(\\&+)?";
-    private static final String CACHE_PAGINATION_PREFERENCES_FILE =
-            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
+
     private static Map<String, Semaphore> sSemaphoresForCacheId = new HashMap<String, Semaphore>();
 
     /**
@@ -386,7 +391,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                                      PaginationType paginationType) {
         switch (paginationType) {
             /*
-             * If no pagination is requested, just validate cache and call synchronization is cache is stale.
+             * If no pagination is requested, just validate cache and call synchronization if cache is stale.
              */
             case NONE:
                 if (!mCachingStrategy.isUpToDate(context, cacheId)) {
@@ -405,7 +410,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                                 context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE,
                                         Context.MODE_PRIVATE);
                         Editor editor = preferences.edit();
-                        editor.clear();
+                        editor.remove(cacheId);
                         editor.commit();
                     }
 
