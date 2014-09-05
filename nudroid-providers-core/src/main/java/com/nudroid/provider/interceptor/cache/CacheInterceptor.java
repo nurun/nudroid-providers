@@ -197,8 +197,11 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * Preferences file where cache information is stored.
+     * <p>
+     * TODO: Instead of exposing the internals of how the cache manager stores its data, create a component to manage
+     * the cache with a properly defined interface which can be accessed by clients of the library.
      */
-    protected static final String CACHE_PAGINATION_PREFERENCES_FILE =
+    public static final String CACHE_PAGINATION_PREFERENCES_FILE =
             "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
 
     private static final String REMOTE_URL_PROPERTY_NAME = "remoteUrl";

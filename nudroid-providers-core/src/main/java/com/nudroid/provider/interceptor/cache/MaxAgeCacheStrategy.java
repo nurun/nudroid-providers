@@ -120,4 +120,15 @@ public class MaxAgeCacheStrategy implements CachingStrategy {
         editor.clear();
         editor.commit();
     }
+
+    /**
+     * Given a cache id, returns the key under which the expiration date is stored in the preferences file.
+     *
+     * @param cacheId
+     *         the cache id.
+     */
+    public static String getCacheExpirationKey(String cacheId) {
+
+        return cacheId + CACHE_VERSION_SUFFIX;
+    }
 }
