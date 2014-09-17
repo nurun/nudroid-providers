@@ -32,39 +32,47 @@ buildscript {
 
 /*
  * =================================================================================================================
- * subprojects
  * Base configuration for all projects.
  */
 allprojects {
     apply plugin: 'eclipse'
+    apply plugin: 'idea'
+}
+
+/*
+ * Disables the pesky javadoc warnings on Java 8.
+ */
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
 }
 
 /*
  * =================================================================================================================
- * subprojects
- * Base configuration for all projects.
+ * Base configuration for all subprojects projects.
  */
 subprojects {
 
     apply plugin: "java"
     apply plugin: 'maven'
-    apply from:   '../emma.gradle'
+    apply from: '../emma.gradle'
 
     version = '2.0-MILESTONE-2-SNAPSHOT'
     group = 'com.nudroid'
-    sourceCompatibility = JavaVersion.VERSION_1_6
-    targetCompatibility = JavaVersion.VERSION_1_6
 
+    /*
+     * =============================================================================================================
+     * Creates a new classpath configuration for classes required only during compile time.
+     */
     configurations { compileOnly }
 
     repositories {
         mavenCentral()
-        maven {
-            url 'http://repo.springsource.org/libs-release'
-            url 'http://repo.springsource.org/libs-milestone'
-            url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local'
-            url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local'
-        }
+        maven { url 'http://repo.springsource.org/libs-release' }
+        maven { url 'http://repo.springsource.org/libs-milestone' }
     }
 
     dependencies {
@@ -74,43 +82,48 @@ subprojects {
 
     test { useTestNG() }
 
+    /*
+     * =============================================================================================================
+     * Adds the compileOnly dependencies to the compile, test and javadoc classpaths and eclipse and idea project files.
+     * Sets-up idea to download sources and javadoc.
+     */
     sourceSets.main.compileClasspath += configurations.compileOnly
     sourceSets.test.compileClasspath += configurations.compileOnly
-    
-    javadoc  {
+
+    javadoc {
         classpath += configurations.compileOnly
-    } 
+    }
 
     eclipse.classpath.plusConfigurations += [configurations.compileOnly]
-    
+
+    idea {
+
+        module {
+            //if you need to put 'provided' dependencies on the classpath
+            scopes.PROVIDED.plus += configurations.compileOnly
+
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+
+    /*
+     * =============================================================================================================
+     * Configure source and javadoc export.
+     */
     task sourceJar(type: Jar) {
         classifier = 'sources'
         from sourceSets.main.allSource
     }
-    
+
     task javadocJar(type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from javadoc.destinationDir
     }
-    
+
     artifacts {
         archives sourceJar
         archives javadocJar
-    }
-    
-    uploadArchives { 
-        repositories.mavenDeployer { 
-            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {    
-                authentication(userName: "pubandroid", password: "androidpub") 
-                releases(updatePolicy: 'always')
-                snapshots(updatePolicy: 'never')   
-            }
-            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {    
-                authentication(userName: "pubandroid", password: "androidpub") 
-                releases(updatePolicy: 'never')
-                snapshots(updatePolicy: 'always')   
-            }
-        }     
     }
 }
 
@@ -120,6 +133,10 @@ subprojects {
  * Configuration for nudroid-providers-core
  */
 project(':nudroid-providers-core') {
+
+    sourceCompatibility = JavaVersion.VERSION_1_6
+    targetCompatibility = JavaVersion.VERSION_1_6
+
     dependencies {
         compileOnly 'com.google.android:android:2.2.1'
     }
@@ -131,6 +148,10 @@ project(':nudroid-providers-core') {
  * Configuration for nudroid-annotations
  */
 project(':nudroid-annotations') {
+
+    sourceCompatibility = JavaVersion.VERSION_1_6
+    targetCompatibility = JavaVersion.VERSION_1_6
+
     dependencies {
         compile project(':nudroid-providers-core')
     }
@@ -142,6 +163,9 @@ project(':nudroid-annotations') {
  * Configuration for nudroid-annotations-processor.
  */
 project(':nudroid-annotations-processor') {
+
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     dependencies {
         compile project(':nudroid-annotations')
@@ -167,6 +191,9 @@ project(':nudroid-annotations-processor-all') {
         compileOnly 'org.antlr:ST4:4.0.7'
     }
 
+    /*
+     * Creates a single jar will all required dependencies for the annotation processor.
+     */
     jar {
         from {
             configurations.compileOnly.collect {
@@ -177,5 +204,5 @@ project(':nudroid-annotations-processor-all') {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.9'
+    gradleVersion = '1.12'
 }
