@@ -1,113 +1,35 @@
-#Nudroid Persistence Library
+#Nudroid Providers
 
-The Nudroid persistence library is a set of Java annotations and accompanying annotation processor which aims to reduce
+The Nudroid providers library is a set of Java annotations and accompanying annotation processor which aims to reduce
 the amount of work required to configure and manage Android Content Providers.
-
-The library can be downloaded from Nurun's artifactory repository or built from source.
-
-[http://artifactory.mtl.nurun.com/artifactory/simple/android-release-local/com/nudroid/](http://artifactory.mtl.nurun.com/artifactory/simple/android-release-local/com/nudroid/)
-
-#The Maven and Gradle dependencies:
-
-##Maven
-
-    <dependency>
-        <groupId>com.nudroid</groupId>
-        <artifactId>nudroid-annotations</artifactId>
-        <version>2.0-MILESTONE-1</version>
-    </dependency>
-
-    <dependency>
-        <groupId>com.nudroid</groupId>
-        <artifactId>nudroid-annotations-processor-all</artifactId>
-        <version>2.0-MILESTONE-1</version>
-        <scope>provided</scope>
-    </dependency>
-        
-##Gradle
-
-Make sure you have installed build tools version 19
-
-    ...
-    repositories {
-        ...
-        maven {
-            ...
-            url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local'
-        }
-    }
-
-    // Creates a new configuration (we want the processor out of the app bundle)
-    // It can't be added to the 'compile' configuration
-    configurations { processor }
-    
-    // Add dependencies
-    dependencies {
-        ...
-        processor 'com.nudroid:nudroid-annotations-processor-all:2.0-MILESTONE-1'
-        compile 'com.nudroid:nudroid-annotations:2.0-MILESTONE-1'
-    }
-
-    // Configuring the generated source directory path. This resolves to <project>/build/generated/src
-    def aptOutputDir = project.file("${project.buildDir}/generated/src")
-    
-    android {
-        // Sets the build tools version
-        compileSdkVersion 19
-        buildToolsVersion "19.0.0"
-        ...
-        sourceSets {
-            main {
-                // For android studio to pick up the generated source files, the path has to be added to the main sources.
-                // This creates a problem as gradle will try to compile the source file twice unless the project is cleaned beforehand
-                // Solution to this problem is below
-                java.srcDirs += aptOutputDir.getPath()
-            }
-        }
-        ...
-    }
-        
-    // Makes the processor configuration available at compile time and configure annotation processor output directory.
-    android.applicationVariants.all { variant ->
-
-        // Gradle will find and run all annotation processor in the classpath.
-        // All we need to do is to add the configuration to the java compile classpath.
-        variant.javaCompile.classpath += configurations.processor
-    
-        // The directory has to exist for the annotation processor to work.
-        variant.javaCompile.doFirst {
-            aptOutputDir.mkdirs()
-        }
-    
-        // Configures the annotation processor output directory.
-        variant.javaCompile.options.compilerArgs += [
-                '-s', aptOutputDir.getPath()
-        ]
-    
-        // To avoid duplicate class compilation, remove all source files which are generated but had to be added to the
-        // source set due the way Android Studio works 
-        variant.javaCompile.source = variant.javaCompile.source.filter { file ->
-            return !file.getPath().startsWith(aptOutputDir.getPath())
-        }
-    }
-    ...
 
 Building with Maven and Gradle will automatically invoke the annotation processor. If using an IDE, enable annotation
 processing and register nudroid-annotations-processor-all.jar as a processor to be executed. 
 
 See the library javadocs for more information about how to use the provided annotations.
 
-#Interception (or poor man's Aspect)
+#License
+Nudroid Providers uses the MIT License
 
-The library does more than simplifying the coding and maintanence of content providers. It also allows delegate methods
-to be intercepted and have code to be executed before and after the database is accessed. The interceptors
-can inspect and change the arguments and the result of a content provider call.
+Copyright (c) 2014 Nurun Inc.
 
-The library comes with an interceptor ready for caching, updating and paginating content from a remote server into the
-database, allowing apps to work seamlessly in offline mode as long as a cache is present. The cache can be customized by
-plugging strategies for cache expiration and synchronization. All configuration done by Java Annotations.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Check the javadocs in the core package for more information about content provider interceptors. 
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 #TODO
 Upload demo app and link it here.  
@@ -286,3 +208,15 @@ every time you save a file. In fact, here's the code that the annotation process
         }
         ...    
     }
+
+#Interception (or poor man's Aspect)
+
+The library does more than simplifying the coding and maintanence of content providers. It also allows delegate methods
+to be intercepted and have code to be executed before and after the database is accessed. The interceptors
+can inspect and change the arguments and the result of a content provider call.
+
+The library comes with an interceptor ready for caching, updating and paginating content from a remote server into the
+database, allowing apps to work seamlessly in offline mode as long as a cache is present. The cache can be customized by
+plugging strategies for cache expiration and synchronization. All configuration done by Java Annotations.
+
+Check the javadocs in the core package for more information about content provider interceptors.
