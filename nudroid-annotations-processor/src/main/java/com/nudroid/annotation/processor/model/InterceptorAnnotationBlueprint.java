@@ -61,7 +61,6 @@ public class InterceptorAnnotationBlueprint {
     private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
     private TypeElement mInterceptorAnnotationTypeElement;
     private TypeElement mInterceptorImplementationTypeElement;
-    private boolean mHasDefaultConstructor;
     private boolean mHasCustomConstructor;
 
     /**
@@ -85,10 +84,6 @@ public class InterceptorAnnotationBlueprint {
         for (ExecutableElement constructor : constructors) {
 
             final List<? extends VariableElement> parameters = constructor.getParameters();
-
-            if (parameters.size() == 0) {
-                this.mHasDefaultConstructor = true;
-            }
 
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
@@ -200,7 +195,6 @@ public class InterceptorAnnotationBlueprint {
                                                    Types typeUtils, LoggingUtils logger) {
 
         InterceptorPoint interceptor = new InterceptorPoint(this);
-        interceptor.setHasDefaultConstructor(mHasDefaultConstructor);
         interceptor.setHasCustomConstructor(mHasCustomConstructor);
 
         SortedSet<ExecutableElement> methodKeys = new TreeSet<ExecutableElement>(new Comparator<ExecutableElement>() {

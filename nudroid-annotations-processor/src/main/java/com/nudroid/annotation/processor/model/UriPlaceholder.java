@@ -23,12 +23,15 @@
 package com.nudroid.annotation.processor.model;
 
 /**
- * A placeholder in a <a href="http://developer.android.com/reference/android/content/ContentProvider.html">ContentProvider</a>
- * URI.
+ * A placeholder in a delegate method annotation URI.
+ * <p>
+ * Can represent both a placeholder appearing in the path segment or in the query string. If appearing in a path
+ * segment, this placeholder key is it's position in the path segments (beginning with 0). If appearing in a query
+ * string, this placeholder key is the name of the query string parameter.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class UriPlaceholderParameter {
+class UriPlaceholder {
 
     private final String mKey;
     private final String mName;
@@ -42,7 +45,7 @@ class UriPlaceholderParameter {
      * @param position
      *         The position it appears on the URI path.
      */
-    UriPlaceholderParameter(String name, int position) {
+    UriPlaceholder(String name, int position) {
 
         super();
         this.mName = name;
@@ -58,7 +61,7 @@ class UriPlaceholderParameter {
      * @param queryParameterName
      *         The name of the query string parameter it appears on the URI query string.
      */
-    UriPlaceholderParameter(String name, String queryParameterName) {
+    UriPlaceholder(String name, String queryParameterName) {
 
         super();
         this.mKey = queryParameterName;
@@ -111,7 +114,7 @@ class UriPlaceholderParameter {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        UriPlaceholderParameter other = (UriPlaceholderParameter) obj;
+        UriPlaceholder other = (UriPlaceholder) obj;
         if (mName == null) {
             if (other.mName != null) return false;
         } else if (!mName.equals(other.mName)) return false;

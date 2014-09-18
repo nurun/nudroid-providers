@@ -35,12 +35,9 @@ import javax.lang.model.element.TypeElement;
 public class InterceptorPoint {
 
     private TypeElement mInterceptorImplementationElement;
-    private TypeElement mInterceptorAnnotationElement;
     private boolean mHasCustomConstructor;
-    private boolean mHasDefaultConstructor;
     private InterceptorAnnotationBlueprint mConcreteAnnotation;
-    private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments =
-            new ArrayList<InterceptorAnnotationParameter>();
+    private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
 
     /**
      * Creates a new Interceptor bean.
@@ -50,7 +47,6 @@ public class InterceptorPoint {
      */
     public InterceptorPoint(InterceptorAnnotationBlueprint concreteAnnotation) {
 
-        this.mInterceptorAnnotationElement = concreteAnnotation.getTypeElement();
         this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
         this.mConcreteAnnotation = concreteAnnotation;
     }
@@ -60,6 +56,7 @@ public class InterceptorPoint {
      *
      * @return The fully qualified name of the interceptor class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getQualifiedName() {
 
         return mInterceptorImplementationElement.getQualifiedName()
@@ -71,6 +68,7 @@ public class InterceptorPoint {
      *
      * @return The simple name of the interceptor class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getSimpleName() {
 
         return mInterceptorImplementationElement.getSimpleName()
@@ -78,29 +76,11 @@ public class InterceptorPoint {
     }
 
     /**
-     * Gets the annotation for this interceptor.
-     *
-     * @return The annotation for this interceptor.
-     */
-    public TypeElement getInterceptorAnnotationElement() {
-        return mInterceptorAnnotationElement;
-    }
-
-    /**
-     * Checks if the interceptor has a default constructor.
-     *
-     * @return <tt>true</tt> is it has, <tt>false</tt> otherwise.
-     */
-    public boolean hasDefaultConstructor() {
-
-        return mHasDefaultConstructor;
-    }
-
-    /**
      * Checks if the interceptor has a custom (concrete annotation) constructor.
      *
      * @return <tt>true</tt> is it has, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean hasCustomConstructor() {
 
         return mHasCustomConstructor;
@@ -111,6 +91,7 @@ public class InterceptorPoint {
      *
      * @return the qualified name of the concrete annotation implementation for this interceptor.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getConcreteAnnotationQualifiedName() {
 
         return mConcreteAnnotation.getConcreteClassName();
@@ -121,6 +102,7 @@ public class InterceptorPoint {
      *
      * @return The list of source code literals to create a new instance of the concrete annotation.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;
@@ -139,21 +121,10 @@ public class InterceptorPoint {
     }
 
     /**
-     * Sets if this Interceptor have a default constructor.
-     *
-     * @param <tt>true</tt>
-     *         if it has, <tt>false</tt> otherwise.
-     */
-    void setHasDefaultConstructor(boolean hasDefaultConstructor) {
-
-        this.mHasDefaultConstructor = hasDefaultConstructor;
-    }
-
-    /**
      * Sets if this Interceptor have a custom constructor.
      *
-     * @param <tt>true</tt>
-     *         if it has, <tt>false</tt> otherwise.
+     * @param hasCustomConstructor
+     *         <tt>true</tt> if it has, <tt>false</tt> otherwise.
      */
     void setHasCustomConstructor(boolean hasCustomConstructor) {
 

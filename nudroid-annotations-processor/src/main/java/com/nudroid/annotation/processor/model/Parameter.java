@@ -32,7 +32,13 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
- * Represents a parameter accepted by a delegate method.
+ * Contains metadata of a parameter from a delegate method.
+ * <p>
+ * Includes information about the parameter:
+ * <p>
+ * <ul> <li> If it is one of context, projection, selection, selection args, sort order, content values or uri</li> <li>
+ * The type of the parameter</li> <li> The key name, placeholder name and placeholder type if this parameter binds to a
+ * URi placeholder</li> </ul>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -131,7 +137,7 @@ public class Parameter {
     }
 
     /**
-     * The parameter is a annotated with {@link UriPlaceholder}.
+     * The parameter is a annotated with {@link UriPlaceholder} and binds to a path placeholder.
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
@@ -140,7 +146,7 @@ public class Parameter {
     }
 
     /**
-     * The parameter is a placeholder appearing in the query string of the URL.
+     * The parameter is a annotated with {@link UriPlaceholder} and binds to a query string placeholder.
      *
      * @return <tt>true</tt> if it is a query param, <tt>false</tt> otherwise.
      */
@@ -149,12 +155,15 @@ public class Parameter {
     }
 
     /**
-     * For path parameters, gets the position in the URI path this parameter maps to.
+     * For path parameters, gets the position in the URI path this parameter maps to. For query strings, gets the name
+     * of the query string parameter.
      *
      * @return The position in the URI path this parameter maps to.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public String getKeyName() { return mKeyName; }
+    public String getKeyName() {
+        return mKeyName;
+    }
 
     /**
      * Returns the placeholder name for this parameter.
@@ -167,9 +176,9 @@ public class Parameter {
     }
 
     /**
-     * Get's this parameter type's qualified name.
+     * Gets the qualified name of the parameter type.
      *
-     * @return This parameter type's name.
+     * @return the qualified name of the parameter type
      */
     @SuppressWarnings("UnusedDeclaration")
     public String getParameterType() {
@@ -278,10 +287,10 @@ public class Parameter {
     }
 
     /**
-     * Sets the parameter type's name.
+     * Sets the qualified name of the parameter type.
      *
      * @param mParameterType
-     *         The type of the parameter.
+     *         The qualified name of the type of the parameter.
      */
     public void setParameterType(String mParameterType) {
         this.mParameterType = mParameterType;
@@ -309,5 +318,4 @@ public class Parameter {
                 mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mKeyName=" + mKeyName +
                 ", mParamType=" + mUriPlaceholderType + "]";
     }
-
 }

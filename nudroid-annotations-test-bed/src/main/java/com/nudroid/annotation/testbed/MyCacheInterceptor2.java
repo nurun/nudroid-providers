@@ -23,6 +23,9 @@
 package com.nudroid.annotation.testbed;
 
 import com.nudroid.provider.interceptor.ContentProviderContext;
+import com.nudroid.provider.interceptor.ContentProviderInterceptor;
+import com.nudroid.provider.interceptor.ContentProviderInterceptorAdapter;
+import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
 import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.cache.CacheInterceptor;
 import com.nudroid.provider.interceptor.cache.CachingStrategy;
@@ -31,27 +34,19 @@ import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
 /**
  * Cache validation interceptor for the cntent service.
  */
-public class MyCacheInterceptor2 extends CacheInterceptor {
+public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
 
 
     /**
      * Creates an instance of this class.
-     *
-     * @param remoteUrl The remote url to download data from.
-     * @param cacheId   The id of the cache to use.
      */
-    public MyCacheInterceptor2(String remoteUrl, String cacheId) {
-        super(remoteUrl, cacheId);
+    public MyCacheInterceptor2(Interceptor annotation) {
+
     }
 
     @Override
-    public SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context) {
-        return null;
-    }
+    public void onCreate(ContentProviderContext context) {
 
-    @Override
-    public CachingStrategy onCreateCachingStrategy(ContentProviderContext context) {
-        return null;
     }
 
     /**
@@ -64,5 +59,11 @@ public class MyCacheInterceptor2 extends CacheInterceptor {
          * The remote url to call to fetch up to date data.
          */
         String value();
+
+        String anotherValue();
+
+        int[] sex();
+
+        double age();
     }
 }
