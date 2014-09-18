@@ -39,9 +39,9 @@ import javax.lang.model.util.Types;
 import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.UriMethodTuple;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
-import com.nudroid.annotation.processor.model.ParamTypePattern;
+import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
@@ -143,20 +143,20 @@ class UpdateAnnotationProcessor {
         mLogger.info("Done processing @Update annotations.");
     }
 
-    private DelegateMethod processUpdateOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
+    private DelegateMethod processUpdateOnMethod(ExecutableElement methodElement, DelegateClass delegateClass,
                                                  Metadata metadata) {
 
-        Update query = queryMethod.getAnnotation(Update.class);
+        Update query = methodElement.getAnnotation(Update.class);
         String pathAndQuery = query.value();
 
-        DelegateUri delegateUri = null;
+        UriMethodTuple uriMethodTuple = null;
 
         try {
 
             //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
-            List<ParamTypePattern> placeholderTypes = new ArrayList<>();
+            List<UriMatcherPathPatternType> placeholderTypes = new ArrayList<>();
 
-            List<? extends VariableElement> parameters = queryMethod.getParameters();
+            List<? extends VariableElement> parameters = methodElement.getParameters();
 
             for (VariableElement param : parameters) {
 
@@ -164,11 +164,12 @@ class UpdateAnnotationProcessor {
 
                 if (annotation != null) {
 
-                    placeholderTypes.add(ParamTypePattern.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                    placeholderTypes.add(
+                            UriMatcherPathPatternType.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
                 }
             }
 
-            delegateUri = delegateClass.registerPathForUpdate(pathAndQuery, placeholderTypes);
+            uriMethodTuple = delegateClass.registerPathForUpdate(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -176,7 +177,7 @@ class UpdateAnnotationProcessor {
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
             mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
-                            e.getOriginalMethod()), queryMethod);
+                            e.getOriginalMethod()), methodElement);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -184,22 +185,22 @@ class UpdateAnnotationProcessor {
                     pathAndQuery));
             mLogger.error(
                     String.format("Placeholder '%s' appearing at position '%s' is already present at position '%s'",
-                            e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), queryMethod);
+                            e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), methodElement);
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(methodElement, query, uriMethodTuple);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = delegateUri.setUpdateDelegateMethod(queryMethod);
+        DelegateMethod delegateMethod = uriMethodTuple.setQueryDelegateMethod(methodElement);
 
-        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
+        mLogger.trace(String.format("    Added delegate method %s.", methodElement));
 
-        List<? extends VariableElement> parameters = queryMethod.getParameters();
+        List<? extends VariableElement> parameters = methodElement.getParameters();
 
         for (VariableElement methodParameter : parameters) {
 
@@ -224,8 +225,8 @@ class UpdateAnnotationProcessor {
                 parameter.setPlaceholderName(uriPlaceholder.value());
                 parameter.setParameterType(methodParameter.asType()
                         .toString());
-                parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
-                parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
+                parameter.setUriPlaceholderType(uriMethodTuple.getUriPlaceholderType(uriPlaceholder.value()));
+                parameter.setKeyName(uriMethodTuple.getParameterPosition(uriPlaceholder.value()));
             }
 
             delegateMethod.addParameter(parameter);
@@ -236,7 +237,7 @@ class UpdateAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Update query, DelegateUri uri) {
+    private boolean hasValidSignature(ExecutableElement method, Update query, UriMethodTuple uri) {
 
         boolean isValid = true;
 
@@ -318,7 +319,7 @@ class UpdateAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, DelegateUri uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, UriMethodTuple uri,
                                                      List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;

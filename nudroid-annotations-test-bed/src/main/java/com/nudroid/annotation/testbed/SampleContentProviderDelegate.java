@@ -32,15 +32,16 @@ import com.nudroid.annotation.provider.delegate.*;
 @ContentProvider(authority = "com.nudroid.samples")
 public class SampleContentProviderDelegate {
 
-    @Query("channels")
+    @Query("/channels/test")
     public Cursor channels() {
 
         //... perform query
         return null;
     }
 
-    @Query("terminals?a={baba}")
-    public Cursor terminals(@UriPlaceholder("baba") String ba) {
+    @Query("/terminals/cast/{oba}?a={baba}&b={bebe}")
+    public Cursor terminals(@UriPlaceholder("baba") String ba, @UriPlaceholder("bebe") String bb,
+                            @UriPlaceholder("oba") String oba) {
 
         //... perform query
         return null;

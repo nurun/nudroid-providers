@@ -37,7 +37,7 @@ import com.nudroid.annotation.provider.delegate.Update;
 
 /**
  * <p>Holds information about the delegate method for a content provider.</p>
- *
+ * <p>
  * <p>Delegate methods are methods annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link
  * Insert}, or {@link Delete}.</p>
  *
@@ -45,13 +45,11 @@ import com.nudroid.annotation.provider.delegate.Update;
  */
 public class DelegateMethod {
 
-    private DelegateClass mDelegateClass;
     private String mName;
     private List<Parameter> mParameters = new ArrayList<Parameter>();
     private List<Parameter> mPathPlaceholderParameters = new ArrayList<Parameter>();
     private List<Parameter> mQueryStringPlaceholderParameters = new ArrayList<Parameter>();
     private Set<String> mQueryStringParameterNames = new HashSet<String>();
-    private DelegateUri mUri;
     private ExecutableElement mExecutableElement;
     private List<InterceptorPoint> mInterceptorElements = new ArrayList<InterceptorPoint>();
     private List<InterceptorPoint> mInverseInterceptorElements = null;
@@ -60,13 +58,10 @@ public class DelegateMethod {
      * Creates an instance of this class.
      *
      * @param element
-     *         The {@link ExecutableElement} representing this delegate method.
-     * @param uri
-     *         An {@link DelegateUri} describing the URI the method should match.
+     *         The {@link javax.lang.model.element.ExecutableElement} representing this delegate method.
      */
-    public DelegateMethod(ExecutableElement element, DelegateUri uri) {
+    public DelegateMethod(ExecutableElement element) {
 
-        this.mUri = uri;
         this.mName = element.getSimpleName()
                 .toString();
         this.mExecutableElement = element;
@@ -243,7 +238,6 @@ public class DelegateMethod {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((mDelegateClass == null) ? 0 : mDelegateClass.hashCode());
         result = prime * result + ((mName == null) ? 0 : mName.hashCode());
         result = prime * result + ((mParameters == null) ? 0 : mParameters.hashCode());
         return result;
@@ -260,9 +254,6 @@ public class DelegateMethod {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         DelegateMethod other = (DelegateMethod) obj;
-        if (mDelegateClass == null) {
-            if (other.mDelegateClass != null) return false;
-        } else if (!mDelegateClass.equals(other.mDelegateClass)) return false;
         if (mName == null) {
             if (other.mName != null) return false;
         } else if (!mName.equals(other.mName)) return false;
@@ -279,10 +270,10 @@ public class DelegateMethod {
      */
     @Override
     public String toString() {
-        return "DelegateMethod [mDelegateClass=" + mDelegateClass + ", mName=" + mName + ", mParameters=" +
+        return "DelegateMethod [mName=" + mName + ", mParameters=" +
                 mParameters + ", mPathPlaceholderParameters=" + mPathPlaceholderParameters +
                 ", mQueryStringPlaceholderParameters=" + mQueryStringPlaceholderParameters +
-                ", mQueryStringParameterNames=" + mQueryStringParameterNames + ", mUri=" + mUri +
+                ", mQueryStringParameterNames=" + mQueryStringParameterNames +
                 ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements=" + mInterceptorElements +
                 ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
     }

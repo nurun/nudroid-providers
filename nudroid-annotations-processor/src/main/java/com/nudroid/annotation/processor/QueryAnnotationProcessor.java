@@ -39,9 +39,9 @@ import javax.lang.model.util.Types;
 import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.DelegateUri;
+import com.nudroid.annotation.processor.model.UriMethodTuple;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
-import com.nudroid.annotation.processor.model.ParamTypePattern;
+import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
@@ -153,12 +153,12 @@ class QueryAnnotationProcessor {
         Query query = queryMethod.getAnnotation(Query.class);
         String pathAndQuery = query.value();
 
-        DelegateUri delegateUri = null;
+        UriMethodTuple uriMethodTuple = null;
 
         try {
 
             //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
-            List<ParamTypePattern> placeholderTypes = new ArrayList<>();
+            List<UriMatcherPathPatternType> placeholderTypes = new ArrayList<>();
 
             List<? extends VariableElement> parameters = queryMethod.getParameters();
 
@@ -168,11 +168,12 @@ class QueryAnnotationProcessor {
 
                 if (annotation != null) {
 
-                    placeholderTypes.add(ParamTypePattern.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                    placeholderTypes.add(
+                            UriMatcherPathPatternType.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
                 }
             }
 
-            delegateUri = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
+            uriMethodTuple = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -192,14 +193,14 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, uriMethodTuple);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = delegateUri.setQueryDelegateMethod(queryMethod);
+        DelegateMethod delegateMethod = uriMethodTuple.setQueryDelegateMethod(queryMethod);
 
         mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
@@ -228,8 +229,8 @@ class QueryAnnotationProcessor {
                 parameter.setPlaceholderName(uriPlaceholder.value());
                 parameter.setParameterType(methodParameter.asType()
                         .toString());
-                parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
-                parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
+                parameter.setUriPlaceholderType(uriMethodTuple.getUriPlaceholderType(uriPlaceholder.value()));
+                parameter.setKeyName(uriMethodTuple.getParameterPosition(uriPlaceholder.value()));
             }
 
             delegateMethod.addParameter(parameter);
@@ -240,7 +241,7 @@ class QueryAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Query query, DelegateUri uri) {
+    private boolean hasValidSignature(ExecutableElement method, Query query, UriMethodTuple uri) {
 
         boolean isValid = true;
 
@@ -322,7 +323,7 @@ class QueryAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, UriMethodTuple uri,
                                                      List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;

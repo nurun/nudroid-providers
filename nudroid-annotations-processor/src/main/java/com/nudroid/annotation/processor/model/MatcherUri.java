@@ -22,19 +22,13 @@
 
 package com.nudroid.annotation.processor.model;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import com.google.common.collect.Sets;
+import com.nudroid.annotation.processor.DuplicatePathException;
+
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeSet;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
-import com.nudroid.annotation.processor.DuplicatePathException;
-import com.nudroid.annotation.processor.IllegalUriPathException;
 
 /**
  * Represents a URI to be mapped by a UriMatcher.
@@ -43,17 +37,39 @@ import com.nudroid.annotation.processor.IllegalUriPathException;
  */
 public class MatcherUri {
 
-    private static String QUERY_STRING_REGEXP = "\\?.*";
-    private static String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
-    private static String LEADING_SLASH_REGEXP = "^\\/";
+    private static final String QUERY_STRING_REGEXP = "\\?.*";
+    private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
+    private static final String LEADING_SLASH_REGEXP = "^/";
 
     private int id;
     private Authority mAuthority;
     private String mPath;
     private boolean mHasQueryStringMatchersOnly = true;
-    private Set<DelegateUri> mDelegateUris = new HashSet<DelegateUri>();
-    private NavigableSet<DelegateUri> mUpdateDelegateUrisCache = null;
-    private NavigableSet<DelegateUri> mQueryDelegateUrisCache = null;
+
+    /* Delegate URIs are sorted by query parameter count */
+    private NavigableSet<UriMethodTuple> mQueryUriMethodTuples = new TreeSet<>((UriMethodTuple uri1, UriMethodTuple uri2) -> {
+
+        if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+
+            return uri1.getNormalizedPath()
+                    .compareTo(uri2.getNormalizedPath());
+        }
+
+        return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+    });
+
+    /* Delegate URIs are sorted by query parameter count */
+    private NavigableSet<UriMethodTuple>
+            mUpdateUriMethodTuples = new TreeSet<>((UriMethodTuple uri1, UriMethodTuple uri2) -> {
+
+        if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+
+            return uri1.getNormalizedPath()
+                    .compareTo(uri2.getNormalizedPath());
+        }
+
+        return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+    });
 
     /**
      * Creates an instance of this class.
@@ -65,17 +81,17 @@ public class MatcherUri {
      * @param placeholderTargetTypes
      *         The types of the parameters mapping to the placeholders, in the order they appear.
      */
-    //TODO This was a quick fix for a BUG faced on illico. Review this and refactor it better. For now,
+    //TODO This was a quick fix for a BUG faced on project. Review this and refactor it better. For now,
     // we assume anything which is not a string is a number. Do a proper assessment. Keep a collection of mappings
     // and utilities, map all supported types and their corresponding ParamTypePattern and get from that map,
     // throwing an exception if the type is not supported.
-    public MatcherUri(Authority authority, String path, List<ParamTypePattern> placeholderTargetTypes) {
+    public MatcherUri(Authority authority, String path, List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         String normalizedPath = path.replaceAll(QUERY_STRING_REGEXP, "");
 
-        for (ParamTypePattern type : placeholderTargetTypes) {
+        for (UriMatcherPathPatternType pattern : placeholderTargetTypes) {
 
-            normalizedPath = normalizedPath.replaceFirst(PLACEHOLDER_REGEXP, type.getPattern());
+            normalizedPath = normalizedPath.replaceFirst(PLACEHOLDER_REGEXP, pattern.getPattern());
         }
 
         normalizedPath = normalizedPath.replaceAll(LEADING_SLASH_REGEXP, "");
@@ -85,75 +101,30 @@ public class MatcherUri {
     }
 
     /**
-     * Gets the set of {@link DelegateUri}s for this {@link MatcherUri} which responds to @Query.
+     * Gets the set of delegate uris which handles @Query methods. Methods will be ordered by number of query
+     * parameters, descending.
      *
-     * @return The set of {@link DelegateUri}s
+     * @return The set of delegate uris which handles @Query methods
      */
-    public NavigableSet<DelegateUri> getQueryDelegateUris() {
+    @SuppressWarnings("UnusedDeclaration")
+    public NavigableSet<UriMethodTuple> getQueryUriDelegateTuples() {
 
-        if (mQueryDelegateUrisCache != null) {
-            return mQueryDelegateUrisCache;
-        }
-
-        mQueryDelegateUrisCache = new TreeSet<>((DelegateUri uri1, DelegateUri uri2) -> {
-
-        /* Duplicated query strings are already filtered out at this point. So just simply compare each query
-        parameter until one of them differs. */
-            if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
-
-                List<String> uri1Parameters = new ArrayList<>(uri1.getQueryParameterNamesAndValues()
-                        .keySet());
-                List<String> uri2Parameters = new ArrayList<>(uri2.getQueryParameterNamesAndValues()
-                        .keySet());
-
-                Collections.sort(uri1Parameters);
-                Collections.sort(uri2Parameters);
-
-                for (int i = 0; i < uri1Parameters.size(); i++) {
-
-                    if (uri1Parameters.get(i) != uri2Parameters.get(i)) {
-
-                        return uri1Parameters.get(i)
-                                .compareTo(uri2Parameters.get(i));
-                    }
-                }
-            }
-
-            int diff = uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
-
-            if (diff == 0) {
-                return uri1.getNormalizedPath().compareTo(uri2.getNormalizedPath());
-            }
-
-            return diff;
-        });
-
-        mQueryDelegateUrisCache.addAll(Sets.filter(mDelegateUris, input -> input.getQueryDelegateMethod() != null));
-
-        return mQueryDelegateUrisCache;
+        return mQueryUriMethodTuples;
     }
 
     /**
-     * Gets the set of {@link DelegateUri}s for this {@link MatcherUri} which responds to @Update.
+     * Gets the set of delegate uris which handles @Update methods.
      *
-     * @return The set of {@link DelegateUri}s
+     * @return The set of delegate uris which handles @Update methods
      */
-    public NavigableSet<DelegateUri> getUpdateDelegateUris() {
+    @SuppressWarnings("UnusedDeclaration")
+    public NavigableSet<UriMethodTuple> getUpdateUriDelegateTuples() {
 
-        if (mUpdateDelegateUrisCache != null) {
-            return mUpdateDelegateUrisCache;
-        }
-
-        mUpdateDelegateUrisCache =
-                new TreeSet<>((o1, o2) -> (o2.getQueryStringParameterCount()) - (o1.getQueryStringParameterCount()));
-
-        mUpdateDelegateUrisCache.addAll(Sets.filter(mDelegateUris, input -> input.getUpdateDelegateMethod() != null));
-
-        return mUpdateDelegateUrisCache;
+        return mUpdateUriMethodTuples;
     }
 
     /**
-     * Registers a new {@link DelegateUri} for a query method for the provided path and query string. Delegate uris (as
+     * Registers a new {@link UriMethodTuple} for a query method for the provided path and query string. Delegate uris (as
      * opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
      *
      * @param pathAndQuery
@@ -164,31 +135,30 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public DelegateUri registerQueryDelegateUri(String pathAndQuery) {
+    public UriMethodTuple registerQueryDelegateUri(String pathAndQuery) {
 
-        final DelegateUri candidateDelegateUri = new DelegateUri(this, pathAndQuery);
+        final UriMethodTuple candidateUriMethodTuple = new UriMethodTuple(mAuthority.getName(), pathAndQuery);
 
-        DelegateUri registeredDelegateUri = findEquivalentQueryDelegateUri(candidateDelegateUri);
+        UriMethodTuple registeredUriMethodTuple = findEquivalentQueryDelegateUri(candidateUriMethodTuple);
 
-        if (registeredDelegateUri != null) {
+        if (registeredUriMethodTuple != null) {
 
-            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod()
+            throw new DuplicatePathException(registeredUriMethodTuple.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mDelegateUris.add(candidateDelegateUri);
-        mQueryDelegateUrisCache = null;
+        mQueryUriMethodTuples.add(candidateUriMethodTuple);
 
-        if (candidateDelegateUri.getQueryStringParameterCount() == 0) {
+        if (candidateUriMethodTuple.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidateDelegateUri;
+        return candidateUriMethodTuple;
     }
 
     /**
-     * Registers a new {@link DelegateUri} for an update method for the provided path and query string. Delegate uris
+     * Registers a new {@link UriMethodTuple} for an update method for the provided path and query string. Delegate uris
      * (as opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
      *
      * @param pathAndQuery
@@ -199,27 +169,26 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public DelegateUri registerUpdateDelegateUri(String pathAndQuery) {
+    public UriMethodTuple registerUpdateDelegateUri(String pathAndQuery) {
 
-        final DelegateUri candidateDelegateUri = new DelegateUri(this, pathAndQuery);
+        final UriMethodTuple candidateUriMethodTuple = new UriMethodTuple(mAuthority.getName(), pathAndQuery);
 
-        DelegateUri registeredDelegateUri = findEquivalentUpdateDelegateUri(candidateDelegateUri);
+        UriMethodTuple registeredUriMethodTuple = findEquivalentUpdateDelegateUri(candidateUriMethodTuple);
 
-        if (registeredDelegateUri != null) {
+        if (registeredUriMethodTuple != null) {
 
-            throw new DuplicatePathException(registeredDelegateUri.getQueryDelegateMethod()
+            throw new DuplicatePathException(registeredUriMethodTuple.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mDelegateUris.add(candidateDelegateUri);
-        mUpdateDelegateUrisCache = null;
+        mUpdateUriMethodTuples.add(candidateUriMethodTuple);
 
-        if (candidateDelegateUri.getQueryStringParameterCount() == 0) {
+        if (candidateUriMethodTuple.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidateDelegateUri;
+        return candidateUriMethodTuple;
     }
 
     /**
@@ -227,6 +196,7 @@ public class MatcherUri {
      *
      * @return The id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
      */
+    @SuppressWarnings("UnusedDeclaration")
     public int getId() {
 
         return this.id;
@@ -237,6 +207,7 @@ public class MatcherUri {
      *
      * @return The authority name of this URI.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getAuthorityName() {
 
         return mAuthority.getName();
@@ -253,6 +224,12 @@ public class MatcherUri {
         return mPath;
     }
 
+    /**
+     * Check whether or not this matcher uri only matches paths containing query strings.
+     *
+     * @return <tt>true</tt> if mathcing only paths with query string, <tt>false</tt> otherwise.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean hasQueryStringMatchersOnly() {
 
         return mHasQueryStringMatchersOnly;
@@ -314,39 +291,19 @@ public class MatcherUri {
         this.id = uriId;
     }
 
-    private DelegateUri findEquivalentQueryDelegateUri(final DelegateUri candidateDelegateUri) {
+    private UriMethodTuple findEquivalentQueryDelegateUri(final UriMethodTuple candidateUriMethodTuple) {
 
-        Set<DelegateUri> matchingDelegateUris = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
+        Set<UriMethodTuple> matchingUriMethodTuples = Sets.filter(mQueryUriMethodTuples, candidateUriMethodTuple::equals);
 
-            /*
-             * Checks if the path and query has already been registered in the delegate uri set.
-             */
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return candidateDelegateUri.equals(input) && input.getQueryDelegateMethod() != null;
-            }
-        });
-
-        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator()
+        return matchingUriMethodTuples.isEmpty() ? null : matchingUriMethodTuples.iterator()
                 .next();
     }
 
-    private DelegateUri findEquivalentUpdateDelegateUri(final DelegateUri candidateDelegateUri) {
+    private UriMethodTuple findEquivalentUpdateDelegateUri(final UriMethodTuple candidateUriMethodTuple) {
 
-        Set<DelegateUri> matchingDelegateUris = Sets.filter(mDelegateUris, new Predicate<DelegateUri>() {
+        Set<UriMethodTuple> matchingUriMethodTuples = Sets.filter(mUpdateUriMethodTuples, candidateUriMethodTuple::equals);
 
-            /*
-             * Checks if the path and query has already been registered in the delegate uri set.
-             */
-            @Override
-            public boolean apply(DelegateUri input) {
-
-                return candidateDelegateUri.equals(input) && input.getUpdateDelegateMethod() != null;
-            }
-        });
-
-        return matchingDelegateUris.isEmpty() ? null : matchingDelegateUris.iterator()
+        return matchingUriMethodTuples.isEmpty() ? null : matchingUriMethodTuples.iterator()
                 .next();
     }
 }

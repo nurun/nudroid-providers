@@ -29,12 +29,12 @@ import javax.lang.model.util.Types;
 /**
  * The uri matcher patterns. "*" for string placeholders, "#" for number placeholders.
  */
-public enum ParamTypePattern {
+public enum UriMatcherPathPatternType {
     STRING("*"), NUMBER("#");
 
     private final String mPattern;
 
-    ParamTypePattern(String pattern) {
+    UriMatcherPathPatternType(String pattern) {
         this.mPattern = pattern;
     }
 
@@ -58,7 +58,7 @@ public enum ParamTypePattern {
      *
      * @return The proper URI pattern for the parameter type.
      */
-    public static ParamTypePattern fromTypeMirror(TypeMirror mirror, Elements elementUtils, Types typeUtils) {
+    public static UriMatcherPathPatternType fromTypeMirror(TypeMirror mirror, Elements elementUtils, Types typeUtils) {
 
         TypeMirror stringType = elementUtils.getTypeElement(String.class.getName())
                 .asType();
@@ -68,5 +68,17 @@ public enum ParamTypePattern {
         } else {
             return NUMBER;
         }
+    }
+
+    /**
+     * Checks whether the provided string is either a STRING or NUMBER pattern (i.e. the string equlas "*" or "#").
+     *
+     * @param value The string to test.
+     *
+     * @return <tt>true</tt> if the value represents a STRING or NUMBER pattern.
+     */
+    public static boolean isPattern(String value) {
+
+        return value.equals(STRING.mPattern) || value.equals(NUMBER.mPattern);
     }
 }

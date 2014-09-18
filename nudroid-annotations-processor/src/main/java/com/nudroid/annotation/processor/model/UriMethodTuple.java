@@ -22,6 +22,9 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.DuplicateUriPlaceholderException;
+import com.nudroid.annotation.processor.IllegalUriPathException;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,49 +33,44 @@ import java.util.regex.Pattern;
 
 import javax.lang.model.element.ExecutableElement;
 
-import com.nudroid.annotation.processor.DuplicateUriPlaceholderException;
-import com.nudroid.annotation.processor.IllegalUriPathException;
-
 /**
- * A uniquely mapped URI tied to a delegate method. This class extends the concept of a {@link MatcherUri} by adding
- * relevance to query string parameters.
+ * A uniquely mapped URI tied to a delegate method. This class maps a Matcher URI to a target delegate method. As
+ * opposed to a MatcherUri, this class does use query strings to bind to a particular delegate method.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class DelegateUri {
+public class UriMethodTuple {
 
     private static final String PLACEHOLDER_WILDCARD = "*";
-    private static final String AMPERSAND = "\\&";
-    private static final String LEADING_AMPERSANDS = "^\\&+";
+    private static final String AMPERSAND = "&";
+    private static final String LEADING_AMPERSANDS = "^&+";
     private static final String INTERROGATION_MARK = "\\?";
     private static final String LEADING_INTERROGATION_MARKS = "^\\?+";
     private static final String SLASH = "/";
 
-    private static final String LEADING_SLASH = "^\\/";
+    private static final String LEADING_SLASH = "^/";
     private static final String EMPTY_STRING = "";
-    private static final String EQUALS_SIGN = "\\=";
+    private static final String EQUALS_SIGN = "=";
 
     private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
 
-    private String mAuthority;
     private String mPath;
     private String mQueryString;
-    private Map<String, UriPlaceholderParameter> mPlaceholders = new HashMap<String, UriPlaceholderParameter>();
-    private Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<String, String>();
-    private DelegateMethod mQueryDelegateMethod;
-    private DelegateMethod mUpdateDelegateMethod;
+    private Map<String, UriPlaceholderParameter> mPlaceholders = new HashMap<>();
+    private Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<>();
+    private DelegateMethod mDelegateMethod;
 
     private String mOriginalPathAndQuery;
 
     /**
      * Creates an instance of this class.
      *
-     * @param matcherUri
-     *         The matcher uri this delegate uri is associated with.
+     * @param authority
+     *         This delegate uri authority.
      * @param pathAndQuery
      *         The path and optional query string this delegate URI must handle.
      */
-    public DelegateUri(MatcherUri matcherUri, String pathAndQuery) {
+    public UriMethodTuple(String authority, String pathAndQuery) {
 
         this.mOriginalPathAndQuery = pathAndQuery;
 
@@ -82,12 +80,11 @@ public class DelegateUri {
         URI uri;
 
         try {
-            uri = URI.create(String.format("content://%s/%s", matcherUri.getAuthorityName(), normalizedPath));
+            uri = URI.create(String.format("content://%s/%s", authority, normalizedPath));
         } catch (IllegalArgumentException e) {
             throw new IllegalUriPathException(e);
         }
 
-        this.mAuthority = matcherUri.getAuthorityName();
         this.mPath = uri.getPath();
         this.mQueryString = uri.getQuery();
     }
@@ -173,19 +170,9 @@ public class DelegateUri {
      *
      * @return The DelegateMethod for the query operation or null if this URI does not respond to query requests.
      */
-    public DelegateMethod getQueryDelegateMethod() {
+    public DelegateMethod getDelegateMethod() {
 
-        return mQueryDelegateMethod;
-    }
-
-    /**
-     * Gets the delegate method for an update operation.
-     *
-     * @return The DelegateMethod for the update operation or null if this URI does not respond to query requests.
-     */
-    public DelegateMethod getUpdateDelegateMethod() {
-
-        return mUpdateDelegateMethod;
+        return mDelegateMethod;
     }
 
     /**
@@ -200,32 +187,11 @@ public class DelegateUri {
      */
     public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
 
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, this);
+        DelegateMethod delegateMethod = new DelegateMethod(queryMethod);
         delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues()
                 .keySet());
 
-        mQueryDelegateMethod = delegateMethod;
-
-        return delegateMethod;
-    }
-
-    /**
-     * Creates a new DelegateMethod instance and registers it as an update delegate. Overrides any previously set update
-     * DelegateMethod for this URI.
-     *
-     * @param updateMethod
-     *         The ExecutableElement for the method in the delegate class which will answer for queries against this
-     *         URI.
-     *
-     * @return The newly create and registered update DelegateMethod.
-     */
-    public DelegateMethod setUpdateDelegateMethod(ExecutableElement updateMethod) {
-
-        DelegateMethod delegateMethod = new DelegateMethod(updateMethod, this);
-        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues()
-                .keySet());
-
-        mUpdateDelegateMethod = delegateMethod;
+        mDelegateMethod = delegateMethod;
 
         return delegateMethod;
     }
@@ -275,15 +241,14 @@ public class DelegateUri {
 
             String[] queryVars = querySection.split(AMPERSAND);
 
-            for (int position = 0; position < queryVars.length; position++) {
+            for (String queryVar : queryVars) {
 
-                String[] nameAndValue = queryVars[position].split(EQUALS_SIGN);
+                String[] nameAndValue = queryVar.split(EQUALS_SIGN);
 
                 if (nameAndValue.length != 2) {
 
                     throw new IllegalUriPathException(
-                            String.format("Segment '%s' on path %s is invalid.", queryVars[position],
-                                    mOriginalPathAndQuery));
+                            String.format("Segment '%s' on path %s is invalid.", queryVar, mOriginalPathAndQuery));
                 }
 
                 Matcher m = placeholderPattern.matcher(nameAndValue[1]);
@@ -328,12 +293,10 @@ public class DelegateUri {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
         result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
-        result = prime * result + ((mQueryDelegateMethod == null) ? 0 : mQueryDelegateMethod.hashCode());
+        result = prime * result + ((mDelegateMethod == null) ? 0 : mDelegateMethod.hashCode());
         result = prime * result +
                 ((mQueryStringParameterNamesAndValues == null) ? 0 : mQueryStringParameterNamesAndValues.hashCode());
-        result = prime * result + ((mUpdateDelegateMethod == null) ? 0 : mUpdateDelegateMethod.hashCode());
         return result;
     }
 
@@ -342,22 +305,17 @@ public class DelegateUri {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        DelegateUri other = (DelegateUri) obj;
-        if (mAuthority == null) {
-            if (other.mAuthority != null) return false;
-        } else if (!mAuthority.equals(other.mAuthority)) return false;
+        UriMethodTuple other = (UriMethodTuple) obj;
+
         if (mPath == null) {
             if (other.mPath != null) return false;
         } else if (!mPath.equals(other.mPath)) return false;
-        if (mQueryDelegateMethod == null) {
-            if (other.mQueryDelegateMethod != null) return false;
-        } else if (!mQueryDelegateMethod.equals(other.mQueryDelegateMethod)) return false;
+        if (mDelegateMethod == null) {
+            if (other.mDelegateMethod != null) return false;
+        } else if (!mDelegateMethod.equals(other.mDelegateMethod)) return false;
         if (mQueryStringParameterNamesAndValues == null) {
             if (other.mQueryStringParameterNamesAndValues != null) return false;
         } else if (!mQueryStringParameterNamesAndValues.equals(other.mQueryStringParameterNamesAndValues)) return false;
-        if (mUpdateDelegateMethod == null) {
-            if (other.mUpdateDelegateMethod != null) return false;
-        } else if (!mUpdateDelegateMethod.equals(other.mUpdateDelegateMethod)) return false;
         return true;
     }
 
@@ -368,6 +326,6 @@ public class DelegateUri {
      */
     @Override
     public String toString() {
-        return "DelegateUri [mAuthority=" + mAuthority + ", mPath=" + mPath + ", queryString=" + mQueryString + "]";
+        return "DelegateUri [mPath=" + mPath + ", queryString=" + mQueryString + "]";
     }
 }

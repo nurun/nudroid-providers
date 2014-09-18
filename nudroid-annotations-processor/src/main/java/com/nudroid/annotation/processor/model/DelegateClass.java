@@ -22,6 +22,10 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.google.common.collect.Sets;
+import com.nudroid.annotation.processor.DuplicatePathException;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
+
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -31,10 +35,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
-import com.google.common.collect.Sets;
-import com.nudroid.annotation.processor.DuplicatePathException;
-import com.nudroid.annotation.provider.delegate.ContentProvider;
-
 /**
  * Holds information about the delegate class for a content provider.
  *
@@ -43,7 +43,6 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
 public class DelegateClass {
 
     private String mQualifiedName;
-    private String mSimpleName;
     private int mMatcherUriIdCount = 0;
     private TypeElement mTypeElement;
     private boolean mHasImplementedDelegateInterface;
@@ -71,8 +70,8 @@ public class DelegateClass {
      * Then it will match since the first entry will be selected. Basically, it traverses the list of patterns and stops
      * as soon as it finds an entry whose first item match the input string.
      *
-     * The sorting algorithm below sorts the entries by listing the explicit patterns (non wildcards) first based
-     * on their position in the path segments.
+     * The sorting algorithm below sorts the entries by explicit patterns (non wildcards) position (ascending) and
+     * size (descending).
      */
     private NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
 
@@ -81,33 +80,37 @@ public class DelegateClass {
         String[] uri2Paths = uri2.getNormalizedPath()
                 .split("/");
 
+        /* First sort by path literals. */
         for (int i = 0; i < Math.min(uri1Paths.length, uri2Paths.length); i++) {
 
-            if (!uri1Paths[i].equals("*") && uri2Paths[i].equals("*")) {
+            if (!UriMatcherPathPatternType.isPattern(uri1Paths[i]) &&
+                    UriMatcherPathPatternType.isPattern(uri2Paths[i])) {
                 return -1;
             }
 
-            if (uri1Paths[i].equals("*") && !uri2Paths[i].equals("*")) {
+            if (UriMatcherPathPatternType.isPattern(uri1Paths[i]) &&
+                    !UriMatcherPathPatternType.isPattern(uri2Paths[i])) {
                 return 1;
             }
         }
 
-        int diff = uri2Paths.length - uri1Paths.length;
+        /* If uri structure is the same, sort by size. */
+        int pathDelta = uri2Paths.length - uri1Paths.length;
 
-        /* If the path has the same number of elements, compare each component. */
-        if (diff == 0) {
+        /* If size is the same, sort by alphabetical order. */
+        if (pathDelta == 0) {
 
             for (int i = 0; i < uri1Paths.length; i++) {
 
-                diff = uri1Paths[i].compareTo(uri2Paths[i]);
+                int order = uri1Paths[i].compareTo(uri2Paths[i]);
 
-                if (diff != 0) {
-                    return diff;
+                if (order != 0) {
+                    return order;
                 }
             }
         }
 
-        return diff;
+        return pathDelta;
     });
 
     /**
@@ -122,16 +125,16 @@ public class DelegateClass {
 
         this.mTypeElement = typeElement;
         this.mQualifiedName = typeElement.toString();
-        this.mSimpleName = typeElement.getSimpleName()
-                .toString();
         this.mAuthority = new Authority(authorityName);
 
-        String baseName = this.mSimpleName;
+        String baseName = typeElement.getSimpleName()
+                .toString();
         baseName = baseName.replaceAll("(?i)Delegate", "")
                 .replaceAll("(?i)ContentProvider", "");
 
         StringBuilder providerSimpleName = new StringBuilder(baseName);
-        StringBuilder routerSimpleName = new StringBuilder(this.mSimpleName);
+        StringBuilder routerSimpleName = new StringBuilder(typeElement.getSimpleName()
+                .toString());
         Element parentElement = typeElement.getEnclosingElement();
 
         while (parentElement != null && !parentElement.getKind()
@@ -175,12 +178,11 @@ public class DelegateClass {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public DelegateUri registerPathForQuery(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
+    public UriMethodTuple registerPathForQuery(String pathAndQuery,
+                                            List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
-        DelegateUri delegateUri = matcherUri.registerQueryDelegateUri(pathAndQuery);
-
-        return delegateUri;
+        return matcherUri.registerQueryDelegateUri(pathAndQuery);
     }
 
     /**
@@ -197,12 +199,11 @@ public class DelegateClass {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public DelegateUri registerPathForUpdate(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
+    public UriMethodTuple registerPathForUpdate(String pathAndQuery,
+                                             List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
-        DelegateUri delegateUri = matcherUri.registerUpdateDelegateUri(pathAndQuery);
-
-        return delegateUri;
+        return matcherUri.registerUpdateDelegateUri(pathAndQuery);
     }
 
     /**
@@ -236,30 +237,21 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the simple name of the delegate class (i.e. without the package name).
-     *
-     * @return The qualified name of the delegate class (i.e. without the package name).
-     */
-    public String getSimpleName() {
-        return mSimpleName;
-    }
-
-    /**
      * Gets the authority associated with this class.
      *
      * @return The authority associated with this class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public Authority getAuthority() {
 
         return mAuthority;
     }
 
     /**
-     * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
-     * the package name).
-     *
-     * @return The simple name of the router class which will be created to route calls to the delegate class (i.e.
+     * Gets the simple name of the router class which will be created to route calls to this delegate class (i.e.
      * without the package name).
+     *
+     * @return The simple name of the router class which will be created to route calls to this delegate class.
      */
     public String getRouterSimpleName() {
 
@@ -292,16 +284,18 @@ public class DelegateClass {
      * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
      * otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean hasContentProviderDelegateInterface() {
 
         return mHasImplementedDelegateInterface;
     }
 
     /**
-     * Gets the {@link MatcherUri}s this delegate class accepts.
+     * Gets the {@link MatcherUri}s this delegate class handles.
      *
-     * @return The {@link MatcherUri}s this delegate class accepts.
+     * @return The {@link MatcherUri}s this delegate class handles.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public NavigableSet<MatcherUri> getMatcherUris() {
 
         return mMatcherUris;
@@ -318,11 +312,11 @@ public class DelegateClass {
      *
      * @return The {@link MatcherUri} for the path and query.
      */
-    private MatcherUri getMatcherUriFor(String pathAndQuery, List<ParamTypePattern> placeholderTargetTypes) {
+    private MatcherUri getMatcherUriFor(String pathAndQuery, List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery, placeholderTargetTypes);
 
-        NavigableSet<MatcherUri> matchingUris = Sets.filter(mMatcherUris, input -> newCandidate.equals(input));
+        NavigableSet<MatcherUri> matchingUris = Sets.filter(mMatcherUris, newCandidate::equals);
 
         if (matchingUris.size() == 0) {
 
