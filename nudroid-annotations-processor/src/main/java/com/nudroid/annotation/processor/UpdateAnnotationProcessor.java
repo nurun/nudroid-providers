@@ -39,7 +39,7 @@ import javax.lang.model.util.Types;
 import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.UriMethodTuple;
+import com.nudroid.annotation.processor.model.PathToMethodBinding;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.processor.model.Parameter;
@@ -149,7 +149,7 @@ class UpdateAnnotationProcessor {
         Update query = methodElement.getAnnotation(Update.class);
         String pathAndQuery = query.value();
 
-        UriMethodTuple uriMethodTuple = null;
+        PathToMethodBinding pathToMethodBinding = null;
 
         try {
 
@@ -169,7 +169,7 @@ class UpdateAnnotationProcessor {
                 }
             }
 
-            uriMethodTuple = delegateClass.registerPathForUpdate(pathAndQuery, placeholderTypes);
+            pathToMethodBinding = delegateClass.registerPathForUpdate(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -189,14 +189,14 @@ class UpdateAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(methodElement, query, uriMethodTuple);
+        boolean hasValidAnnotations = hasValidSignature(methodElement, query, pathToMethodBinding);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = uriMethodTuple.setQueryDelegateMethod(methodElement);
+        DelegateMethod delegateMethod = pathToMethodBinding.setQueryDelegateMethod(methodElement);
 
         mLogger.trace(String.format("    Added delegate method %s.", methodElement));
 
@@ -225,8 +225,8 @@ class UpdateAnnotationProcessor {
                 parameter.setPlaceholderName(uriPlaceholder.value());
                 parameter.setParameterType(methodParameter.asType()
                         .toString());
-                parameter.setUriPlaceholderType(uriMethodTuple.getUriPlaceholderType(uriPlaceholder.value()));
-                parameter.setKeyName(uriMethodTuple.getParameterPosition(uriPlaceholder.value()));
+                parameter.setUriPlaceholderType(pathToMethodBinding.getUriPlaceholderType(uriPlaceholder.value()));
+                parameter.setKeyName(pathToMethodBinding.getParameterPosition(uriPlaceholder.value()));
             }
 
             delegateMethod.addParameter(parameter);
@@ -237,7 +237,7 @@ class UpdateAnnotationProcessor {
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Update query, UriMethodTuple uri) {
+    private boolean hasValidSignature(ExecutableElement method, Update query, PathToMethodBinding uri) {
 
         boolean isValid = true;
 
@@ -319,7 +319,7 @@ class UpdateAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, UriMethodTuple uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, PathToMethodBinding uri,
                                                      List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;

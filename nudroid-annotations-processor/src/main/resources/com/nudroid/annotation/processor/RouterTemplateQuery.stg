@@ -93,30 +93,30 @@ query_generateQueryParameterIfStatement(queryParameterName) ::= <%
 
 
 
-query_generateDelegateMethodCode(uriMethodTuple) ::= <<
+query_generateDelegateMethodCode(binding) ::= <<
 
 contentProviderContext = new ContentProviderContext(context, uri, projection,
             selection, selectionArgs, sortOrder, null);
 
-<if(!uriMethodTuple.delegateMethod.queryStringParameterNames.empty)>
-if (<uriMethodTuple.delegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
+<if(!binding.delegateMethod.queryStringParameterNames.empty)>
+if (<binding.delegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 
 <endif>
-    <if(uriMethodTuple.delegateMethod.uriPlaceholders)>
+    <if(binding.delegateMethod.uriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
     <endif>
             
-    <uriMethodTuple.delegateMethod.queryStringPlaceholderParameters:query_populateQueryContextPlaceholder(); separator="\n">
-    <uriMethodTuple.delegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
+    <binding.delegateMethod.queryStringPlaceholderParameters:query_populateQueryContextPlaceholder(); separator="\n">
+    <binding.delegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
 
-    <uriMethodTuple.delegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
+    <binding.delegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
     <\\>
-    result = mDelegate.<uriMethodTuple.delegateMethod.name>(<uriMethodTuple.delegateMethod.parameters:query_generateDelegateMethodParameterList(); separator=", ">);
+    result = mDelegate.<binding.delegateMethod.name>(<binding.delegateMethod.parameters:query_generateDelegateMethodParameterList(); separator=", ">);
 
-    <uriMethodTuple.delegateMethod.afterInterceptorList:query_generateAfterMethodInterceptorInvocations(); separator="\n">
+    <binding.delegateMethod.afterInterceptorList:query_generateAfterMethodInterceptorInvocations(); separator="\n">
     <\\>
     return result;
-<if(!uriMethodTuple.delegateMethod.queryStringParameterNames.empty)>
+<if(!binding.delegateMethod.queryStringParameterNames.empty)>
 }
 <endif>
 >>
@@ -125,10 +125,10 @@ if (<uriMethodTuple.delegateMethod.queryStringParameterNames:query_generateQuery
 
 
 query_createCaseStatements(matcherUri) ::= <<
-<if(matcherUri.queryUriDelegateTuples)>
+<if(matcherUri.queryBindings)>
 case <matcherUri.id>: {
 
-    <matcherUri.queryUriDelegateTuples:query_generateDelegateMethodCode(); separator="\n">
+    <matcherUri.queryBindings:query_generateDelegateMethodCode(); separator="\n">
 <if(matcherUri.queryStringMatchersOnly)>
     throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
             uri, mDelegate.getClass()));

@@ -47,29 +47,30 @@ public class MatcherUri {
     private boolean mHasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<UriMethodTuple> mQueryUriMethodTuples = new TreeSet<>((UriMethodTuple uri1, UriMethodTuple uri2) -> {
+    private NavigableSet<PathToMethodBinding> mQueryBindings =
+            new TreeSet<>((PathToMethodBinding uri1, PathToMethodBinding uri2) -> {
 
-        if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+                if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
-            return uri1.getNormalizedPath()
-                    .compareTo(uri2.getNormalizedPath());
-        }
+                    return uri1.getNormalizedPath()
+                            .compareTo(uri2.getNormalizedPath());
+                }
 
-        return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
-    });
+                return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+            });
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<UriMethodTuple>
-            mUpdateUriMethodTuples = new TreeSet<>((UriMethodTuple uri1, UriMethodTuple uri2) -> {
+    private NavigableSet<PathToMethodBinding> mUpdateBindings =
+            new TreeSet<>((PathToMethodBinding uri1, PathToMethodBinding uri2) -> {
 
-        if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+                if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
-            return uri1.getNormalizedPath()
-                    .compareTo(uri2.getNormalizedPath());
-        }
+                    return uri1.getNormalizedPath()
+                            .compareTo(uri2.getNormalizedPath());
+                }
 
-        return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
-    });
+                return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
+            });
 
     /**
      * Creates an instance of this class.
@@ -107,9 +108,9 @@ public class MatcherUri {
      * @return The set of delegate uris which handles @Query methods
      */
     @SuppressWarnings("UnusedDeclaration")
-    public NavigableSet<UriMethodTuple> getQueryUriDelegateTuples() {
+    public NavigableSet<PathToMethodBinding> getQueryBindings() {
 
-        return mQueryUriMethodTuples;
+        return mQueryBindings;
     }
 
     /**
@@ -118,14 +119,15 @@ public class MatcherUri {
      * @return The set of delegate uris which handles @Update methods
      */
     @SuppressWarnings("UnusedDeclaration")
-    public NavigableSet<UriMethodTuple> getUpdateUriDelegateTuples() {
+    public NavigableSet<PathToMethodBinding> getUpdateBindings() {
 
-        return mUpdateUriMethodTuples;
+        return mUpdateBindings;
     }
 
     /**
-     * Registers a new {@link UriMethodTuple} for a query method for the provided path and query string. Delegate uris (as
-     * opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
+     * Registers a new {@link PathToMethodBinding} for a query method for the provided path and query string. Delegate
+     * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
+     * URLs.
      *
      * @param pathAndQuery
      *         The path and query to register as a query delegate uri.
@@ -135,31 +137,34 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public UriMethodTuple registerQueryDelegateUri(String pathAndQuery) {
+    public PathToMethodBinding registerQueryDelegateUri(String pathAndQuery) {
 
-        final UriMethodTuple candidateUriMethodTuple = new UriMethodTuple(mAuthority.getName(), pathAndQuery);
+        final PathToMethodBinding candidatePathToMethodBinding =
+                new PathToMethodBinding(mAuthority.getName(), pathAndQuery);
 
-        UriMethodTuple registeredUriMethodTuple = findEquivalentQueryDelegateUri(candidateUriMethodTuple);
+        PathToMethodBinding registeredPathToMethodBinding =
+                findEquivalentQueryDelegateUri(candidatePathToMethodBinding);
 
-        if (registeredUriMethodTuple != null) {
+        if (registeredPathToMethodBinding != null) {
 
-            throw new DuplicatePathException(registeredUriMethodTuple.getDelegateMethod()
+            throw new DuplicatePathException(registeredPathToMethodBinding.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mQueryUriMethodTuples.add(candidateUriMethodTuple);
+        mQueryBindings.add(candidatePathToMethodBinding);
 
-        if (candidateUriMethodTuple.getQueryStringParameterCount() == 0) {
+        if (candidatePathToMethodBinding.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidateUriMethodTuple;
+        return candidatePathToMethodBinding;
     }
 
     /**
-     * Registers a new {@link UriMethodTuple} for an update method for the provided path and query string. Delegate uris
-     * (as opposed to matcher uris) does take the query string into consideration when differentiating between URLs.
+     * Registers a new {@link PathToMethodBinding} for an update method for the provided path and query string. Delegate
+     * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
+     * URLs.
      *
      * @param pathAndQuery
      *         The path and query to register as a query delegate uri.
@@ -169,26 +174,28 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public UriMethodTuple registerUpdateDelegateUri(String pathAndQuery) {
+    public PathToMethodBinding registerUpdateDelegateUri(String pathAndQuery) {
 
-        final UriMethodTuple candidateUriMethodTuple = new UriMethodTuple(mAuthority.getName(), pathAndQuery);
+        final PathToMethodBinding candidatePathToMethodBinding =
+                new PathToMethodBinding(mAuthority.getName(), pathAndQuery);
 
-        UriMethodTuple registeredUriMethodTuple = findEquivalentUpdateDelegateUri(candidateUriMethodTuple);
+        PathToMethodBinding registeredPathToMethodBinding =
+                findEquivalentUpdateDelegateUri(candidatePathToMethodBinding);
 
-        if (registeredUriMethodTuple != null) {
+        if (registeredPathToMethodBinding != null) {
 
-            throw new DuplicatePathException(registeredUriMethodTuple.getDelegateMethod()
+            throw new DuplicatePathException(registeredPathToMethodBinding.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mUpdateUriMethodTuples.add(candidateUriMethodTuple);
+        mUpdateBindings.add(candidatePathToMethodBinding);
 
-        if (candidateUriMethodTuple.getQueryStringParameterCount() == 0) {
+        if (candidatePathToMethodBinding.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidateUriMethodTuple;
+        return candidatePathToMethodBinding;
     }
 
     /**
@@ -291,19 +298,22 @@ public class MatcherUri {
         this.id = uriId;
     }
 
-    private UriMethodTuple findEquivalentQueryDelegateUri(final UriMethodTuple candidateUriMethodTuple) {
+    private PathToMethodBinding findEquivalentQueryDelegateUri(final PathToMethodBinding candidatePathToMethodBinding) {
 
-        Set<UriMethodTuple> matchingUriMethodTuples = Sets.filter(mQueryUriMethodTuples, candidateUriMethodTuple::equals);
+        Set<PathToMethodBinding> matchingPathToMethodBindings =
+                Sets.filter(mQueryBindings, candidatePathToMethodBinding::equals);
 
-        return matchingUriMethodTuples.isEmpty() ? null : matchingUriMethodTuples.iterator()
+        return matchingPathToMethodBindings.isEmpty() ? null : matchingPathToMethodBindings.iterator()
                 .next();
     }
 
-    private UriMethodTuple findEquivalentUpdateDelegateUri(final UriMethodTuple candidateUriMethodTuple) {
+    private PathToMethodBinding findEquivalentUpdateDelegateUri(
+            final PathToMethodBinding candidatePathToMethodBinding) {
 
-        Set<UriMethodTuple> matchingUriMethodTuples = Sets.filter(mUpdateUriMethodTuples, candidateUriMethodTuple::equals);
+        Set<PathToMethodBinding> matchingPathToMethodBindings =
+                Sets.filter(mUpdateBindings, candidatePathToMethodBinding::equals);
 
-        return matchingUriMethodTuples.isEmpty() ? null : matchingUriMethodTuples.iterator()
+        return matchingPathToMethodBindings.isEmpty() ? null : matchingPathToMethodBindings.iterator()
                 .next();
     }
 }

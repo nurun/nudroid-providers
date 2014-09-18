@@ -34,12 +34,11 @@ import java.util.regex.Pattern;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * A uniquely mapped URI tied to a delegate method. This class maps a Matcher URI to a target delegate method. As
- * opposed to a MatcherUri, this class does use query strings to bind to a particular delegate method.
+ * A mapping between a path and a method. This class maps a path (+ query string) to a target delegate method.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class UriMethodTuple {
+public class PathToMethodBinding {
 
     private static final String PLACEHOLDER_WILDCARD = "*";
     private static final String AMPERSAND = "&";
@@ -70,7 +69,7 @@ public class UriMethodTuple {
      * @param pathAndQuery
      *         The path and optional query string this delegate URI must handle.
      */
-    public UriMethodTuple(String authority, String pathAndQuery) {
+    public PathToMethodBinding(String authority, String pathAndQuery) {
 
         this.mOriginalPathAndQuery = pathAndQuery;
 
@@ -305,7 +304,7 @@ public class UriMethodTuple {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        UriMethodTuple other = (UriMethodTuple) obj;
+        PathToMethodBinding other = (PathToMethodBinding) obj;
 
         if (mPath == null) {
             if (other.mPath != null) return false;

@@ -178,7 +178,7 @@ public class DelegateClass {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public UriMethodTuple registerPathForQuery(String pathAndQuery,
+    public PathToMethodBinding registerPathForQuery(String pathAndQuery,
                                             List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
@@ -199,7 +199,7 @@ public class DelegateClass {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public UriMethodTuple registerPathForUpdate(String pathAndQuery,
+    public PathToMethodBinding registerPathForUpdate(String pathAndQuery,
                                              List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);

@@ -39,6 +39,7 @@ public class SampleContentProviderDelegate {
         return null;
     }
 
+    @MyCacheInterceptor.Interceptor("yahoo")
     @Query("/terminals/cast/{oba}?a={baba}&b={bebe}")
     public Cursor terminals(@UriPlaceholder("baba") String ba, @UriPlaceholder("bebe") String bb,
                             @UriPlaceholder("oba") String oba) {
