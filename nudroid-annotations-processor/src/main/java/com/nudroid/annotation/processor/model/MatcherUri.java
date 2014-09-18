@@ -47,8 +47,8 @@ public class MatcherUri {
     private boolean mHasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<PathToMethodBinding> mQueryBindings =
-            new TreeSet<>((PathToMethodBinding uri1, PathToMethodBinding uri2) -> {
+    private NavigableSet<MethodBinding> mQueryBindings =
+            new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
@@ -60,8 +60,8 @@ public class MatcherUri {
             });
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<PathToMethodBinding> mUpdateBindings =
-            new TreeSet<>((PathToMethodBinding uri1, PathToMethodBinding uri2) -> {
+    private NavigableSet<MethodBinding> mUpdateBindings =
+            new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
@@ -108,7 +108,7 @@ public class MatcherUri {
      * @return The set of delegate uris which handles @Query methods
      */
     @SuppressWarnings("UnusedDeclaration")
-    public NavigableSet<PathToMethodBinding> getQueryBindings() {
+    public NavigableSet<MethodBinding> getQueryBindings() {
 
         return mQueryBindings;
     }
@@ -119,13 +119,13 @@ public class MatcherUri {
      * @return The set of delegate uris which handles @Update methods
      */
     @SuppressWarnings("UnusedDeclaration")
-    public NavigableSet<PathToMethodBinding> getUpdateBindings() {
+    public NavigableSet<MethodBinding> getUpdateBindings() {
 
         return mUpdateBindings;
     }
 
     /**
-     * Registers a new {@link PathToMethodBinding} for a query method for the provided path and query string. Delegate
+     * Registers a new {@link MethodBinding} for a query method for the provided path and query string. Delegate
      * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
      * URLs.
      *
@@ -137,32 +137,32 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public PathToMethodBinding registerQueryDelegateUri(String pathAndQuery) {
+    public MethodBinding registerQueryDelegateUri(String pathAndQuery) {
 
-        final PathToMethodBinding candidatePathToMethodBinding =
-                new PathToMethodBinding(mAuthority.getName(), pathAndQuery);
+        final MethodBinding candidateMethodBinding =
+                new MethodBinding(mAuthority.getName(), pathAndQuery);
 
-        PathToMethodBinding registeredPathToMethodBinding =
-                findEquivalentQueryDelegateUri(candidatePathToMethodBinding);
+        MethodBinding registeredMethodBinding =
+                findEquivalentQueryDelegateUri(candidateMethodBinding);
 
-        if (registeredPathToMethodBinding != null) {
+        if (registeredMethodBinding != null) {
 
-            throw new DuplicatePathException(registeredPathToMethodBinding.getDelegateMethod()
+            throw new DuplicatePathException(registeredMethodBinding.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mQueryBindings.add(candidatePathToMethodBinding);
+        mQueryBindings.add(candidateMethodBinding);
 
-        if (candidatePathToMethodBinding.getQueryStringParameterCount() == 0) {
+        if (candidateMethodBinding.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidatePathToMethodBinding;
+        return candidateMethodBinding;
     }
 
     /**
-     * Registers a new {@link PathToMethodBinding} for an update method for the provided path and query string. Delegate
+     * Registers a new {@link MethodBinding} for an update method for the provided path and query string. Delegate
      * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
      * URLs.
      *
@@ -174,28 +174,28 @@ public class MatcherUri {
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public PathToMethodBinding registerUpdateDelegateUri(String pathAndQuery) {
+    public MethodBinding registerUpdateDelegateUri(String pathAndQuery) {
 
-        final PathToMethodBinding candidatePathToMethodBinding =
-                new PathToMethodBinding(mAuthority.getName(), pathAndQuery);
+        final MethodBinding candidateMethodBinding =
+                new MethodBinding(mAuthority.getName(), pathAndQuery);
 
-        PathToMethodBinding registeredPathToMethodBinding =
-                findEquivalentUpdateDelegateUri(candidatePathToMethodBinding);
+        MethodBinding registeredMethodBinding =
+                findEquivalentUpdateDelegateUri(candidateMethodBinding);
 
-        if (registeredPathToMethodBinding != null) {
+        if (registeredMethodBinding != null) {
 
-            throw new DuplicatePathException(registeredPathToMethodBinding.getDelegateMethod()
+            throw new DuplicatePathException(registeredMethodBinding.getDelegateMethod()
                     .getExecutableElement());
         }
 
-        mUpdateBindings.add(candidatePathToMethodBinding);
+        mUpdateBindings.add(candidateMethodBinding);
 
-        if (candidatePathToMethodBinding.getQueryStringParameterCount() == 0) {
+        if (candidateMethodBinding.getQueryStringParameterCount() == 0) {
 
             mHasQueryStringMatchersOnly = false;
         }
 
-        return candidatePathToMethodBinding;
+        return candidateMethodBinding;
     }
 
     /**
@@ -298,22 +298,22 @@ public class MatcherUri {
         this.id = uriId;
     }
 
-    private PathToMethodBinding findEquivalentQueryDelegateUri(final PathToMethodBinding candidatePathToMethodBinding) {
+    private MethodBinding findEquivalentQueryDelegateUri(final MethodBinding candidateMethodBinding) {
 
-        Set<PathToMethodBinding> matchingPathToMethodBindings =
-                Sets.filter(mQueryBindings, candidatePathToMethodBinding::equals);
+        Set<MethodBinding> matchingMethodBindings =
+                Sets.filter(mQueryBindings, candidateMethodBinding::equals);
 
-        return matchingPathToMethodBindings.isEmpty() ? null : matchingPathToMethodBindings.iterator()
+        return matchingMethodBindings.isEmpty() ? null : matchingMethodBindings.iterator()
                 .next();
     }
 
-    private PathToMethodBinding findEquivalentUpdateDelegateUri(
-            final PathToMethodBinding candidatePathToMethodBinding) {
+    private MethodBinding findEquivalentUpdateDelegateUri(
+            final MethodBinding candidateMethodBinding) {
 
-        Set<PathToMethodBinding> matchingPathToMethodBindings =
-                Sets.filter(mUpdateBindings, candidatePathToMethodBinding::equals);
+        Set<MethodBinding> matchingMethodBindings =
+                Sets.filter(mUpdateBindings, candidateMethodBinding::equals);
 
-        return matchingPathToMethodBindings.isEmpty() ? null : matchingPathToMethodBindings.iterator()
+        return matchingMethodBindings.isEmpty() ? null : matchingMethodBindings.iterator()
                 .next();
     }
 }
