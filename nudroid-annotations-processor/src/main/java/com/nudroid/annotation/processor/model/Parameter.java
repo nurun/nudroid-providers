@@ -56,6 +56,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContext() {
         return mContext;
     }
@@ -65,6 +66,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isProjection() {
         return mProjection;
     }
@@ -74,6 +76,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSelection() {
         return mSelection;
     }
@@ -83,6 +86,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSelectionArgs() {
         return mSelectionArgs;
     }
@@ -92,6 +96,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSortOrder() {
         return mSortOrder;
     }
@@ -101,6 +106,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContentValues() {
         return mContentValues;
     }
@@ -110,6 +116,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContentUri() {
         return mContentUri;
     }
@@ -146,15 +153,15 @@ public class Parameter {
      *
      * @return The position in the URI path this parameter maps to.
      */
-    public String getKeyName() {
-        return mKeyName;
-    }
+    @SuppressWarnings("UnusedDeclaration")
+    public String getKeyName() { return mKeyName; }
 
     /**
      * Returns the placeholder name for this parameter.
      *
      * @return The placeholder name.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getPlaceholderName() {
         return mPlaceholderName;
     }
@@ -164,6 +171,7 @@ public class Parameter {
      *
      * @return This parameter type's name.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getParameterType() {
         return mParameterType;
     }

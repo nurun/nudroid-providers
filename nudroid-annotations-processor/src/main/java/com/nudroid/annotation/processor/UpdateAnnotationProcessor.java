@@ -45,6 +45,7 @@ import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
+import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Selection;
@@ -212,6 +213,7 @@ class UpdateAnnotationProcessor {
             if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
             if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
             if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
+            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
             if (methodParameter.asType()

@@ -46,12 +46,12 @@ import com.nudroid.annotation.provider.delegate.Update;
 public class DelegateMethod {
 
     private String mName;
-    private List<Parameter> mParameters = new ArrayList<Parameter>();
-    private List<Parameter> mPathPlaceholderParameters = new ArrayList<Parameter>();
-    private List<Parameter> mQueryStringPlaceholderParameters = new ArrayList<Parameter>();
-    private Set<String> mQueryStringParameterNames = new HashSet<String>();
+    private List<Parameter> mParameters = new ArrayList<>();
+    private List<Parameter> mPathParameters = new ArrayList<>();
+    private List<Parameter> mQueryStringParameters = new ArrayList<>();
+    private Set<String> mQueryStringParameterNames = new HashSet<>();
     private ExecutableElement mExecutableElement;
-    private List<InterceptorPoint> mInterceptorElements = new ArrayList<InterceptorPoint>();
+    private List<InterceptorPoint> mInterceptorElements = new ArrayList<>();
     private List<InterceptorPoint> mInverseInterceptorElements = null;
 
     /**
@@ -79,11 +79,11 @@ public class DelegateMethod {
         this.mParameters.add(parameter);
 
         if (parameter.isPathParameter()) {
-            mPathPlaceholderParameters.add(parameter);
+            mPathParameters.add(parameter);
         }
 
         if (parameter.isQueryParameter()) {
-            mQueryStringPlaceholderParameters.add(parameter);
+            mQueryStringParameters.add(parameter);
         }
     }
 
@@ -145,9 +145,10 @@ public class DelegateMethod {
      *
      * @return List of parameters.
      */
-    public List<Parameter> getPathPlaceholderParameters() {
+    @SuppressWarnings("UnusedDeclaration")
+    public List<Parameter> getPathParameters() {
 
-        return mPathPlaceholderParameters;
+        return mPathParameters;
     }
 
     /**
@@ -156,9 +157,10 @@ public class DelegateMethod {
      *
      * @return List of parameters.
      */
-    public List<Parameter> getQueryStringPlaceholderParameters() {
+    @SuppressWarnings("UnusedDeclaration")
+    public List<Parameter> getQueryStringParameters() {
 
-        return mQueryStringPlaceholderParameters;
+        return mQueryStringParameters;
     }
 
     /**
@@ -166,19 +168,10 @@ public class DelegateMethod {
      *
      * @return The set of query string parameter names.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public Set<String> getQueryStringParameterNames() {
 
         return mQueryStringParameterNames;
-    }
-
-    /**
-     * Gets the count of parameters on the query string on the delegate annotation of this method.
-     *
-     * @return The count of parameters on the query string.
-     */
-    public int getQueryStringParameterCount() {
-
-        return mQueryStringParameterNames.size();
     }
 
     /**
@@ -186,19 +179,10 @@ public class DelegateMethod {
      *
      * @return <tt>true</tt> if this method has any placeholder in its URI path, <tt>false</tt> otherwise.
      */
-    public boolean hasUriPlaceholders() {
+    @SuppressWarnings("UnusedDeclaration")
+    public boolean getHasUriPlaceholders() {
 
-        return mPathPlaceholderParameters.size() > 0;
-    }
-
-    /**
-     * Checks if this method URI has any placeholders in it's query string.
-     *
-     * @return <tt>true</tt> if this method has any placeholder in its query string, <tt>false</tt> otherwise.
-     */
-    public boolean hasQueryStringPlaceholders() {
-
-        return mQueryStringPlaceholderParameters.size() > 0;
+        return mPathParameters.size() > 0;
     }
 
     /**
@@ -207,6 +191,7 @@ public class DelegateMethod {
      *
      * @return The list of interceptors for this delegate method.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getBeforeInterceptorList() {
 
         return mInterceptorElements;
@@ -218,11 +203,12 @@ public class DelegateMethod {
      *
      * @return The list of interceptors for this delegate method.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getAfterInterceptorList() {
 
         if (mInverseInterceptorElements == null) {
 
-            mInverseInterceptorElements = new ArrayList<InterceptorPoint>(mInterceptorElements.size());
+            mInverseInterceptorElements = new ArrayList<>(mInterceptorElements.size());
             mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
         }
 
@@ -271,8 +257,8 @@ public class DelegateMethod {
     @Override
     public String toString() {
         return "DelegateMethod [mName=" + mName + ", mParameters=" +
-                mParameters + ", mPathPlaceholderParameters=" + mPathPlaceholderParameters +
-                ", mQueryStringPlaceholderParameters=" + mQueryStringPlaceholderParameters +
+                mParameters + ", mPathParameters=" + mPathParameters +
+                ", mQueryStringParameters=" + mQueryStringParameters +
                 ", mQueryStringParameterNames=" + mQueryStringParameterNames +
                 ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements=" + mInterceptorElements +
                 ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";

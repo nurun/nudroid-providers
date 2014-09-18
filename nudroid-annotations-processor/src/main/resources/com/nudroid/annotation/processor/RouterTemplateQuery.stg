@@ -1,3 +1,23 @@
+<! Copyright (c) 2014 Nurun Inc. !>
+
+<! Permission is hereby granted, free of charge, to any person obtaining a copy !>
+<! of this software and associated documentation files (the "Software"), to deal !>
+<! in the Software without restriction, including without limitation the rights !>
+<! to use, copy, modify, merge, publish, distribute, sublicense, and/or sell !>
+<! copies of the Software, and to permit persons to whom the Software is !>
+<! furnished to do so, subject to the following conditions: !>
+
+<! The above copyright notice and this permission notice shall be included in !>
+<! all copies or substantial portions of the Software. !>
+
+<! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR !>
+<! IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, !>
+<! FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE !>
+<! AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER !>
+<! LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, !>
+<! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN !>
+<! THE SOFTWARE. !>
+
 query_generateDelegateMethodParameterList(parameter) ::= <%
     <if(parameter.context)>
         contentProviderContext.context
@@ -54,15 +74,15 @@ query_generateConcreteAnnotationConstructor(literal) ::= <%
 
 query_generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
 <if(interceptor.customConstructor)>
-<interceptor.qualifiedName> l<interceptor.simpleName> = 
+<interceptor.qualifiedName> l<interceptor.simpleName> =
     new <interceptor.qualifiedName>(
             new <interceptor.concreteAnnotationQualifiedName>(
                 <interceptor.concreteAnnotationConstructorArgumentLiterals:query_generateConcreteAnnotationConstructor(); separator=", ">));
-                
+
 <else>
-<interceptor.qualifiedName> l<interceptor.simpleName> = 
+<interceptor.qualifiedName> l<interceptor.simpleName> =
         new <interceptor.qualifiedName>();
-        
+
 <endif>
 l<interceptor.simpleName>.onCreate(contentProviderContext);
 l<interceptor.simpleName>.beforeQuery(contentProviderContext);
@@ -72,15 +92,15 @@ l<interceptor.simpleName>.beforeQuery(contentProviderContext);
 
 
 
-query_populatePathContextPlaceholder(placeholder) ::= <%
-    contentProviderContext.placeholders.put("<placeholder.placeholderName>", pathSegments.get(<placeholder.keyName>));
+query_populateContextPathParameters(parameter) ::= <%
+    contentProviderContext.placeholders.put("<parameter.placeholderName>", pathSegments.get(<parameter.keyName>));
 %>
 
 
 
 
-query_populateQueryContextPlaceholder(placeholder) ::= <%
-    contentProviderContext.placeholders.put("<placeholder.placeholderName>", contentProviderContext.uri.getQueryParameter("<placeholder.keyName>"));
+query_populateContextQueryStringParameters(parameter) ::= <%
+    contentProviderContext.placeholders.put("<parameter.placeholderName>", contentProviderContext.uri.getQueryParameter("<parameter.keyName>"));
 %>
 
 
@@ -102,12 +122,12 @@ contentProviderContext = new ContentProviderContext(context, uri, projection,
 if (<binding.delegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 
 <endif>
-    <if(binding.delegateMethod.uriPlaceholders)>
+    <if(binding.delegateMethod.hasUriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
     <endif>
-            
-    <binding.delegateMethod.queryStringPlaceholderParameters:query_populateQueryContextPlaceholder(); separator="\n">
-    <binding.delegateMethod.pathPlaceholderParameters:query_populatePathContextPlaceholder(); separator="\n">
+
+    <binding.delegateMethod.queryStringParameters:query_populateContextQueryStringParameters(); separator="\n">
+    <binding.delegateMethod.pathParameters:query_populateContextPathParameters(); separator="\n">
 
     <binding.delegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
     <\\>
@@ -132,7 +152,7 @@ case <matcherUri.id>: {
 <if(matcherUri.queryStringMatchersOnly)>
     throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
             uri, mDelegate.getClass()));
-<endif>            
+<endif>
 }
 <endif>
 >>
@@ -154,7 +174,7 @@ public Cursor query(Context context, Uri uri, String[] projection, String select
     switch (URI_MATCHER.match(uri)) {
     <delegateClass.matcherUris:query_createCaseStatements(); separator="\n">
     default:
-        
+
         throw new IllegalArgumentException(String.format("@Query URI %s is not mapped by content provider delegate %s",
                 uri, mDelegate.getClass()));
     }
