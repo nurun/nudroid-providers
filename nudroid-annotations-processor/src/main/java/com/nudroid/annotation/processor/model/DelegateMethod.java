@@ -23,13 +23,14 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
 
-import com.google.common.collect.Lists;
+//import com.google.common.collect.Lists;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -208,8 +209,8 @@ public class DelegateMethod {
 
         if (mInverseInterceptorElements == null) {
 
-            mInverseInterceptorElements = new ArrayList<>(mInterceptorElements.size());
-            mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
+            mInverseInterceptorElements = new ArrayList<>(mInterceptorElements);
+            Collections.reverse(mInterceptorElements);
         }
 
         return mInverseInterceptorElements;

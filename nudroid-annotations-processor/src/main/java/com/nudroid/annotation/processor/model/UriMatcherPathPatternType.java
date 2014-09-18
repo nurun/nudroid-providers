@@ -52,9 +52,11 @@ public enum UriMatcherPathPatternType {
      * Given the parameter type, get the appropriate uri matcher patters.
      *
      * @param mirror
-     *         The type of the parameter to map to the placeholder.
+     *         the type of the parameter to map to the placeholder
      * @param elementUtils
+     *         Elements reference
      * @param typeUtils
+     *         Types reference
      *
      * @return The proper URI pattern for the parameter type.
      */
@@ -73,7 +75,8 @@ public enum UriMatcherPathPatternType {
     /**
      * Checks whether the provided string is either a STRING or NUMBER pattern (i.e. the string equlas "*" or "#").
      *
-     * @param value The string to test.
+     * @param value
+     *         The string to test.
      *
      * @return <tt>true</tt> if the value represents a STRING or NUMBER pattern.
      */

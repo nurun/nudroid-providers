@@ -44,3 +44,7 @@ compileJava {
     options.compilerArgs = ['-s',  aptOutputDir.getPath(), "-Acom.nudroid.annotation.processor.log.level=TRACE",
                             "-proc:only"]
 }
+
+clean{
+    delete aptOutputDir
+}

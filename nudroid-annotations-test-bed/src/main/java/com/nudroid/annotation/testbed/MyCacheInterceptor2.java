@@ -36,6 +36,9 @@ import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
  */
 public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
 
+    public static enum SampleEnum {
+        ENUM_1, ENUM_2
+    }
 
     /**
      * Creates an instance of this class.
@@ -58,12 +61,31 @@ public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
         /**
          * The remote url to call to fetch up to date data.
          */
-        String value();
+        String sValue() default "default string";
+        String[] sValues() default {"default array element 1", "default array element 2"};
 
-        String anotherValue();
+        byte bValue();
+        byte[] bValues();
 
-        int[] sex();
+        char cValue();
+        char[] cValues();
 
-        double age();
+        int iValue();
+        int[] iValues();
+
+        long lValue();
+        long[] lValues();
+
+        float fValue();
+        float[] fValues();
+
+        double dValue();
+        double[] dValues();
+
+        Class<?> zValue();
+        Class<?>[] zValues();
+
+        SampleEnum eValue();
+        SampleEnum[] eValues();
     }
 }

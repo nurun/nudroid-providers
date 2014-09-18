@@ -22,12 +22,15 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.google.common.base.Joiner;
+import com.nudroid.annotation.processor.LoggingUtils;
+
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -39,12 +42,10 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-
-import com.google.common.base.Joiner;
-import com.nudroid.annotation.processor.LoggingUtils;
 
 /**
  * Represents a concrete annotation implementation that will be created by the source code generator.
@@ -53,15 +54,13 @@ import com.nudroid.annotation.processor.LoggingUtils;
  */
 public class InterceptorAnnotationBlueprint {
 
-    private static final String JAVA_LANG_STRING_CLASS_NAME = "java.lang.String";
     private String mInterceptorAnnotationQualifiedName;
     private String mConcreteClassName;
-    private String mInterceptorAnnotationSimpleName;
     private String mConcretePackageName;
-    private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
     private TypeElement mInterceptorAnnotationTypeElement;
     private TypeElement mInterceptorImplementationTypeElement;
     private boolean mHasCustomConstructor;
+    private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
 
     /**
      * Creates a new InterceptorBlueprint bean.
@@ -74,8 +73,6 @@ public class InterceptorAnnotationBlueprint {
         this.mInterceptorAnnotationTypeElement = typeElement;
         this.mInterceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();
         this.mInterceptorAnnotationQualifiedName = typeElement.getQualifiedName()
-                .toString();
-        this.mInterceptorAnnotationSimpleName = typeElement.getSimpleName()
                 .toString();
 
         List<ExecutableElement> constructors =
@@ -112,6 +109,16 @@ public class InterceptorAnnotationBlueprint {
     }
 
     /**
+     * Gets the attributes of this concrete annotation.
+     *
+     * @return The attributes of this concrete annotation.
+     */
+    public List<AnnotationAttribute> getAttributes() {
+
+        return mAttributes;
+    }
+
+    /**
      * Gets the {@link TypeElement} of the annotation.
      *
      * @return The {@link TypeElement} of the annotation.
@@ -141,15 +148,6 @@ public class InterceptorAnnotationBlueprint {
     }
 
     /**
-     * Gets the simple name (i.e. without package name) of the annotation class.
-     *
-     * @return The simple name (i.e. without package name) of the annotation class.
-     */
-    public String getAnnotationSimpleName() {
-        return mInterceptorAnnotationSimpleName;
-    }
-
-    /**
      * Gets the name of the concrete annotation implementation class.
      *
      * @return The name of the concrete annotation implementation class.
@@ -165,16 +163,6 @@ public class InterceptorAnnotationBlueprint {
      */
     public String getConcretePackageName() {
         return mConcretePackageName;
-    }
-
-    /**
-     * Gets the attributes of this concrete annotation.
-     *
-     * @return The attributes of this concrete annotation.
-     */
-    public List<AnnotationAttribute> getAttributes() {
-
-        return mAttributes;
     }
 
     /**
@@ -197,17 +185,11 @@ public class InterceptorAnnotationBlueprint {
         InterceptorPoint interceptor = new InterceptorPoint(this);
         interceptor.setHasCustomConstructor(mHasCustomConstructor);
 
-        SortedSet<ExecutableElement> methodKeys = new TreeSet<ExecutableElement>(new Comparator<ExecutableElement>() {
-
-            @Override
-            public int compare(ExecutableElement o1, ExecutableElement o2) {
-
-                return o1.getSimpleName()
+        SortedSet<ExecutableElement> methodKeys = new TreeSet<>(
+                (ExecutableElement o1, ExecutableElement o2) -> o1.getSimpleName()
                         .toString()
                         .compareTo(o2.getSimpleName()
-                                .toString());
-            }
-        });
+                                .toString()));
 
         Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues =
                 elementUtils.getElementValuesWithDefaults(annotationMirror);
@@ -215,10 +197,9 @@ public class InterceptorAnnotationBlueprint {
 
         for (ExecutableElement keyEntry : methodKeys) {
 
-            ExecutableElement attribute = keyEntry;
             AnnotationValue attributeValue = annotationValues.get(keyEntry);
 
-            generateAnnotationLiteral(interceptor, attribute, attributeValue, elementUtils, typeUtils, logger);
+            generateAnnotationLiteral(interceptor, keyEntry, attributeValue, elementUtils, typeUtils, logger);
         }
 
         return interceptor;
@@ -282,10 +263,17 @@ public class InterceptorAnnotationBlueprint {
                         new InterceptorAnnotationParameter(String.format("%s", attributeValue.getValue()),
                                 double.class));
                 break;
+            case BYTE:
+
+                interceptor.addConcreteAnnotationConstructorLiteral(
+                        new InterceptorAnnotationParameter(String.format("(byte) %s", attributeValue.getValue()),
+                                long.class));
+                break;
+
             case INT:
 
                 interceptor.addConcreteAnnotationConstructorLiteral(
-                        new InterceptorAnnotationParameter(String.format("%sL", attributeValue.getValue()),
+                        new InterceptorAnnotationParameter(String.format("%s", attributeValue.getValue()),
                                 long.class));
                 break;
             case LONG:
@@ -300,14 +288,18 @@ public class InterceptorAnnotationBlueprint {
 
                 // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
                 // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (stringType.asType()
-                        .toString()
-                        .equals(attribute.getReturnType()
-                                .toString())) {
+                if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
 
                     interceptor.addConcreteAnnotationConstructorLiteral(
                             new InterceptorAnnotationParameter(String.format("\"%s\"", attributeValue.getValue()),
                                     String.class));
+                } else if (Class.class.getName()
+                        .equals(typeUtils.asElement(attribute.getReturnType())
+                                .toString())) {
+
+                    interceptor.addConcreteAnnotationConstructorLiteral(
+                            new InterceptorAnnotationParameter(String.format("%s.class", attributeValue.getValue()),
+                                    Class.class));
                 } else {
 
                     final Element asElement = typeUtils.asElement(attribute.getReturnType());
@@ -341,12 +333,10 @@ public class InterceptorAnnotationBlueprint {
 
         @SuppressWarnings("unchecked") List<? extends AnnotationValue> annotationValues =
                 (List<? extends AnnotationValue>) attributeValue.getValue();
-        List<Object> arrayElements = new ArrayList<Object>();
 
-        for (AnnotationValue value : annotationValues) {
-
-            arrayElements.add(value.getValue());
-        }
+        List<Object> arrayElements = annotationValues.stream()
+                .map(AnnotationValue::getValue)
+                .collect(Collectors.toList());
 
         StringBuilder arrayInitializer = new StringBuilder();
 
@@ -360,9 +350,13 @@ public class InterceptorAnnotationBlueprint {
             case CHAR:
 
                 arrayInitializer.append("new char[] { '");
-                Joiner.on("', '")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                String elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining("', '"));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append("' }");
                 arrayClass = char[].class;
                 break;
@@ -383,6 +377,15 @@ public class InterceptorAnnotationBlueprint {
                         .appendTo(arrayInitializer, arrayElements);
                 arrayInitializer.append(" }");
                 arrayClass = double[].class;
+                break;
+            case BYTE:
+
+                arrayInitializer.append("new byte[] { ");
+                Joiner.on(", ")
+                        .skipNulls()
+                        .appendTo(arrayInitializer, arrayElements);
+                arrayInitializer.append(" }");
+                arrayClass = byte[].class;
                 break;
             case INT:
 
@@ -405,10 +408,12 @@ public class InterceptorAnnotationBlueprint {
 
             case DECLARED:
 
+                TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
+                TypeElement classType = elementUtils.getTypeElement(Class.class.getName());
+
                 // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
                 // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (JAVA_LANG_STRING_CLASS_NAME.equals(arrayType.getComponentType()
-                        .toString())) {
+                if (typeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
 
                     arrayInitializer.append("new String[] { \"");
                     Joiner.on("\", \"")
@@ -416,6 +421,16 @@ public class InterceptorAnnotationBlueprint {
                             .appendTo(arrayInitializer, arrayElements);
                     arrayInitializer.append("\" }");
                     arrayClass = String[].class;
+                } else if (Class.class.getName()
+                        .equals(typeUtils.asElement(arrayType.getComponentType())
+                                .toString())) {
+
+                    arrayInitializer.append("new Class[] { ");
+                    Joiner.on(".class, ")
+                            .skipNulls()
+                            .appendTo(arrayInitializer, arrayElements);
+                    arrayInitializer.append(".class }");
+                    arrayClass = Class[].class;
                 } else {
 
                     final Element arrayElementType = typeUtils.asElement(arrayType.getComponentType());
@@ -438,6 +453,7 @@ public class InterceptorAnnotationBlueprint {
 
                 break;
             default:
+                System.out.println("Woa not found");
                 break;
         }
 

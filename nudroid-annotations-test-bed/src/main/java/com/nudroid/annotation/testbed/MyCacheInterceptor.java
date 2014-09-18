@@ -23,6 +23,7 @@
 package com.nudroid.annotation.testbed;
 
 import com.nudroid.provider.interceptor.ContentProviderContext;
+import com.nudroid.provider.interceptor.ContentProviderInterceptorAdapter;
 import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.cache.CacheInterceptor;
 import com.nudroid.provider.interceptor.cache.CachingStrategy;
@@ -31,27 +32,12 @@ import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
 /**
  * Cache validation interceptor for the cntent service.
  */
-public class MyCacheInterceptor extends CacheInterceptor {
+public class MyCacheInterceptor extends ContentProviderInterceptorAdapter {
 
-
-    /**
-     * Creates an instance of this class.
-     *
-     * @param remoteUrl The remote url to download data from.
-     * @param cacheId   The id of the cache to use.
-     */
-    public MyCacheInterceptor(String remoteUrl, String cacheId) {
-        super(remoteUrl, cacheId);
-    }
 
     @Override
-    public SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context) {
-        return null;
-    }
+    public void onCreate(ContentProviderContext context) {
 
-    @Override
-    public CachingStrategy onCreateCachingStrategy(ContentProviderContext context) {
-        return null;
     }
 
     /**

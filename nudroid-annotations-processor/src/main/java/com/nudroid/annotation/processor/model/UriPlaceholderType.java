@@ -37,5 +37,5 @@ public enum UriPlaceholderType {
     /**
      * A placeholder appearing in the query string segment of a URI.
      */
-    QUERY_PARAM;
+    QUERY_PARAM
 }

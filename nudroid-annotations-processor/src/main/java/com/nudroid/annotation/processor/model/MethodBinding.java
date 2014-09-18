@@ -325,6 +325,6 @@ public class MethodBinding {
      */
     @Override
     public String toString() {
-        return "DelegateUri [mPath=" + mPath + ", queryString=" + mQueryString + "]";
+        return "MethodBinding [mPath=" + mPath + ", queryString=" + mQueryString + "]";
     }
 }

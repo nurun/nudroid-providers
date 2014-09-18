@@ -1,23 +1,3 @@
-<! Copyright (c) 2014 Nurun Inc. !>
-
-<! Permission is hereby granted, free of charge, to any person obtaining a copy !>
-<! of this software and associated documentation files (the "Software"), to deal !>
-<! in the Software without restriction, including without limitation the rights !>
-<! to use, copy, modify, merge, publish, distribute, sublicense, and/or sell !>
-<! copies of the Software, and to permit persons to whom the Software is !>
-<! furnished to do so, subject to the following conditions: !>
-
-<! The above copyright notice and this permission notice shall be included in !>
-<! all copies or substantial portions of the Software. !>
-
-<! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR !>
-<! IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, !>
-<! FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE !>
-<! AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER !>
-<! LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, !>
-<! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN !>
-<! THE SOFTWARE. !>
-
 ContentProviderTemplate(delegateClass) ::= <<
 <if(delegateClass.basePackageName)>
 package <delegateClass.basePackageName>;
@@ -28,24 +8,24 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-<if(delegateClass.contentProviderDelegateInterface)>
+<if(delegateClass.implementsContentProviderDelegateInterface)>
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 <endif>
 
 /*
- * This is the basic XML you can use to configure this content provider in AndroidManifest.xml
- * \<provider
+ * Here's a basic XML you can use to configure this content provider in AndroidManifest.xml
+ \<provider<\\>
 <if(delegateClass.basePackageName)>    
- * android:name="<delegateClass.basePackageName>.<delegateClass.contentProviderSimpleName>"
+     android:name="<delegateClass.basePackageName>.<delegateClass.contentProviderSimpleName>"
 <else>
- * android:name="<delegateClass.contentProviderSimpleName>"
+     android:name="<delegateClass.contentProviderSimpleName>"
 <endif>
- * android:authorities="<delegateClass.authority.name>"
- * android:exported="\<true|false>"
- * android:grantUriPermissions="\<true|false>"
- * android:label="\<label>"
- * android:readPermission="\<read_permission>"
- * android:writePermission="\<write_permission>" />
+     android:authorities="<delegateClass.authority.name>"
+     android:exported="\<true|false>"
+     android:grantUriPermissions="\<true|false>"
+     android:label="\<label>"
+     android:readPermission="\<read_permission>"
+     android:writePermission="\<write_permission>" />
  */
 
 /**
@@ -66,7 +46,7 @@ public class <delegateClass.contentProviderSimpleName> extends ContentProvider {
         final <delegateClass.qualifiedName> delegate = new <delegateClass.qualifiedName>();
         mContentProviderRouter = new <delegateClass.routerSimpleName>(delegate);
 
-<if(delegateClass.contentProviderDelegateInterface)>
+<if(delegateClass.implementsContentProviderDelegateInterface)>
         boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());
         return result;
 <else>

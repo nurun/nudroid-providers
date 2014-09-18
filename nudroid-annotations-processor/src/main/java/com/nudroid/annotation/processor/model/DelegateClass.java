@@ -22,13 +22,13 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.google.common.collect.Sets;
 import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -36,7 +36,9 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Holds information about the delegate class for a content provider.
+ * A delegate class handles ContentResolver requests on behalf of a ContentProvider. Each delegate class maps to a
+ * content provider and vice versa. The content provider matches a content URI with a particular method in the delegate
+ * class forwards (delegates) the call to the target method.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -52,17 +54,17 @@ public class DelegateClass {
     private Authority mAuthority;
 
     //TODO Check if there's a more performing way of doing this check.
-    /* UriMatcher has an undocumented matching algorithm. It will match the first path (in the order they have been
-     * added) and ignore the rest of the entries even if the selected match fail later on. For example:
+    /* UriMatcher has an undocumented matching algorithm. It will match the first path segment (in the order they have
+     * been added) and ignore the rest of the entries even if the selected match fails on a later stage. For example:
      *
      *     * / *
      *     page / * / *
      *
      * will not match 'page/section/33'. 'page' will match the first '*' so UriMatcher will try to use that entry to
-     * validate the path. Since the path has three segments while the pattern only has 2, it will fail BUT IT WILL NOT
-     * TRY TO MATCH against THE NEXT (and correct) PATTERN.
+     * validate the path. Since the path has three segments while the pattern only has 2, it will fail but it WILL NOT
+     * try to match against the next (and correct) pattern.
      *
-     * However, if we do so:
+     * However, if we add these URIs in reverse order:
      *
      *     page / * / *
      *     * / *
@@ -70,8 +72,11 @@ public class DelegateClass {
      * Then it will match since the first entry will be selected. Basically, it traverses the list of patterns and stops
      * as soon as it finds an entry whose first item match the input string.
      *
-     * The sorting algorithm below sorts the entries by explicit patterns (non wildcards) position (ascending) and
-     * size (descending).
+     * The sorting algorithm below sorts the entries by placing literal segments on top of the list based on where
+     * they appear in the pth. The closer to the beginning of the path, the higher their priority. Paths with the
+     * same priority are then sorted by path segment length.
+     *
+     * Uris will be sorted as they are added to this set by the provided closure.
      */
     private NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
 
@@ -95,10 +100,10 @@ public class DelegateClass {
         }
 
         /* If uri structure is the same, sort by size. */
-        int pathDelta = uri2Paths.length - uri1Paths.length;
+        int pathSegmentCountDelta = uri2Paths.length - uri1Paths.length;
 
         /* If size is the same, sort by alphabetical order. */
-        if (pathDelta == 0) {
+        if (pathSegmentCountDelta == 0) {
 
             for (int i = 0; i < uri1Paths.length; i++) {
 
@@ -110,33 +115,35 @@ public class DelegateClass {
             }
         }
 
-        return pathDelta;
+        return pathSegmentCountDelta;
     });
 
     /**
      * Creates an instance of this class.
      *
-     * @param authorityName
-     *         The authority name being handled by the delegate class.
+     * @param authority
+     *         The authority being handled by the delegate class.
      * @param typeElement
      *         The {@link TypeElement} for the delegate class as provided by the round environment.
      */
-    public DelegateClass(String authorityName, TypeElement typeElement) {
+    public DelegateClass(String authority, TypeElement typeElement) {
 
         this.mTypeElement = typeElement;
         this.mQualifiedName = typeElement.toString();
-        this.mAuthority = new Authority(authorityName);
+        this.mAuthority = new Authority(authority);
 
-        String baseName = typeElement.getSimpleName()
+        String contentProviderBaseName = typeElement.getSimpleName()
                 .toString();
-        baseName = baseName.replaceAll("(?i)Delegate", "")
+        contentProviderBaseName = contentProviderBaseName.replaceAll("(?i)Delegate", "")
                 .replaceAll("(?i)ContentProvider", "");
 
-        StringBuilder providerSimpleName = new StringBuilder(baseName);
+        StringBuilder providerSimpleName = new StringBuilder(contentProviderBaseName);
         StringBuilder routerSimpleName = new StringBuilder(typeElement.getSimpleName()
                 .toString());
         Element parentElement = typeElement.getEnclosingElement();
 
+        /* If the enclosing element is not a package, the delegate class is an inner class. Suffix the name with the
+        names of the parent classes. */
         while (parentElement != null && !parentElement.getKind()
                 .equals(ElementKind.PACKAGE)) {
 
@@ -147,8 +154,8 @@ public class DelegateClass {
             parentElement = parentElement.getEnclosingElement();
         }
 
-        providerSimpleName.append("ContentProvider");
-        routerSimpleName.append("Router");
+        providerSimpleName.append("ContentProvider_");
+        routerSimpleName.append("Router_");
 
         if (parentElement != null && parentElement.getKind()
                 .equals(ElementKind.PACKAGE)) {
@@ -165,45 +172,43 @@ public class DelegateClass {
     }
 
     /**
-     * Registers a @Query path and query string to be handled by this delegate class. DelegateUris, as opposed to
-     * MatcherUri does take query string in consideration when differentiating between URIs.
+     * Registers a @Query path and query string to be handled by this delegate class.
      *
      * @param pathAndQuery
      *         The path and query string to register.
      * @param placeholderTargetTypes
      *         The types of the parameters mapping to the placeholders, in the order they appear.
      *
-     * @return A new DelegateUri object representing this path and query string combination.
+     * @return A new MethodBinding object binding the path and query string combination to the target method.
      *
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
     public MethodBinding registerPathForQuery(String pathAndQuery,
-                                            List<UriMatcherPathPatternType> placeholderTargetTypes) {
+                                              List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
-        return matcherUri.registerQueryDelegateUri(pathAndQuery);
+        return matcherUri.registerQueryUri(pathAndQuery);
     }
 
     /**
-     * Registers a @Update path and query string to be handled by this delegate class. DelegateUris, as opposed to
-     * MatcherUri does take query string in consideration when differentiating between URIs.
+     * Registers a @Update path and query string to be handled by this delegate class.
      *
      * @param pathAndQuery
      *         The path and query string to register.
      * @param placeholderTargetTypes
      *         The types of the parameters mapping to the placeholders, in the order they appear.
      *
-     * @return A new DelegateUri object representing this path and query string combination.
+     * @return A new MethodBinding object binding the path and query string combination to the target method.
      *
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
     public MethodBinding registerPathForUpdate(String pathAndQuery,
-                                             List<UriMatcherPathPatternType> placeholderTargetTypes) {
+                                               List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
-        return matcherUri.registerUpdateDelegateUri(pathAndQuery);
+        return matcherUri.registerUpdateUri(pathAndQuery);
     }
 
     /**
@@ -285,13 +290,13 @@ public class DelegateClass {
      * otherwise.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public boolean hasContentProviderDelegateInterface() {
+    public boolean getImplementsContentProviderDelegateInterface() {
 
         return mHasImplementedDelegateInterface;
     }
 
     /**
-     * Gets the {@link MatcherUri}s this delegate class handles.
+     * Gets the URIs this delegate class handles.
      *
      * @return The {@link MatcherUri}s this delegate class handles.
      */
@@ -316,7 +321,7 @@ public class DelegateClass {
 
         final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery, placeholderTargetTypes);
 
-        NavigableSet<MatcherUri> matchingUris = Sets.filter(mMatcherUris, newCandidate::equals);
+        List<MatcherUri> matchingUris = mMatcherUris.stream().filter(newCandidate::equals).collect(Collectors.toList());
 
         if (matchingUris.size() == 0) {
 
@@ -326,7 +331,7 @@ public class DelegateClass {
             return newCandidate;
         }
 
-        return matchingUris.first();
+        return matchingUris.get(0);
     }
 
     /**
