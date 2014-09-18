@@ -48,7 +48,8 @@ import java.util.Arrays;
 public class <annotation.concreteClassName> implements Annotation, Serializable, <annotation.annotationQualifiedName> {
 
     <annotation.attributes:generateAttributesStatements(); separator="\n">
-    
+
+    @SuppressWarnings("UnusedDeclaration")
     public <annotation.concreteClassName>(<annotation.attributes:generateConstructorParameters(); separator=", ">) {
     
         <annotation.attributes:generateConstructorAssignments(); separator="\n">

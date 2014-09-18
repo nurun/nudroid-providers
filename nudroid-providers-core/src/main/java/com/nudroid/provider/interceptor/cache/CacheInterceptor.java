@@ -330,8 +330,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
         context.uri = Uri.parse(context.uri.toString()
                 .replaceAll(PAGE_REMOVAL_REG_EXP, ""));
 
-        if (mCacheId == null || mCacheId.trim()
-                .equals("")) {
+        if (mCacheId == null || mCacheId.isEmpty()) {
 
             this.mCacheId = Base64.encodeToString(context.uri.toString()
                     .getBytes(), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE);
@@ -346,7 +345,7 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
         }
 
         if (paginationTypeName != null && !paginationTypeName.trim()
-                .equals("")) {
+                .isEmpty()) {
 
             try {
 

@@ -31,6 +31,12 @@ repositories {
 
 def aptOutputDir = project.file("${project.projectDir}/generated/src")
 
+idea {
+    module {
+        sourceDirs += aptOutputDir
+    }
+}
+
 dependencies {
     compile project(':nudroid-annotations-processor-all')
 }

@@ -22,27 +22,12 @@
 
 package com.nudroid.annotation.processor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-
-import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.MethodBinding;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
-import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
+import com.nudroid.annotation.processor.model.MethodBinding;
 import com.nudroid.annotation.processor.model.Parameter;
+import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
@@ -53,6 +38,21 @@ import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.annotation.provider.delegate.UriPlaceholder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 /**
  * Processes the Update annotations on a class.
@@ -95,9 +95,11 @@ class UpdateAnnotationProcessor {
 
     /**
      * Process the {@link Update} annotations on this round.
-     *  @param roundEnv
+     *
+     * @param roundEnv
      *         The round environment to process.
      * @param metadata
+     *         the Metadata model to gather the results of the processing
      */
     void process(RoundEnvironment roundEnv, Metadata metadata) {
 
@@ -106,10 +108,11 @@ class UpdateAnnotationProcessor {
         Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Update.class);
 
         if (queryMethods.size() > 0) {
+
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Update.class.getSimpleName(), Joiner.on("\n        - ")
-                    .skipNulls()
-                    .join(queryMethods)));
+                    Update.class.getSimpleName(), queryMethods.stream()
+                            .map(Element::toString)
+                            .collect(Collectors.joining("\n        - "))));
         }
 
         for (Element queryMethod : queryMethods) {
@@ -128,8 +131,7 @@ class UpdateAnnotationProcessor {
 
                 mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod =
-                        processUpdateOnMethod((ExecutableElement) queryMethod, delegateClass, metadata);
+                DelegateMethod delegateMethod = processUpdateOnMethod((ExecutableElement) queryMethod, delegateClass);
 
                 if (delegateMethod != null) {
 
@@ -144,13 +146,12 @@ class UpdateAnnotationProcessor {
         mLogger.info("Done processing @Update annotations.");
     }
 
-    private DelegateMethod processUpdateOnMethod(ExecutableElement methodElement, DelegateClass delegateClass,
-                                                 Metadata metadata) {
+    private DelegateMethod processUpdateOnMethod(ExecutableElement methodElement, DelegateClass delegateClass) {
 
         Update query = methodElement.getAnnotation(Update.class);
         String pathAndQuery = query.value();
 
-        MethodBinding methodBinding = null;
+        MethodBinding methodBinding;
 
         try {
 
@@ -178,7 +179,7 @@ class UpdateAnnotationProcessor {
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
             mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
-                            e.getOriginalMethod()), methodElement);
+                    e.getOriginalMethod()), methodElement);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -257,25 +258,25 @@ class UpdateAnnotationProcessor {
 
         for (VariableElement parameterElement : parameters) {
 
-            List<Class<?>> accumulatedAnnotations = new ArrayList<Class<?>>();
+            List<Class<?>> accumulatedAnnotations = new ArrayList<>();
 
             final TypeMirror parameterType = parameterElement.asType();
 
-            isValid = validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
+            isValid &= validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
                     accumulatedAnnotations);
-            isValid =
+            isValid &=
                     validateParameterAnnotation(parameterElement, Projection.class, parameterType, mArrayOfStringsType,
                             accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
+            isValid &= validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
+            isValid &= validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
                     mArrayOfStringsType, accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
+            isValid &= validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
+            isValid &= validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
                     accumulatedAnnotations);
 
-            isValid = validateUriPlaceholderAnnotation(parameterElement, query, uri, accumulatedAnnotations);
+            isValid &= validateUriPlaceholderAnnotation(parameterElement, query, uri, accumulatedAnnotations);
         }
 
         return isValid;
@@ -311,10 +312,10 @@ class UpdateAnnotationProcessor {
                 isValid = false;
 
                 mLogger.trace(
-                        String.format("        Parameter is not of expected type %s. Signaling compilatoin error.",
-                                requiredType, parameterElement));
+                        String.format("        Parameter is not of expected type %s. Signaling compilation error.",
+                                requiredType));
                 mLogger.error(String.format("Parameters annotated with @%s must be of type %s.",
-                                annotationClass.getSimpleName(), requiredType), parameterElement);
+                        annotationClass.getSimpleName(), requiredType), parameterElement);
             }
         }
 

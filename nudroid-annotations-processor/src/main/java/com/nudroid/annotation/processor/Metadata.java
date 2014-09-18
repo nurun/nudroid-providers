@@ -162,19 +162,6 @@ class Metadata {
     }
 
     /**
-     * Gets the interceptor blueprint for the given annotation.
-     *
-     * @param interceptorAnnotationTypeElement
-     *         The annotation to get the blueprint for.
-     *
-     * @return the interceptor blueprint for the given annotation.
-     */
-    InterceptorAnnotationBlueprint getInterceptorBlueprint(TypeElement interceptorAnnotationTypeElement) {
-
-        return mInterceptorBlueprints.get(interceptorAnnotationTypeElement);
-    }
-
-    /**
      * {@inheritDoc}
      *
      * @see java.lang.Object#toString()

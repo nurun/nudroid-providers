@@ -144,6 +144,7 @@ RouterTemplateUpdate(delegateClass) ::= <<
  * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
  *      java.lang.String, java.lang.String[])
  */
+@SuppressWarnings({"unused", "UnusedAssignment"})
 public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
 
     ContentProviderContext contentProviderContext = null;

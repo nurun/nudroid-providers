@@ -44,7 +44,6 @@ import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
  */
 class SourceCodeGenerator {
 
-    private ProcessingEnvironment mProcessingEnv;
     private LoggingUtils mLogger;
     private Filer mFiler;
 
@@ -66,7 +65,7 @@ class SourceCodeGenerator {
      */
     SourceCodeGenerator(ProcessorContext processorContext) {
 
-        this.mProcessingEnv = processorContext.processingEnv;
+        ProcessingEnvironment mProcessingEnv = processorContext.processingEnv;
         this.mLogger = processorContext.logger;
         this.mFiler = mProcessingEnv.getFiler();
     }
@@ -80,7 +79,7 @@ class SourceCodeGenerator {
      */
     void generateCompanionSourceCode(Metadata metadata) {
 
-        Set<DelegateClass> delegateClasses = new HashSet<DelegateClass>(metadata.getDelegateClassesForRound());
+        Set<DelegateClass> delegateClasses = new HashSet<>(metadata.getDelegateClassesForRound());
 
         for (DelegateClass delegateClass : delegateClasses) {
 
@@ -94,7 +93,7 @@ class SourceCodeGenerator {
         }
 
         Set<InterceptorAnnotationBlueprint> concreteAnnotations =
-                new HashSet<InterceptorAnnotationBlueprint>(metadata.getInterceptorBlueprintsForRound());
+                new HashSet<>(metadata.getInterceptorBlueprintsForRound());
 
         for (InterceptorAnnotationBlueprint annotation : concreteAnnotations) {
 
@@ -118,7 +117,7 @@ class SourceCodeGenerator {
             st.add("delegateClass", delegateClass);
             String result = st.render();
 
-            JavaFileObject javaFile = null;
+            JavaFileObject javaFile;
 
             if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
@@ -149,7 +148,7 @@ class SourceCodeGenerator {
             st.add("delegateClass", delegateClass);
             String result = st.render();
 
-            JavaFileObject javaFile = null;
+            JavaFileObject javaFile;
 
             if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
@@ -180,7 +179,7 @@ class SourceCodeGenerator {
             st.add("annotation", annotation);
             String result = st.render();
 
-            JavaFileObject javaFile = null;
+            JavaFileObject javaFile;
 
             if (Strings.isNullOrEmpty(annotation.getConcretePackageName())) {
 

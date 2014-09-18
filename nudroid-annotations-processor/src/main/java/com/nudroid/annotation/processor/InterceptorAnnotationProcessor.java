@@ -22,7 +22,6 @@
 
 package com.nudroid.annotation.processor;
 
-import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.model.AnnotationAttribute;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -31,9 +30,9 @@ import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -83,10 +82,11 @@ class InterceptorAnnotationProcessor {
                 .class);
 
         if (interceptorAnnotations.size() > 0) {
+
             mLogger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
-                    ProviderInterceptorPoint.class.getSimpleName(), Joiner.on("\n        - ")
-                            .skipNulls()
-                            .join(interceptorAnnotations)));
+                    ProviderInterceptorPoint.class.getSimpleName(), interceptorAnnotations.stream()
+                            .map(Element::toString)
+                            .collect(Collectors.joining("\n        - "))));
         }
 
         for (Element interceptorAnnotation : interceptorAnnotations) {
@@ -131,24 +131,15 @@ class InterceptorAnnotationProcessor {
                     new InterceptorAnnotationBlueprint((TypeElement) interceptorAnnotation);
 
             final List<? extends Element> enclosedElements =
-                    new ArrayList<Element>(interceptorAnnotation.getEnclosedElements());
-            Collections.sort(enclosedElements, new Comparator<Element>() {
+                    new ArrayList<>(interceptorAnnotation.getEnclosedElements());
+            Collections.sort(enclosedElements, (o1, o2) -> o1.getSimpleName()
+                    .toString()
+                    .compareTo(o2.getSimpleName()
+                            .toString()));
 
-                @Override
-                public int compare(Element o1, Element o2) {
-                    return o1.getSimpleName()
-                            .toString()
-                            .compareTo(o2.getSimpleName()
-                                    .toString());
-                }
-            });
-
-            for (Element method : enclosedElements) {
-
-                if (method instanceof ExecutableElement) {
-                    annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method));
-                }
-            }
+            enclosedElements.stream()
+                    .filter(method -> method instanceof ExecutableElement)
+                    .forEach(method -> annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method)));
 
             metadata.registerConcreteAnnotation(annotation);
 

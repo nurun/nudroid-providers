@@ -30,7 +30,6 @@ import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
 
-//import com.google.common.collect.Lists;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;

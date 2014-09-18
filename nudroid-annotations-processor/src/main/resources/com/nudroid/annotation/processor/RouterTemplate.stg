@@ -48,6 +48,7 @@ public class <delegateClass.routerSimpleName> {
     /**
      * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public Uri insert(Context context, Uri uri, ContentValues values) {
 
         return null;
@@ -58,6 +59,7 @@ public class <delegateClass.routerSimpleName> {
      * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
      *      java.lang.String[])
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         return 0;
@@ -66,6 +68,7 @@ public class <delegateClass.routerSimpleName> {
     /**
      * @see     android.content.ContentProvider#getType(android.net.Uri)
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public String getType(Context context, Uri uri) {
 
         return null;

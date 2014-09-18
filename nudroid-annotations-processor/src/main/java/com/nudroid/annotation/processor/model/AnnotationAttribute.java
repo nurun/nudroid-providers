@@ -77,6 +77,7 @@ public class AnnotationAttribute {
      *
      * @return The capitalized name of this attribute.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getCapitalizedName() {
 
         return mCapitalizedName;

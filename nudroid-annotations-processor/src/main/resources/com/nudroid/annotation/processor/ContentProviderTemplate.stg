@@ -40,6 +40,7 @@ public class <delegateClass.contentProviderSimpleName> extends ContentProvider {
      * 
      * @see android.content.ContentProvider#onCreate()
      */
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public boolean onCreate() {
 

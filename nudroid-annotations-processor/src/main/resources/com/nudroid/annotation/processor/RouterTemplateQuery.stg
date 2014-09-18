@@ -145,11 +145,12 @@ RouterTemplateQuery(delegateClass) ::= <<
  * @see android.content.ContentProvider#query(android.net.Uri, java.lang.String[],
  *      java.lang.String, java.lang.String[], java.lang.String)
  */
+@SuppressWarnings({"unused", "UnusedAssignment"})
 public Cursor query(Context context, Uri uri, String[] projection, String selection,
         String[] selectionArgs, String sortOrder) {
 
-    ContentProviderContext contentProviderContext = null;
-    Cursor result = null;
+    ContentProviderContext contentProviderContext;
+    Cursor result;
 
     switch (URI_MATCHER.match(uri)) {
     <delegateClass.matcherUris:query_createCaseStatements(); separator="\n">

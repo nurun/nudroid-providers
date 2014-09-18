@@ -22,7 +22,6 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.google.common.base.Joiner;
 import com.nudroid.annotation.processor.LoggingUtils;
 
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -60,7 +58,7 @@ public class InterceptorAnnotationBlueprint {
     private TypeElement mInterceptorAnnotationTypeElement;
     private TypeElement mInterceptorImplementationTypeElement;
     private boolean mHasCustomConstructor;
-    private List<AnnotationAttribute> mAttributes = new ArrayList<AnnotationAttribute>();
+    private List<AnnotationAttribute> mAttributes = new ArrayList<>();
 
     /**
      * Creates a new InterceptorBlueprint bean.
@@ -113,6 +111,7 @@ public class InterceptorAnnotationBlueprint {
      *
      * @return The attributes of this concrete annotation.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<AnnotationAttribute> getAttributes() {
 
         return mAttributes;
@@ -273,8 +272,7 @@ public class InterceptorAnnotationBlueprint {
             case INT:
 
                 interceptor.addConcreteAnnotationConstructorLiteral(
-                        new InterceptorAnnotationParameter(String.format("%s", attributeValue.getValue()),
-                                long.class));
+                        new InterceptorAnnotationParameter(String.format("%s", attributeValue.getValue()), long.class));
                 break;
             case LONG:
 
@@ -363,45 +361,65 @@ public class InterceptorAnnotationBlueprint {
             case FLOAT:
 
                 arrayInitializer.append("new float[] { ");
-                Joiner.on("f, ")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining("f, "));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append("f }");
                 arrayClass = float[].class;
                 break;
             case DOUBLE:
 
                 arrayInitializer.append("new double[] { ");
-                Joiner.on(", ")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append(" }");
                 arrayClass = double[].class;
                 break;
             case BYTE:
 
                 arrayInitializer.append("new byte[] { ");
-                Joiner.on(", ")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append(" }");
                 arrayClass = byte[].class;
                 break;
             case INT:
 
                 arrayInitializer.append("new int[] { ");
-                Joiner.on(", ")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append(" }");
                 arrayClass = int[].class;
                 break;
             case LONG:
 
                 arrayInitializer.append("new long[] { ");
-                Joiner.on("L, ")
-                        .skipNulls()
-                        .appendTo(arrayInitializer, arrayElements);
+
+                elements = arrayElements.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining("L, "));
+
+                arrayInitializer.append(elements);
+
                 arrayInitializer.append("L }");
                 arrayClass = long[].class;
                 break;
@@ -409,16 +427,19 @@ public class InterceptorAnnotationBlueprint {
             case DECLARED:
 
                 TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
-                TypeElement classType = elementUtils.getTypeElement(Class.class.getName());
 
                 // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
                 // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
                 if (typeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
 
                     arrayInitializer.append("new String[] { \"");
-                    Joiner.on("\", \"")
-                            .skipNulls()
-                            .appendTo(arrayInitializer, arrayElements);
+
+                    elements = arrayElements.stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining("\", \""));
+
+                    arrayInitializer.append(elements);
+
                     arrayInitializer.append("\" }");
                     arrayClass = String[].class;
                 } else if (Class.class.getName()
@@ -426,9 +447,13 @@ public class InterceptorAnnotationBlueprint {
                                 .toString())) {
 
                     arrayInitializer.append("new Class[] { ");
-                    Joiner.on(".class, ")
-                            .skipNulls()
-                            .appendTo(arrayInitializer, arrayElements);
+
+                    elements = arrayElements.stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(".class, "));
+
+                    arrayInitializer.append(elements);
+
                     arrayInitializer.append(".class }");
                     arrayClass = Class[].class;
                 } else {
@@ -438,9 +463,13 @@ public class InterceptorAnnotationBlueprint {
                     if (arrayElementType.getKind() == ElementKind.ENUM) {
 
                         arrayInitializer.append(String.format("new %s[] { %s.", arrayElementType, arrayElementType));
-                        Joiner.on(String.format(", %s.", arrayElementType))
-                                .skipNulls()
-                                .appendTo(arrayInitializer, arrayElements);
+
+                        elements = arrayElements.stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining(String.format(", %s.", arrayElementType)));
+
+                        arrayInitializer.append(elements);
+
                         arrayInitializer.append(" }");
                         arrayClass = Object[].class;
                     } else {

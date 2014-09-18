@@ -65,8 +65,6 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private LoggingUtils mLogger;
 
-    private Elements elementUtils;
-    private Types typeUtils;
     private boolean initialized = false;
 
     private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
@@ -101,8 +99,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
         mLogger.debug("Initializing Nudroid persistence annotation processor.");
 
-        elementUtils = env.getElementUtils();
-        typeUtils = env.getTypeUtils();
+        Elements elementUtils = env.getElementUtils();
+        Types typeUtils = env.getTypeUtils();
 
         final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
         contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
