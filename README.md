@@ -9,7 +9,7 @@ processing and register nudroid-annotations-processor-all.jar as a processor to 
 See the library javadocs for more information about how to use the provided annotations.
 
 #License
-Nudroid Providers uses the MIT License
+Nudroid Providers is licensed under the terms of the MIT License
 
 Copyright (c) 2014 Nurun Inc.
 
