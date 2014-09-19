@@ -24,19 +24,18 @@ package com.nudroid.annotation.processor;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
 import com.nudroid.annotation.processor.model.MethodBinding;
 import com.nudroid.annotation.processor.model.Parameter;
 import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.ContentUri;
-import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Projection;
+import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
-import com.nudroid.annotation.provider.delegate.Update;
 import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 import java.util.ArrayList;
@@ -55,13 +54,13 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 /**
- * Processes the Update annotations on a class.
+ * Processes the Query annotations on a class.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class UpdateAnnotationProcessor {
+class QueryProcessor {
 
-    private static final String PRIMITIVE_INT_CLASS_NAME = "int";
+    private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
 
     private final LoggingUtils mLogger;
 
@@ -78,7 +77,7 @@ class UpdateAnnotationProcessor {
      * @param processorContext
      *         The processor context parameter object.
      */
-    UpdateAnnotationProcessor(ProcessorContext processorContext) {
+    QueryProcessor(ProcessorContext processorContext) {
 
         this.mTypeUtils = processorContext.typeUtils;
         this.mElementUtils = processorContext.elementUtils;
@@ -94,23 +93,26 @@ class UpdateAnnotationProcessor {
     }
 
     /**
-     * Process the {@link Update} annotations on this round.
+     * Process the {@link Query} annotations on this round.
      *
      * @param roundEnv
      *         The round environment to process.
      * @param metadata
      *         the Metadata model to gather the results of the processing
      */
+    //TODO Bug on nudroid annotations: If a parameter is added to the method signature but it is not present in the queryString (and also check path) it throws a NullPointerException.
+    // TODO If using primitive type, (like long) app crashes when converting placeholders. See convert() on router for
+    // details (it only Checks Long not long).
     void process(RoundEnvironment roundEnv, Metadata metadata) {
 
-        mLogger.info("Start processing @Update annotations.");
+        mLogger.info("Start processing @Query annotations.");
 
-        Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Update.class);
+        Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Query.class);
 
         if (queryMethods.size() > 0) {
 
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Update.class.getSimpleName(), queryMethods.stream()
+                    Query.class.getSimpleName(), queryMethods.stream()
                             .map(Element::toString)
                             .collect(Collectors.joining("\n        - "))));
         }
@@ -131,7 +133,7 @@ class UpdateAnnotationProcessor {
 
                 mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processUpdateOnMethod((ExecutableElement) queryMethod, delegateClass);
+                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass);
 
                 if (delegateMethod != null) {
 
@@ -143,12 +145,12 @@ class UpdateAnnotationProcessor {
             }
         }
 
-        mLogger.info("Done processing @Update annotations.");
+        mLogger.info("Done processing @Query annotations.");
     }
 
-    private DelegateMethod processUpdateOnMethod(ExecutableElement methodElement, DelegateClass delegateClass) {
+    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass) {
 
-        Update query = methodElement.getAnnotation(Update.class);
+        Query query = queryMethod.getAnnotation(Query.class);
         String pathAndQuery = query.value();
 
         MethodBinding methodBinding;
@@ -158,7 +160,7 @@ class UpdateAnnotationProcessor {
             //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
             List<UriMatcherPathPatternType> placeholderTypes = new ArrayList<>();
 
-            List<? extends VariableElement> parameters = methodElement.getParameters();
+            List<? extends VariableElement> parameters = queryMethod.getParameters();
 
             for (VariableElement param : parameters) {
 
@@ -171,7 +173,7 @@ class UpdateAnnotationProcessor {
                 }
             }
 
-            methodBinding = delegateClass.registerPathForUpdate(pathAndQuery, placeholderTypes);
+            methodBinding = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
@@ -179,7 +181,7 @@ class UpdateAnnotationProcessor {
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
             mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
-                    e.getOriginalMethod()), methodElement);
+                    e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -187,22 +189,22 @@ class UpdateAnnotationProcessor {
                     pathAndQuery));
             mLogger.error(
                     String.format("Placeholder '%s' appearing at position '%s' is already present at position '%s'",
-                            e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), methodElement);
+                            e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), queryMethod);
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(methodElement, query, methodBinding);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, methodBinding);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = methodBinding.setQueryDelegateMethod(methodElement);
+        DelegateMethod delegateMethod = methodBinding.setQueryDelegateMethod(queryMethod);
 
-        mLogger.trace(String.format("    Added delegate method %s.", methodElement));
+        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
-        List<? extends VariableElement> parameters = methodElement.getParameters();
+        List<? extends VariableElement> parameters = queryMethod.getParameters();
 
         for (VariableElement methodParameter : parameters) {
 
@@ -214,7 +216,6 @@ class UpdateAnnotationProcessor {
             if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs();
             if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder();
             if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri();
-            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues();
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
             if (methodParameter.asType()
@@ -235,21 +236,21 @@ class UpdateAnnotationProcessor {
             delegateMethod.addParameter(parameter);
         }
 
-        // delegateClass.addMethod(delegateMethod);
+        //        delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Update query, MethodBinding uri) {
+    private boolean hasValidSignature(ExecutableElement method, Query query, MethodBinding uri) {
 
         boolean isValid = true;
 
         TypeMirror returnType = method.getReturnType();
 
-        if (!PRIMITIVE_INT_CLASS_NAME.equals(returnType.toString())) {
+        if (!ANDROID_DATABASE_CURSOR_CLASS_NAME.equals(returnType.toString())) {
 
-            mLogger.trace(String.format("        Update %s method does not return expected int value.", method));
-            mLogger.error(String.format("@Update annotated methods must return int."), method);
+            mLogger.trace(String.format("        Query %s method does not return expected Android Cursor.", method));
+            mLogger.error(String.format("@Query annotated methods must return android.database.Cursor."), method);
 
             isValid = false;
         }
@@ -322,7 +323,7 @@ class UpdateAnnotationProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, MethodBinding uri,
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, MethodBinding uri,
                                                      List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
@@ -366,14 +367,20 @@ class UpdateAnnotationProcessor {
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
 
-        for (InterceptorAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+        if (metadata.getInterceptorBlueprints()
+                .size() == 0) {
+            return;
+        }
 
-            mLogger.trace(String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
+        List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
+                .getAnnotationMirrors();
 
-            List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
-                    .getAnnotationMirrors();
+        for (AnnotationMirror mirror : annotationsMirrors) {
 
-            for (AnnotationMirror mirror : annotationsMirrors) {
+            for (InterceptorPointAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+
+                mLogger.trace(
+                        String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
 
                 final TypeElement annotationTypeElement = concreteAnnotation.getTypeElement();
 

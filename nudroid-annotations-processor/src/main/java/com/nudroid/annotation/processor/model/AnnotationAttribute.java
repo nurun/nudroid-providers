@@ -25,7 +25,7 @@ package com.nudroid.annotation.processor.model;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * An annotation attribute (method) member of a {@link InterceptorAnnotationBlueprint}.
+ * An annotation attribute (method) member of a {@link InterceptorPointAnnotationBlueprint}.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.provider.interceptor;
+package com.nudroid.annotation.provider.delegate.intercept;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 /**
  * <p>Flags an annotation as an interceptor point for content provider delegates.</p>
  *
- * <p>Annotations annotated with {@link ProviderInterceptorPoint} can be used to apply interceptors to content provider
+ * <p>Annotations annotated with {@link InterceptorPointcut} can be used to apply interceptors to content provider
  * delegate methods. Interceptor annotations must be defined as a static inner class of the corresponding interceptor
  * class.</p>
  *
@@ -36,10 +36,10 @@ import java.lang.annotation.Target;
  * they were annotated in the source code before the delegate invocation and in reverse order they were annotated in the
  * source code after the delegate method invocation, just like an onion or around aspect invocation.</p>
  *
- * <p>Interceptors must implement ContentProviderInterceptor</p>
+ * <p>Interceptors must implement InterceptorPointcut</p>
  *
  * <p>Interceptor classes must provide either a default constructor or a constructor with a
- * {@link ProviderInterceptorPoint} annotation as a parameter (see example below for more details).</p>
+ * {@link InterceptorPointcut} annotation as a parameter (see example below for more details).</p>
  *
  * <pre>
  * //1 - Create an interceptor for logging
@@ -47,10 +47,10 @@ import java.lang.annotation.Target;
  * import android.database.Cursor;
  * 
  * import com.nudroid.provider.delegate.ContentProviderContext;
- * import com.nudroid.provider.interceptor.ContentProviderInterceptor;
- * import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
+ * import com.nudroid.provider.interceptor.InterceptorPointcut;
+ * import com.nudroid.annotation.provider.interceptor.InterceptorPointcut;
  * 
- * public class LogInterceptor implements ContentProviderInterceptor {
+ * public class LogInterceptor implements InterceptorPointcut {
  * 
  *     private String mLogLevel;
  * 
@@ -68,16 +68,16 @@ import java.lang.annotation.Target;
  *     ...
  * }
  * 
- * //#2 - Create the ProviderInterceptorPoint annotation
+ * //#2 - Create the InterceptorPointcut annotation
  * //#    and add a constructor
  * //##################################
  * import android.database.Cursor;
  * 
  * import com.nudroid.provider.delegate.ContentProviderContext;
- * import com.nudroid.provider.interceptor.ContentProviderInterceptor;
- * import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
+ * import com.nudroid.provider.interceptor.InterceptorPointcut;
+ * import com.nudroid.annotation.provider.interceptor.InterceptorPointcut;
  * 
- * public class LogInterceptor implements ContentProviderInterceptor {
+ * public class LogInterceptor implements InterceptorPointcut {
  * 
  *     String mLogLevel;
  * 
@@ -88,7 +88,7 @@ import java.lang.annotation.Target;
  *     
  *     ...
  *     
- *     &#064;ProviderInterceptorPoint
+ *     &#064;InterceptorPointcut
  *     public &#064;interface Log {
  *         String level() default &quot;TRACE&quot;;
  *     }     
@@ -120,6 +120,6 @@ import java.lang.annotation.Target;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface ProviderInterceptorPoint {
+public @interface InterceptorPointcut {
 
 }

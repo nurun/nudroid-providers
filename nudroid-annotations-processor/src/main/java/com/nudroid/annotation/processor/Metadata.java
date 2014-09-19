@@ -22,6 +22,9 @@
 
 package com.nudroid.annotation.processor;
 
+import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,9 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.TypeElement;
-
-import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
 
 /**
  * Gather all the information required to generate the source code for the content providers and router classes.
@@ -42,31 +42,36 @@ class Metadata {
 
     private final Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<>();
     private final Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<>();
-    private final Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints = new HashMap<>();
+    private final Map<TypeElement, InterceptorPointAnnotationBlueprint> mInterceptorPointAnnotationBlueprints =
+            new HashMap<>();
 
     /*
-     * The stack is what tracks classes to be fed to the source code generator. Because of Eclipse's continuous build,
-     * sometimes multiple rounds will be triggered for the same class and source code generation will be triggered. The
-     * Filer utility class will then fail because it can't create multiple instances of the same source file. The stack
-     * is filled only once so each class is written only once.
+     * Source code generation is triggered by multiple rounds. Each round can also add more classes to be processed.
+     * Keep the pile of classes to be processed by a particular round separate from the metadata.
+     *
+     * TODO: Currently, the source code generator has to remove a processed class from the pile. Instead,
+     * consider grouping classes by round number and the source code generator process classes for that round only.
      */
-    private final Set<DelegateClass> mDelegateClassStack = new HashSet<>();
-    private final Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack = new HashSet<>();
+    private final Set<DelegateClass> mDelegateClassPile = new HashSet<>();
+    private final Set<InterceptorPointAnnotationBlueprint> mInterceptorPointAnnotationBlueprintPile = new HashSet<>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.
      *
      * @param authorityName
-     *         The authority name.
+     *         the authority name
      * @param delegateClassType
-     *         The delegate class responsible for handling the authority.
+     *         the delegate class responsible for handling the authority
+     *
+     * @return the new delegate class
      */
-    void registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
+    DelegateClass registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
 
         final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
         mRegisteredAuthorities.put(authorityName, delegateClass);
         mRegisteredDelegateClasses.put(delegateClassType, delegateClass);
-        mDelegateClassStack.add(delegateClass);
+        mDelegateClassPile.add(delegateClass);
+        return delegateClass;
     }
 
     /**
@@ -77,7 +82,7 @@ class Metadata {
      */
     void popDelegateClass(DelegateClass delegateClass) {
 
-        mDelegateClassStack.remove(delegateClass);
+        mDelegateClassPile.remove(delegateClass);
     }
 
     /**
@@ -86,10 +91,10 @@ class Metadata {
      * @param annotation
      *         The concrete annotation bean to register.
      */
-    void registerConcreteAnnotation(InterceptorAnnotationBlueprint annotation) {
+    void registerAnnotationBlueprint(InterceptorPointAnnotationBlueprint annotation) {
 
-        this.mInterceptorBlueprints.put(annotation.getTypeElement(), annotation);
-        this.mInterceptorBlueprintStack.add(annotation);
+        this.mInterceptorPointAnnotationBlueprints.put(annotation.getTypeElement(), annotation);
+        this.mInterceptorPointAnnotationBlueprintPile.add(annotation);
     }
 
     /**
@@ -98,9 +103,9 @@ class Metadata {
      * @param concreteAnnotation
      *         The concrete annotation class to pop out.
      */
-    void popInterceptorBlueprint(InterceptorAnnotationBlueprint concreteAnnotation) {
+    void popInterceptorBlueprint(InterceptorPointAnnotationBlueprint concreteAnnotation) {
 
-        mInterceptorBlueprintStack.remove(concreteAnnotation);
+        mInterceptorPointAnnotationBlueprintPile.remove(concreteAnnotation);
     }
 
     /**
@@ -110,7 +115,7 @@ class Metadata {
      */
     Set<DelegateClass> getDelegateClassesForRound() {
 
-        return mDelegateClassStack;
+        return mDelegateClassPile;
     }
 
     /**
@@ -146,9 +151,9 @@ class Metadata {
      *
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Set<InterceptorAnnotationBlueprint> getInterceptorBlueprintsForRound() {
+    Set<InterceptorPointAnnotationBlueprint> getInterceptorBlueprintsForRound() {
 
-        return mInterceptorBlueprintStack;
+        return mInterceptorPointAnnotationBlueprintPile;
     }
 
     /**
@@ -156,9 +161,9 @@ class Metadata {
      *
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Collection<InterceptorAnnotationBlueprint> getInterceptorBlueprints() {
+    Collection<InterceptorPointAnnotationBlueprint> getInterceptorBlueprints() {
 
-        return mInterceptorBlueprints.values();
+        return mInterceptorPointAnnotationBlueprints.values();
     }
 
     /**
@@ -169,8 +174,9 @@ class Metadata {
     @Override
     public String toString() {
         return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses=" +
-                mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorBlueprints +
-                ", \nmConcreteAnnotationValues=" + mInterceptorBlueprintStack + ", \nmDelegateClassValues=" +
-                mDelegateClassStack + "]";
+                mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorPointAnnotationBlueprints +
+                ", \nmConcreteAnnotationValues=" + mInterceptorPointAnnotationBlueprintPile +
+                ", \nmDelegateClassValues=" +
+                mDelegateClassPile + "]";
     }
 }

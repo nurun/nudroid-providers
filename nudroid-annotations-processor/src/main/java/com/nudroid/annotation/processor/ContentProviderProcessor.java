@@ -44,10 +44,10 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class ContentProviderDelegateAnnotationProcessor {
+class ContentProviderProcessor {
 
     private final LoggingUtils mLogger;
-    private final String mDelegateTypeName;
+    private final String mContentProviderDelegateInterfaceName;
 
     /**
      * Creates an instance of this class.
@@ -55,10 +55,10 @@ class ContentProviderDelegateAnnotationProcessor {
      * @param processorContext
      *         The context for the provider annotation processor.
      */
-    ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
+    ContentProviderProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        this.mDelegateTypeName = ContentProviderDelegate.class.getName();
+        this.mContentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
     }
 
     /**
@@ -77,17 +77,19 @@ class ContentProviderDelegateAnnotationProcessor {
 
         if (delegateClassTypes.size() > 0) {
 
+            String classesForTheRound = delegateClassTypes.stream()
+                    .map(Element::toString)
+                    .collect(Collectors.joining("\n        - "));
+
             mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
-                    ContentProvider.class.getSimpleName(), delegateClassTypes.stream()
-                            .map(Element::toString)
-                            .collect(Collectors.joining("\n        - "))));
+                    ContentProvider.class.getSimpleName(), classesForTheRound));
         }
 
         /*
          * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
          * TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation is
          * applied to other elements even if it is correctly applied to a class, causing a class cast exception in
-         * the forEach loop below.
+         * the forEach loop.
          */
         delegateClassTypes.stream()
                 .filter(delegateClassType -> delegateClassType instanceof TypeElement)
@@ -102,8 +104,6 @@ class ContentProviderDelegateAnnotationProcessor {
     }
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
-
-        ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
 
         if (ElementUtils.isAbstract(delegateClassType)) {
 
@@ -126,7 +126,10 @@ class ContentProviderDelegateAnnotationProcessor {
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
+        ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
+
         if (contentProviderDelegateAnnotation == null) {
+
             return;
         }
 
@@ -142,21 +145,20 @@ class ContentProviderDelegateAnnotationProcessor {
                             delegateClassForAuthority));
             mLogger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
                     delegateClassForAuthority.getQualifiedName()), delegateClassType);
+
+            return;
         }
 
         mLogger.trace(
                 String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
-        metadata.registerNewDelegateClass(authorityName, delegateClassType);
-
-        delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
+        delegateClassForAuthority = metadata.registerNewDelegateClass(authorityName, delegateClassType);
 
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
             mLogger.trace("            Class is in the default package. Signaling compilation error.");
-            mLogger.error(String.format("Content providers can not be created in the default package." +
-                    " Android will prefix the content provider name with the application name, making it unable to" +
-                    " find the correct class at runtime."), delegateClassType);
+            mLogger.error(String.format("Content providers can not be created in the default package."),
+                    delegateClassType);
         }
 
         // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
@@ -166,13 +168,14 @@ class ContentProviderDelegateAnnotationProcessor {
                 .map(TypeMirror::toString)
                 .collect(Collectors.toSet());
 
-        if (interfaceNames.contains(mDelegateTypeName)) {
+        if (interfaceNames.contains(mContentProviderDelegateInterfaceName)) {
 
-            mLogger.trace(String.format("            Class implements %s.", mDelegateTypeName));
+            mLogger.trace(String.format("            Class implements %s.", mContentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(true);
         } else {
 
-            mLogger.trace(String.format("            Class does not implement %s.", mDelegateTypeName));
+            mLogger.trace(String.format("            Class does not implement %s.",
+                    mContentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(false);
         }
     }

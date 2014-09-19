@@ -35,7 +35,7 @@ import org.stringtemplate.v4.STGroupFile;
 
 import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
 
 /**
  * Generates the source code for the content provider delegates based on the gathered metadata.
@@ -92,10 +92,10 @@ class SourceCodeGenerator {
             mLogger.trace("Done generating source code for class " + delegateClass.getTypeElement());
         }
 
-        Set<InterceptorAnnotationBlueprint> concreteAnnotations =
+        Set<InterceptorPointAnnotationBlueprint> concreteAnnotations =
                 new HashSet<>(metadata.getInterceptorBlueprintsForRound());
 
-        for (InterceptorAnnotationBlueprint annotation : concreteAnnotations) {
+        for (InterceptorPointAnnotationBlueprint annotation : concreteAnnotations) {
 
             mLogger.trace(
                     String.format("Generating concrete annotation class %s.", annotation.getAnnotationQualifiedName()));
@@ -171,7 +171,7 @@ class SourceCodeGenerator {
         mLogger.trace(String.format("    Generated Router for class %s.", delegateClass.getTypeElement()));
     }
 
-    private void generateConcreteAnnotationSourceCode(InterceptorAnnotationBlueprint annotation) {
+    private void generateConcreteAnnotationSourceCode(InterceptorPointAnnotationBlueprint annotation) {
 
         try {
             STGroupFile g = new STGroupFile(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);

@@ -56,7 +56,7 @@ import javax.lang.model.util.Types;
         {"com.nudroid.annotation.provider.delegate.ContentProvider", "com.nudroid.annotation.provider.delegate.Delete",
                 "com.nudroid.annotation.provider.delegate.Insert", "com.nudroid.annotation.provider.delegate.Query",
                 "com.nudroid.annotation.provider.delegate.Update",
-                "com.nudroid.provider.interceptor.ProviderInterceptorPoint"})
+                "com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({"com.nudroid.annotation.processor.log.level"})
 public class ProviderAnnotationProcessor extends AbstractProcessor {
@@ -67,10 +67,10 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private boolean initialized = false;
 
-    private ContentProviderDelegateAnnotationProcessor contentProviderDelegateAnnotationProcessor;
-    private QueryAnnotationProcessor queryAnnotationProcessor;
-    private UpdateAnnotationProcessor updateAnnotationProcessor;
-    private InterceptorAnnotationProcessor interceptorAnnotationProcessor;
+    private ContentProviderProcessor contentProviderProcessor;
+    private QueryProcessor queryProcessor;
+    private UpdateProcessor updateProcessor;
+    private InterceptorPointcutProcessor interceptorPointcutProcessor;
 
     private SourceCodeGenerator sourceCodeGenerator;
 
@@ -103,10 +103,10 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         Types typeUtils = env.getTypeUtils();
 
         final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
-        contentProviderDelegateAnnotationProcessor = new ContentProviderDelegateAnnotationProcessor(processorContext);
-        queryAnnotationProcessor = new QueryAnnotationProcessor(processorContext);
-        updateAnnotationProcessor = new UpdateAnnotationProcessor(processorContext);
-        interceptorAnnotationProcessor = new InterceptorAnnotationProcessor(processorContext);
+        contentProviderProcessor = new ContentProviderProcessor(processorContext);
+        queryProcessor = new QueryProcessor(processorContext);
+        updateProcessor = new UpdateProcessor(processorContext);
+        interceptorPointcutProcessor = new InterceptorPointcutProcessor(processorContext);
         sourceCodeGenerator = new SourceCodeGenerator(processorContext);
         mMetadata = new Metadata();
         initialized = true;
@@ -131,10 +131,10 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             return false;
         }
 
-        interceptorAnnotationProcessor.process(roundEnv, mMetadata);
-        contentProviderDelegateAnnotationProcessor.process(roundEnv, mMetadata);
-        queryAnnotationProcessor.process(roundEnv, mMetadata);
-        updateAnnotationProcessor.process(roundEnv, mMetadata);
+        interceptorPointcutProcessor.process(roundEnv, mMetadata);
+        contentProviderProcessor.process(roundEnv, mMetadata);
+        queryProcessor.process(roundEnv, mMetadata);
+        updateProcessor.process(roundEnv, mMetadata);
 
         sourceCodeGenerator.generateCompanionSourceCode(mMetadata);
 

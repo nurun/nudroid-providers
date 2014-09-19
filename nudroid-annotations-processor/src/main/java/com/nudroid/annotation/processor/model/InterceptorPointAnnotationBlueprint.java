@@ -50,7 +50,7 @@ import javax.lang.model.util.Types;
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class InterceptorAnnotationBlueprint {
+public class InterceptorPointAnnotationBlueprint {
 
     private final String mInterceptorAnnotationQualifiedName;
     private final TypeElement mInterceptorAnnotationTypeElement;
@@ -66,7 +66,7 @@ public class InterceptorAnnotationBlueprint {
      * @param typeElement
      *         The {@link TypeElement} for the annotation this class represents.
      */
-    public InterceptorAnnotationBlueprint(TypeElement typeElement) {
+    public InterceptorPointAnnotationBlueprint(TypeElement typeElement) {
 
         this.mInterceptorAnnotationTypeElement = typeElement;
         this.mInterceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();

@@ -36,16 +36,16 @@ public class InterceptorPoint {
 
     private final TypeElement mInterceptorImplementationElement;
     private boolean mHasCustomConstructor;
-    private final InterceptorAnnotationBlueprint mConcreteAnnotation;
+    private final InterceptorPointAnnotationBlueprint mConcreteAnnotation;
     private final List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
 
     /**
      * Creates a new Interceptor bean.
      *
      * @param concreteAnnotation
-     *         The {@link InterceptorAnnotationBlueprint} generated for this interceptor annotation type.
+     *         The {@link InterceptorPointAnnotationBlueprint} generated for this interceptor annotation type.
      */
-    public InterceptorPoint(InterceptorAnnotationBlueprint concreteAnnotation) {
+    public InterceptorPoint(InterceptorPointAnnotationBlueprint concreteAnnotation) {
 
         this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
         this.mConcreteAnnotation = concreteAnnotation;

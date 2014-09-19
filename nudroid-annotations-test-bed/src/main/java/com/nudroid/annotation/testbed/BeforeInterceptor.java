@@ -22,8 +22,8 @@
 
 package com.nudroid.annotation.testbed;
 
+import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
 import com.nudroid.provider.interceptor.ContentProviderContext;
-import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
 import com.nudroid.provider.interceptor.cache.CacheInterceptor;
 import com.nudroid.provider.interceptor.cache.CachingStrategy;
 import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
@@ -57,7 +57,7 @@ public class BeforeInterceptor extends CacheInterceptor {
     /**
      * The interceptor annotation to be applied to methods.
      */
-    @ProviderInterceptorPoint
+    @InterceptorPointcut
     public static @interface Interceptor {
 
     }

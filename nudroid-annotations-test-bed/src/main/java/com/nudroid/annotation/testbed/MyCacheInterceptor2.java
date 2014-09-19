@@ -22,14 +22,9 @@
 
 package com.nudroid.annotation.testbed;
 
+import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
 import com.nudroid.provider.interceptor.ContentProviderContext;
-import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 import com.nudroid.provider.interceptor.ContentProviderInterceptorAdapter;
-import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
-import com.nudroid.provider.interceptor.ProviderInterceptorPoint;
-import com.nudroid.provider.interceptor.cache.CacheInterceptor;
-import com.nudroid.provider.interceptor.cache.CachingStrategy;
-import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
 
 /**
  * Cache validation interceptor for the cntent service.
@@ -55,8 +50,8 @@ public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
     /**
      * The interceptor annotation to be applied to methods.
      */
-    @ProviderInterceptorPoint
-    public static @interface Interceptor {
+    @InterceptorPointcut
+    public @interface Interceptor {
 
         /**
          * The remote url to call to fetch up to date data.
