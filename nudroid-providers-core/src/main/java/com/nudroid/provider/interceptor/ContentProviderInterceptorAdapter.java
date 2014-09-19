@@ -34,7 +34,6 @@ import android.net.Uri;
 public abstract class ContentProviderInterceptorAdapter implements ContentProviderInterceptor {
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeQuery(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -45,7 +44,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterQuery(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -58,7 +56,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeUpdate(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -69,7 +66,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterUpdate(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -82,7 +78,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeInsert(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -93,7 +88,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterInsert(com.nudroid.provider.interceptor.ContentProviderContext,
@@ -106,7 +100,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#beforeDelete(com.nudroid.provider.interceptor.ContentProviderContext)
@@ -117,7 +110,6 @@ public abstract class ContentProviderInterceptorAdapter implements ContentProvid
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
      * 
      * @see com.nudroid.provider.interceptor.ContentProviderInterceptor#afterDelete(com.nudroid.provider.interceptor.ContentProviderContext,

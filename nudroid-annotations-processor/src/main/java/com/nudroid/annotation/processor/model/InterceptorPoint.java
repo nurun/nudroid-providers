@@ -28,98 +28,70 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 
 /**
- * Information about delegate method interceptors.
- * 
+ * An interceptor for a delegate method.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class InterceptorPoint {
 
-    private TypeElement mInterceptorImplementationElement;
-    private TypeElement mInterceptorAnnotationElement;
+    private final TypeElement mInterceptorImplementationElement;
     private boolean mHasCustomConstructor;
-    private boolean mHasDefaultConstructor;
-    private InterceptorBlueprint mConcreteAnnotation;
-    private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<InterceptorAnnotationParameter>();
+    private final InterceptorPointAnnotationBlueprint mConcreteAnnotation;
+    private final List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
 
     /**
      * Creates a new Interceptor bean.
-     * 
+     *
      * @param concreteAnnotation
-     *            The {@link InterceptorBlueprint} generated for this interceptor annotation type.
+     *         The {@link InterceptorPointAnnotationBlueprint} generated for this interceptor annotation type.
      */
-    public InterceptorPoint(InterceptorBlueprint concreteAnnotation) {
+    public InterceptorPoint(InterceptorPointAnnotationBlueprint concreteAnnotation) {
 
-        this.mInterceptorAnnotationElement = concreteAnnotation.getTypeElement();
         this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
         this.mConcreteAnnotation = concreteAnnotation;
     }
 
     /**
      * Gets the fully qualified name of the interceptor class.
-     * 
+     *
      * @return The fully qualified name of the interceptor class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getQualifiedName() {
 
-        return mInterceptorImplementationElement.getQualifiedName().toString();
+        return mInterceptorImplementationElement.getQualifiedName()
+                .toString();
     }
 
     /**
      * Gets the simple name of the interceptor class.
-     * 
+     *
      * @return The simple name of the interceptor class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getSimpleName() {
 
-        return mInterceptorImplementationElement.getSimpleName().toString();
-    }
-
-    /**
-     * Gets the annotation for this interceptor.
-     * 
-     * @return The annotation for this interceptor.
-     */
-    public TypeElement getInterceptorAnnotationElement() {
-        return mInterceptorAnnotationElement;
-    }
-
-    /**
-     * Checks if the interceptor has a default constructor.
-     * 
-     * @return <tt>true</tt> is it has, <tt>false</tt> otherwise.
-     */
-    public boolean hasDefaultConstructor() {
-
-        return mHasDefaultConstructor;
+        return mInterceptorImplementationElement.getSimpleName()
+                .toString();
     }
 
     /**
      * Checks if the interceptor has a custom (concrete annotation) constructor.
-     * 
+     *
      * @return <tt>true</tt> is it has, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean hasCustomConstructor() {
 
         return mHasCustomConstructor;
     }
 
     /**
-     * Adds an annotation constructor literal for the concrete annotation associated with this interceptor to the list
-     * of constructor arguments of the concrete annotation.
-     * 
-     * @param value
-     *            The literal to add.
-     */
-    public void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
-
-        mConcreteAnnotationConstructorArguments.add(value);
-    }
-
-    /**
      * Gets the qualified name of the concrete annotation implementation for this interceptor.
-     * 
+     *
      * @return the qualified name of the concrete annotation implementation for this interceptor.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getConcreteAnnotationQualifiedName() {
 
         return mConcreteAnnotation.getConcreteClassName();
@@ -127,28 +99,32 @@ public class InterceptorPoint {
 
     /**
      * Gets the list of source code literals to create a new instance of the concrete annotation.
-     * 
+     *
      * @return The list of source code literals to create a new instance of the concrete annotation.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return mConcreteAnnotationConstructorArguments;
     }
 
     /**
-     * Sets if this Interceptor have a default constructor.
-     * 
-     * @param <tt>true</tt> if it has, <tt>false</tt> otherwise.
+     * Adds an annotation constructor literal for the concrete annotation associated with this interceptor to the list
+     * of constructor arguments of the concrete annotation.
+     *
+     * @param value
+     *         The literal to add.
      */
-    void setHasDefaultConstructor(boolean hasDefaultConstructor) {
+    void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
 
-        this.mHasDefaultConstructor = hasDefaultConstructor;
+        mConcreteAnnotationConstructorArguments.add(value);
     }
 
     /**
      * Sets if this Interceptor have a custom constructor.
-     * 
-     * @param <tt>true</tt> if it has, <tt>false</tt> otherwise.
+     *
+     * @param hasCustomConstructor
+     *         <tt>true</tt> if it has, <tt>false</tt> otherwise.
      */
     void setHasCustomConstructor(boolean hasCustomConstructor) {
 

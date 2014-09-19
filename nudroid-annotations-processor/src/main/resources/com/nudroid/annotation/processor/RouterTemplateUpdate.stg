@@ -1,0 +1,161 @@
+update_generateDelegateMethodParameterList(parameter) ::= <%
+    <if(parameter.context)>
+        contentProviderContext.context
+    <elseif(parameter.projection)>
+        contentProviderContext.projection
+    <elseif(parameter.selection)>
+        contentProviderContext.selection
+    <elseif(parameter.selectionArgs)>
+        contentProviderContext.selectionArgs
+    <elseif(parameter.sortOrder)>
+        contentProviderContext.sortOrder
+    <elseif(parameter.contentValues)>
+        contentProviderContext.contentValues
+    <elseif(parameter.contentUri)>
+        contentProviderContext.uri
+    <elseif(parameter.pathParameter)>
+        <if(parameter.string)>
+            contentProviderContext.placeholders.get("<parameter.placeholderName>")
+        <else>
+            convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
+        <endif>
+    <elseif(parameter.queryParameter)>
+        <if(parameter.string)>
+            contentProviderContext.placeholders.get("<parameter.placeholderName>")
+        <else>
+            convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
+        <endif>
+    <else>
+        null
+    <endif>
+%>
+
+
+
+
+update_generateAfterMethodInterceptorInvocations(interceptor) ::= <%
+
+    result = l<interceptor.simpleName>.afterUpdate(contentProviderContext, result);
+%>
+
+
+
+
+update_generateConcreteAnnotationConstructor(literal) ::= <%
+    <if(literal.string)>
+        contentProviderContext.expand(<literal.literalValue>)
+    <else>
+        <literal.literalValue>
+    <endif>
+%>
+
+
+
+
+update_generateBeforeMethodInterceptorInvocations(interceptor) ::= <<
+<if(interceptor.customConstructor)>
+<interceptor.qualifiedName> l<interceptor.simpleName> = 
+    new <interceptor.qualifiedName>(
+            new <interceptor.concreteAnnotationQualifiedName>(
+                <interceptor.concreteAnnotationConstructorArgumentLiterals:update_generateConcreteAnnotationConstructor(); separator=", ">));
+                
+<else>
+<interceptor.qualifiedName> l<interceptor.simpleName> = 
+        new <interceptor.qualifiedName>();
+        
+<endif>
+l<interceptor.simpleName>.onCreate(contentProviderContext);
+l<interceptor.simpleName>.beforeUpdate(contentProviderContext);
+
+>>
+
+
+
+
+update_populatePathContextPlaceholder(placeholder) ::= <%
+    contentProviderContext.placeholders.put("<placeholder.placeholderName>", pathSegments.get(<placeholder.keyName>));
+%>
+
+
+
+
+update_populateQueryContextPlaceholder(placeholder) ::= <%
+    contentProviderContext.placeholders.put("<placeholder.placeholderName>", uri.getQueryParameter("<placeholder.keyName>"));
+%>
+
+
+
+
+update_generateQueryParameterIfStatement(queryParameterName) ::= <%
+    uri.getQueryParameterNames().contains("<queryParameterName>")
+%>
+
+
+
+
+update_generateDelegateMethodCode(delegateUri) ::= <<
+
+<if(!delegateUri.updateDelegateMethod.queryStringParameterNames.empty)>
+if (<delegateUri.updateDelegateMethod.queryStringParameterNames:update_generateQueryParameterIfStatement(); separator=" && ">) {
+<endif>
+                
+    <if(delegateUri.updateDelegateMethod.uriPlaceholders)>
+    java.util.List\<String> pathSegments = uri.getPathSegments();
+    
+    <endif>
+    contentProviderContext = new ContentProviderContext(context, uri, null,
+                        selection, selectionArgs, null, null);
+            
+    <delegateUri.updateDelegateMethod.queryStringPlaceholderParameters:update_populateQueryContextPlaceholder(); separator="\n">
+    <delegateUri.updateDelegateMethod.pathPlaceholderParameters:update_populatePathContextPlaceholder(); separator="\n">
+    
+    <delegateUri.updateDelegateMethod.beforeInterceptorList:update_generateBeforeMethodInterceptorInvocations(); separator="\n">
+    result = mDelegate.<delegateUri.updateDelegateMethod.name>(<delegateUri.updateDelegateMethod.parameters:update_generateDelegateMethodParameterList(); separator=", ">);
+    <delegateUri.updateDelegateMethod.afterInterceptorList:update_generateAfterMethodInterceptorInvocations(); separator="\n">
+    
+    return result;
+<if(!delegateUri.updateDelegateMethod.queryStringParameterNames.empty)>
+}
+<endif>
+>>
+
+
+
+
+update_createCaseStatements(matcherUri) ::= <<
+<if(matcherUri.updateDelegateUris)>
+case <matcherUri.id>:
+{
+    <matcherUri.updateDelegateUris:update_generateDelegateMethodCode(); separator="\n">
+
+<if(matcherUri.queryStringMatchersOnly)>
+    throw new IllegalArgumentException(String.format("@Update URI %s is not mapped by content provider delegate %s",
+            uri, mDelegate.getClass()));
+<endif>            
+}
+<endif>
+>>
+
+
+
+
+RouterTemplateUpdate(delegateClass) ::= <<
+/**
+ * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
+ *      java.lang.String, java.lang.String[])
+ */
+@SuppressWarnings({"unused", "UnusedAssignment"})
+public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+
+    ContentProviderContext contentProviderContext = null;
+    int result = 0;
+
+    switch (URI_MATCHER.match(uri)) {
+    <delegateClass.matcherUris:update_createCaseStatements(); separator="\n">
+    default:
+        
+        throw new IllegalArgumentException(String.format("Update URI %s is not mapped by content provider delegate %s",
+                uri, mDelegate.getClass()));
+    }
+}
+>>

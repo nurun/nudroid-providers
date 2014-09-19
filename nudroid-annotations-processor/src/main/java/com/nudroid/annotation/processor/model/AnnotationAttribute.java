@@ -25,34 +25,36 @@ package com.nudroid.annotation.processor.model;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * An attribute from a {@link InterceptorBlueprint}.
- * 
+ * An annotation attribute (method) member of a {@link InterceptorPointAnnotationBlueprint}.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class AnnotationAttribute {
 
-    private String mType;
-    private String mName;
-    private String mCapitalizedName;
+    private final String mType;
+    private final String mName;
+    private final String mCapitalizedName;
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param method
-     *            The annotation method for this particular attribute.
+     *         The {@link ExecutableElement} for the attribute (method) of the annotation interceptor.
      */
     public AnnotationAttribute(ExecutableElement method) {
 
-        this.mType = method.getReturnType().toString();
+        this.mType = method.getReturnType()
+                .toString();
 
-        final String methodName = method.getSimpleName().toString();
+        final String methodName = method.getSimpleName()
+                .toString();
         this.mName = methodName;
         this.mCapitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
     }
 
     /**
-     * Gets the type of this attribute.
-     * 
+     * Gets the (return) type of this attribute.
+     *
      * @return The type of this attribute.
      */
     public String getType() {
@@ -62,7 +64,7 @@ public class AnnotationAttribute {
 
     /**
      * Gets the name of this attribute.
-     * 
+     *
      * @return The name of this attribute.
      */
     public String getName() {
@@ -72,11 +74,12 @@ public class AnnotationAttribute {
 
     /**
      * Gets the capitalized name of this attribute.
-     * 
+     *
      * @return The capitalized name of this attribute.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getCapitalizedName() {
-        
+
         return mCapitalizedName;
     }
 }

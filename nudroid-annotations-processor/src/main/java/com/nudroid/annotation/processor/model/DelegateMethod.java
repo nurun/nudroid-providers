@@ -23,110 +23,96 @@
 package com.nudroid.annotation.processor.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.lang.model.element.ExecutableElement;
 
-import com.google.common.collect.Lists;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.Update;
 
 /**
- * Holds information about the delegate method for a content provider.
- * <p/>
- * Delegate methods are methods annotated with one of the delegate annotations: {@link Query}, {@link Update},
- * {@link Insert}, or {@link Delete}.
- * 
+ * <p>Holds information about the delegate method for a content provider.</p>
+ * <p>
+ * <p>Delegate methods are methods annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link
+ * Insert}, or {@link Delete}.</p>
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DelegateMethod {
 
-    private DelegateClass mDelegateClass;
-    private String mName;
-    private List<Parameter> mParameters = new ArrayList<Parameter>();
-    private List<Parameter> mPathPlaceholderParameters = new ArrayList<Parameter>();
-    private List<Parameter> mQueryStringPlaceholderParameters = new ArrayList<Parameter>();
-    private Set<String> mQueryStringParameterNames = new HashSet<String>();
-    private DelegateUri mUri;
-    private ExecutableElement mExecutableElement;
-    private List<InterceptorPoint> mInterceptorElements = new ArrayList<InterceptorPoint>();
+    private final String mName;
+    private final List<Parameter> mParameters = new ArrayList<>();
+    private final List<Parameter> mPathParameters = new ArrayList<>();
+    private final List<Parameter> mQueryStringParameters = new ArrayList<>();
+    private final ExecutableElement mExecutableElement;
+    private final List<InterceptorPoint> mInterceptorElements = new ArrayList<>();
+    private Set<String> mQueryStringParameterNames = new HashSet<>();
     private List<InterceptorPoint> mInverseInterceptorElements = null;
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param element
-     *            The element representing this delegate method.
-     * @param uri
-     *            An {@link DelegateUri} describing the URI the method should match.
+     *         The {@link javax.lang.model.element.ExecutableElement} representing this delegate method.
      */
-    public DelegateMethod(ExecutableElement element, DelegateUri uri) {
+    public DelegateMethod(ExecutableElement element) {
 
-        this.mUri = uri;
-        this.mName = element.getSimpleName().toString();
+        this.mName = element.getSimpleName()
+                .toString();
         this.mExecutableElement = element;
     }
 
     /**
      * Adds a parameter definition to the list of parameters this method accepts. Parameters added to this method are
      * not checked for validity (ex: duplicate names).
-     * 
+     *
      * @param parameter
-     *            The parameter to add.
+     *         The parameter to add.
      */
     public void addParameter(Parameter parameter) {
 
         this.mParameters.add(parameter);
 
         if (parameter.isPathParameter()) {
-            mPathPlaceholderParameters.add(parameter);
+            mPathParameters.add(parameter);
         }
 
         if (parameter.isQueryParameter()) {
-            mQueryStringPlaceholderParameters.add(parameter);
+            mQueryStringParameters.add(parameter);
         }
     }
 
     /**
-     * Adds an interceptor type to this method.
-     * 
+     * Adds an interceptor point to this method. Interceptors work as an around advice around the delegate method.
+     *
      * @param interceptor
-     *            The interceptor type to add.
+     *         The interceptor type to add.
      */
     public void addInterceptor(InterceptorPoint interceptor) {
 
         this.mInterceptorElements.add(interceptor);
-        this.getDelegateClass().registerInterceptor(interceptor);
     }
 
     /**
-     * Sets the query parameter names for the URI mapped to this method.
-     * 
-     * @param queryParameterNames
-     *            The set of query parameter names.
+     * Sets the query string parameter names present in the URI mapped for this method.
+     *
+     * @param queryStringParameterNames
+     *         The set of query string parameter names.
      */
-    public void setQueryParameterNames(Set<String> queryParameterNames) {
+    public void setQueryParameterNames(Set<String> queryStringParameterNames) {
 
-        this.mQueryStringParameterNames = queryParameterNames;
+        this.mQueryStringParameterNames = queryStringParameterNames;
     }
 
     /**
-     * Gets this method's delegate class.
-     * 
-     * @return The delegate class this method is declared in.
-     */
-    public DelegateClass getDelegateClass() {
-        return mDelegateClass;
-    }
-
-    /**
-     * Gets the {@link ExecutableElement} representation of the method represented by this class.
-     * 
-     * @return The {@link ExecutableElement} representation of the method represented by this class.
+     * Gets the {@link ExecutableElement} of the method represented by this class.
+     *
+     * @return The {@link ExecutableElement} of the method represented by this class.
      */
     public ExecutableElement getExecutableElement() {
 
@@ -134,19 +120,8 @@ public class DelegateMethod {
     }
 
     /**
-     * Get's the URI id assigned to this method's URI in an Android <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     * 
-     * @return the URI id assigned to this method's URI.
-     */
-    public int getUriId() {
-
-        return mUri.getId();
-    }
-
-    /**
      * Gets the name of the method (i.e. method name without return type nor oarameter).
-     * 
+     *
      * @return The method name.
      */
     public String getName() {
@@ -156,7 +131,7 @@ public class DelegateMethod {
 
     /**
      * Gets the list of parameters this method accepts.
-     * 
+     *
      * @return List of parameters this method accepts.
      */
     public List<Parameter> getParameters() {
@@ -165,72 +140,58 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the list of parameters this method accepts in the path portion. A subset of {@link #getParameters()}.
-     * 
+     * Gets the list of parameters this method accepts mapped to a placeholder in the path portion or the URL. A subset
+     * of {@link #getParameters()}.
+     *
      * @return List of parameters.
      */
-    public List<Parameter> getPathPlaceholderParameters() {
+    @SuppressWarnings("UnusedDeclaration")
+    public List<Parameter> getPathParameters() {
 
-        return mPathPlaceholderParameters;
+        return mPathParameters;
     }
 
     /**
-     * Gets the list of parameters this method accepts in the query string portion. A subset of {@link #getParameters()}
-     * .
-     * 
+     * Gets the list of parameters this method accepts mapped to a placeholder in the query string portion of the URL. A
+     * subset of {@link #getParameters()}.
+     *
      * @return List of parameters.
      */
-    public List<Parameter> getQueryStringPlaceholderParameters() {
+    @SuppressWarnings("UnusedDeclaration")
+    public List<Parameter> getQueryStringParameters() {
 
-        return mQueryStringPlaceholderParameters;
+        return mQueryStringParameters;
     }
 
     /**
      * Gets the names of the query string parameters on the query string on the delegate annotation of this method.
-     * 
+     *
      * @return The set of query string parameter names.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public Set<String> getQueryStringParameterNames() {
 
         return mQueryStringParameterNames;
     }
 
     /**
-     * Gets the count of parameters on the query string on the delegate annotation of this method.
-     * 
-     * @return The count of parameters on the query string.
-     */
-    public int getQueryStringParameterCount() {
-
-        return mQueryStringParameterNames.size();
-    }
-
-    /**
      * Checks if this method URI has any placeholders in it's path.
-     * 
+     *
      * @return <tt>true</tt> if this method has any placeholder in its URI path, <tt>false</tt> otherwise.
      */
-    public boolean hasUriPlaceholders() {
+    @SuppressWarnings("UnusedDeclaration")
+    public boolean getHasUriPlaceholders() {
 
-        return mPathPlaceholderParameters.size() > 0;
-    }
-
-    /**
-     * Checks if this method URI has any placeholders in it's query string.
-     * 
-     * @return <tt>true</tt> if this method has any placeholder in its query string, <tt>false</tt> otherwise.
-     */
-    public boolean hasQueryStringPlaceholders() {
-        
-        return mQueryStringPlaceholderParameters.size() > 0;
+        return mPathParameters.size() > 0;
     }
 
     /**
      * Gets the list of interceptors for this delegate method, in the order they are executed before the delegate
      * invocation.
-     * 
+     *
      * @return The list of interceptors for this delegate method.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getBeforeInterceptorList() {
 
         return mInterceptorElements;
@@ -239,53 +200,67 @@ public class DelegateMethod {
     /**
      * Gets the list of interceptors for this delegate method, in the order they are executed after the delegate
      * Invocation.
-     * 
+     *
      * @return The list of interceptors for this delegate method.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getAfterInterceptorList() {
 
         if (mInverseInterceptorElements == null) {
 
-            mInverseInterceptorElements = new ArrayList<InterceptorPoint>(mInterceptorElements.size());
-            mInverseInterceptorElements.addAll(Lists.reverse(mInterceptorElements));
+            mInverseInterceptorElements = new ArrayList<>(mInterceptorElements);
+            Collections.reverse(mInterceptorElements);
         }
 
         return mInverseInterceptorElements;
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
-     * 
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mName == null) ? 0 : mName.hashCode());
+        result = prime * result + ((mParameters == null) ? 0 : mParameters.hashCode());
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        DelegateMethod other = (DelegateMethod) obj;
+        if (mName == null) {
+            if (other.mName != null) return false;
+        } else if (!mName.equals(other.mName)) return false;
+        if (mParameters == null) {
+            if (other.mParameters != null) return false;
+        } else if (!mParameters.equals(other.mParameters)) return false;
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "DelegateMethod [mDelegateClass=" + mDelegateClass + ", mName=" + mName + ", mParameters=" + mParameters
-                + ", mPathPlaceholderParameters=" + mPathPlaceholderParameters + ", mQueryStringPlaceholderParameters="
-                + mQueryStringPlaceholderParameters + ", mQueryStringParameterNames=" + mQueryStringParameterNames
-                + ", mUri=" + mUri + ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements="
-                + mInterceptorElements + ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
-    }
-
-    /**
-     * Adds a query string parameter name to the list of query string parameters of this method. This method is
-     * idempotent.
-     * 
-     * @param queryStringParameterName
-     *            The name of the query string parameter.
-     */
-    void addQueryStringParameter(String queryStringParameterName) {
-
-        mQueryStringParameterNames.add(queryStringParameterName);
-    }
-
-    /**
-     * Sets this method delegate class.
-     * 
-     * @param delegateClass
-     */
-    void setDelegateClass(DelegateClass delegateClass) {
-        this.mDelegateClass = delegateClass;
+        return "DelegateMethod [mName=" + mName + ", mParameters=" +
+                mParameters + ", mPathParameters=" + mPathParameters +
+                ", mQueryStringParameters=" + mQueryStringParameters +
+                ", mQueryStringParameterNames=" + mQueryStringParameterNames +
+                ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements=" + mInterceptorElements +
+                ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
     }
 }

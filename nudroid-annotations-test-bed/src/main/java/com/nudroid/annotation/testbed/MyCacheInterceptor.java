@@ -20,41 +20,32 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.annotation.provider.delegate;
+package com.nudroid.annotation.testbed;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
+import com.nudroid.provider.interceptor.ContentProviderContext;
+import com.nudroid.provider.interceptor.ContentProviderInterceptorAdapter;
 
 /**
- * <p>Flags which parameter from a content provider delegate method will be passed the reference for the Uri provided to
- * the original content provider method.</p>
- *
- * <p>This annotation bears meaning only on {@link Query}, {@link Update}, {@link Insert} or {@link Delete} annotated
- * methods.</p>
- *
- * <p>Example usage:</p>
- *
- * <pre>
- * import import android.net.Uri;
- *
- * &#064;Query(&quot;/users&quot;)
- * public Cursor listUsers(@ContentUri Uri uriPassedToTheQueryMethodInTheContentProvider) {
- *
- *     ...
- * }
- *
- * &#064;Update(&quot;/users&quot;)
- * public int updateUser(@ContentUri Uri uriPassedToTheUpdateMethodInTheContentProvider, ...) {
- *
- *     ...
- * }
- * </pre>
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * Cache validation interceptor for the cntent service.
  */
-@Target({ElementType.PARAMETER})
-@Documented
-public @interface ContentUri {
+public class MyCacheInterceptor extends ContentProviderInterceptorAdapter {
 
+
+    @Override
+    public void onCreate(ContentProviderContext context) {
+
+    }
+
+    /**
+     * The interceptor annotation to be applied to methods.
+     */
+    @InterceptorPointcut
+    public @interface Interceptor {
+
+        /**
+         * The remote url to call to fetch up to date data.
+         */
+        String value();
+    }
 }

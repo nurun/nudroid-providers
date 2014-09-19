@@ -20,8 +20,6 @@
  * THE SOFTWARE.
  */
 
-
-
 /*
  * =================================================================================================================
  * Configures the dependencies for the build script itself.
@@ -73,6 +71,8 @@ subprojects {
         mavenCentral()
         maven { url 'http://repo.springsource.org/libs-release' }
         maven { url 'http://repo.springsource.org/libs-milestone' }
+        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local' }
+        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local' }
     }
 
     dependencies {
@@ -110,6 +110,7 @@ subprojects {
     /*
      * =============================================================================================================
      * Configure source and javadoc export.
+     * Sets up idea to download sources and javadoc.
      */
     task sourceJar(type: Jar) {
         classifier = 'sources'
@@ -124,6 +125,26 @@ subprojects {
     artifacts {
         archives sourceJar
         archives javadocJar
+    }
+
+    /*
+     * =============================================================================================================
+     * Sets up Nurun's Artifactory upload.
+     * TODO Remove this before publishing to Open Source.
+     */
+    uploadArchives {
+        repositories.mavenDeployer {
+            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {
+                authentication(userName: "pubandroid", password: "androidpub")
+                releases(updatePolicy: 'always')
+                snapshots(updatePolicy: 'never')
+            }
+            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {
+                authentication(userName: "pubandroid", password: "androidpub")
+                releases(updatePolicy: 'never')
+                snapshots(updatePolicy: 'always')
+            }
+        }
     }
 }
 
@@ -191,9 +212,6 @@ project(':nudroid-annotations-processor-all') {
         compileOnly 'org.antlr:ST4:4.0.7'
     }
 
-    /*
-     * Creates a single jar will all required dependencies for the annotation processor.
-     */
     jar {
         from {
             configurations.compileOnly.collect {

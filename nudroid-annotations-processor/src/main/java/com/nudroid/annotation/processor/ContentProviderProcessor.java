@@ -22,9 +22,9 @@
 
 package com.nudroid.annotation.processor;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -34,103 +34,102 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
+import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 /**
  * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class ContentProviderDelegateAnnotationProcessor {
+class ContentProviderProcessor {
 
-    private LoggingUtils mLogger;
-    private String mDelegateTypeName;
+    private final LoggingUtils mLogger;
+    private final String mContentProviderDelegateInterfaceName;
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The context for the provider annotation processor.
+     *         The context for the provider annotation processor.
      */
-    ContentProviderDelegateAnnotationProcessor(ProcessorContext processorContext) {
+    ContentProviderProcessor(ProcessorContext processorContext) {
 
         this.mLogger = processorContext.logger;
-        this.mDelegateTypeName = com.nudroid.provider.delegate.ContentProviderDelegate.class.getName().toString();
+        this.mContentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
     }
 
     /**
-     * Process the {@link ContentProvider} annotations on this round.
-     * 
-     * @param continuation
-     *            The continuation environment.
+     * Process the {@link ContentProvider} annotations on an annotation processor round.
+     *
      * @param roundEnv
-     *            The round environment to process.
+     *         the round environment to process
      * @param metadata
-     *            The annotation metadata for the processor.
+     *         the Metadata model to gather the results of the processing
      */
-    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
+
+        Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
+
+        if (delegateClassTypes.size() > 0) {
+
+            String classesForTheRound = delegateClassTypes.stream()
+                    .map(Element::toString)
+                    .collect(Collectors.joining("\n        - "));
+
+            mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
+                    ContentProvider.class.getSimpleName(), classesForTheRound));
+        }
 
         /*
          * Do not assume that because the @ContentProviderDelegate annotation can only be applied to types, only
          * TypeElements will be returned. Compilation errors on a class can let the compiler think the annotation is
-         * applied to other elements even if it is correctly applied to a class, causing a class cast exception in the
-         * for loop below.
+         * applied to other elements even if it is correctly applied to a class, causing a class cast exception in
+         * the forEach loop.
          */
-        // Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
-        Set<? extends Element> delegateClassTypes = continuation.getElementsAnotatedWith(ContentProvider.class,
-                roundEnv);
+        delegateClassTypes.stream()
+                .filter(delegateClassType -> delegateClassType instanceof TypeElement)
+                .forEach(delegateClassType -> {
 
-        if (delegateClassTypes.size() > 0) {
-            mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
-                    ContentProvider.class.getSimpleName(),
-                    Joiner.on("\n        - ").skipNulls().join(delegateClassTypes)));
-        }
-
-        for (Element delegateClassType : delegateClassTypes) {
-
-            if (delegateClassType instanceof TypeElement) {
-
-                mLogger.trace("    Processing " + delegateClassType);
-                processContentProviderDelegateAnnotation((TypeElement) delegateClassType, metadata);
-                mLogger.trace("    Done processing " + delegateClassType);
-            }
-        }
+                    mLogger.trace("    Processing " + delegateClassType);
+                    processContentProviderDelegateAnnotation((TypeElement) delegateClassType, metadata);
+                    mLogger.trace("    Done processing " + delegateClassType);
+                });
 
         mLogger.info(String.format("Done processing @%s annotations.", ContentProvider.class.getSimpleName()));
     }
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
-
         if (ElementUtils.isAbstract(delegateClassType)) {
 
-            mLogger.trace("        Class is abstract. Signaling compilatoin error.");
-            mLogger.error(
-                    String.format("@%s annotations are only allowed on concrete classes",
-                            ContentProvider.class.getSimpleName()), delegateClassType);
+            mLogger.trace("        Class is abstract. Signaling compilation error.");
+            mLogger.error(String.format("@%s annotations are only allowed on concrete classes",
+                    ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
 
-            mLogger.trace("        Class is not top level nor static. Signaling compilatoin error.");
+            mLogger.trace("        Class is not top level nor static. Signaling compilation error.");
             mLogger.error(String.format("@%s annotations can only appear on top level or static classes",
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassHasPublicDefaultConstructor(delegateClassType)) {
 
-            mLogger.trace("        Class does not have a public default constructor. Signaling compilatoin error.");
+            mLogger.trace("        Class does not have a public default constructor. Signaling compilation error.");
             mLogger.error(String.format("Classes annotated with @%s must have a public default constructor",
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
+        ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
+
         if (contentProviderDelegateAnnotation == null) {
+
             return;
         }
 
@@ -141,43 +140,42 @@ class ContentProviderDelegateAnnotationProcessor {
 
         if (delegateClassForAuthority != null) {
 
-            mLogger.trace(String.format(
-                    "        Authority is already registered by class %s. Signaling compilation error.",
-                    delegateClassForAuthority));
+            mLogger.trace(
+                    String.format("        Authority is already registered by class %s. Signaling compilation error.",
+                            delegateClassForAuthority));
             mLogger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
                     delegateClassForAuthority.getQualifiedName()), delegateClassType);
+
+            return;
         }
 
-        mLogger.trace(String.format("        Added delegate class %s to authority '%s'.", delegateClassType,
-                authorityName));
+        mLogger.trace(
+                String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
-        metadata.registerNewDelegateClass(authorityName, delegateClassType);
-
-        delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
+        delegateClassForAuthority = metadata.registerNewDelegateClass(authorityName, delegateClassType);
 
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
-            mLogger.trace("            Class is in the default package. Signaling compilatoin error.");
-            mLogger.error(String.format("Content providers can not be created in the default package."
-                    + " Android will prefix the content provider name with the application name, making it unable to"
-                    + " find the correct class at runtime."), delegateClassType);
+            mLogger.trace("            Class is in the default package. Signaling compilation error.");
+            mLogger.error(String.format("Content providers can not be created in the default package."),
+                    delegateClassType);
         }
 
         // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
         // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-        Set<String> interfaceNames = new HashSet<String>();
+        Set<String> interfaceNames = delegateClassType.getInterfaces()
+                .stream()
+                .map(TypeMirror::toString)
+                .collect(Collectors.toSet());
 
-        for (TypeMirror e : delegateClassType.getInterfaces()) {
-            interfaceNames.add(e.toString());
-        }
+        if (interfaceNames.contains(mContentProviderDelegateInterfaceName)) {
 
-        if (interfaceNames.contains(mDelegateTypeName)) {
-
-            mLogger.trace(String.format("            Class implements %s.", mDelegateTypeName));
+            mLogger.trace(String.format("            Class implements %s.", mContentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(true);
         } else {
 
-            mLogger.trace(String.format("            Class does not implement %s.", mDelegateTypeName));
+            mLogger.trace(String.format("            Class does not implement %s.",
+                    mContentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(false);
         }
     }
@@ -188,13 +186,9 @@ class ContentProviderDelegateAnnotationProcessor {
 
         Element enclosingDelegateClassElement = delegateClassType.getEnclosingElement();
 
-        if (ElementUtils.isClassOrInterface(enclosingDelegateClassElement)
-                && !delegateClassModifiers.contains(Modifier.STATIC)) {
+        return !(ElementUtils.isClassOrInterface(enclosingDelegateClassElement) &&
+                !delegateClassModifiers.contains(Modifier.STATIC));
 
-            return false;
-        }
-
-        return true;
     }
 
     private boolean validateClassHasPublicDefaultConstructor(TypeElement delegateClassType) {
@@ -203,7 +197,9 @@ class ContentProviderDelegateAnnotationProcessor {
 
         for (ExecutableElement constructor : ElementFilter.constructorsIn(enclosedElements)) {
 
-            if (constructor.getParameters().size() == 0 && constructor.getModifiers().contains(Modifier.PUBLIC)) {
+            if (constructor.getParameters()
+                    .size() == 0 && constructor.getModifiers()
+                    .contains(Modifier.PUBLIC)) {
 
                 return true;
             }
@@ -214,6 +210,6 @@ class ContentProviderDelegateAnnotationProcessor {
 
     private boolean validateClassIsNotInDefaultPackage(DelegateClass delegateClass) {
 
-        return Strings.isNullOrEmpty(delegateClass.getBasePackageName()) == false;
+        return !Strings.isNullOrEmpty(delegateClass.getBasePackageName());
     }
 }

@@ -83,7 +83,7 @@ test {
                 }
             }
         }
-        setClasspath(files("$buildDir/tmp/emma/instr") + configurations.emma +    getClasspath())
+        setClasspath(files("$buildDir/tmp/emma/instr") + configurations.emma + getClasspath())
     }
 
     // The report should be generated directly after the tests are done.

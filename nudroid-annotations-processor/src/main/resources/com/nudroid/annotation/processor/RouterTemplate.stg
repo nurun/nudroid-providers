@@ -1,6 +1,5 @@
 import "RouterTemplateQuery.stg"
-
-
+import "RouterTemplateUpdate.stg"
 
 addMatcherUris(uri) ::= <<
 URI_MATCHER.addURI("<uri.authorityName>", "<uri.normalizedPath>", <uri.id>);
@@ -32,7 +31,7 @@ public class <delegateClass.routerSimpleName> {
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
-        <delegateClass.mactherUris:addMatcherUris(); separator="\n">
+        <delegateClass.matcherUris:addMatcherUris(); separator="\n">
     }
 
     private <delegateClass.qualifiedName> mDelegate;
@@ -44,27 +43,23 @@ public class <delegateClass.routerSimpleName> {
 
     <RouterTemplateQuery(delegateClass)>
     
+    <RouterTemplateUpdate(delegateClass)>
+
     /**
      * @see     android.content.ContentProvider#insert(android.net.Uri, android.content.ContentValues)
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public Uri insert(Context context, Uri uri, ContentValues values) {
 
         return null;
     }
     
-    /**
-     * @see     android.content.ContentProvider#update(android.net.Uri, android.content.ContentValues,
-     *      java.lang.String, java.lang.String[])
-     */
-    public int update(Context context, Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-
-        return 0;
-    }
     
     /**
      * @see     android.content.ContentProvider#delete(android.net.Uri, java.lang.String,
      *      java.lang.String[])
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public int delete(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         return 0;
@@ -73,6 +68,7 @@ public class <delegateClass.routerSimpleName> {
     /**
      * @see     android.content.ContentProvider#getType(android.net.Uri)
      */
+    @SuppressWarnings({"unused", "UnusedAssignment"})
     public String getType(Context context, Uri uri) {
 
         return null;

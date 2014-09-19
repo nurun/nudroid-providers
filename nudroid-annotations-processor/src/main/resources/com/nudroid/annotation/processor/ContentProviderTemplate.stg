@@ -8,24 +8,24 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-<if(delegateClass.contentProviderDelegateInterface)>
+<if(delegateClass.implementsContentProviderDelegateInterface)>
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 <endif>
 
 /*
- * This is the basic XML you can use to configure this content provider in AndroidManifest.xml
- * \<provider
+ * Here's a basic XML you can use to configure this content provider in AndroidManifest.xml
+ \<provider<\\>
 <if(delegateClass.basePackageName)>    
- * android:name="<delegateClass.basePackageName>.<delegateClass.contentProviderSimpleName>"
+     android:name="<delegateClass.basePackageName>.<delegateClass.contentProviderSimpleName>"
 <else>
- * android:name="<delegateClass.contentProviderSimpleName>"
+     android:name="<delegateClass.contentProviderSimpleName>"
 <endif>
- * android:authorities="<delegateClass.authority.name>"
- * android:exported="\<true|false>"
- * android:grantUriPermissions="\<true|false>"
- * android:label="\<label>"
- * android:readPermission="\<read_permission>"
- * android:writePermission="\<write_permission>" />
+     android:authorities="<delegateClass.authority.name>"
+     android:exported="\<true|false>"
+     android:grantUriPermissions="\<true|false>"
+     android:label="\<label>"
+     android:readPermission="\<read_permission>"
+     android:writePermission="\<write_permission>" />
  */
 
 /**
@@ -40,14 +40,15 @@ public class <delegateClass.contentProviderSimpleName> extends ContentProvider {
      * 
      * @see android.content.ContentProvider#onCreate()
      */
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public boolean onCreate() {
 
         final <delegateClass.qualifiedName> delegate = new <delegateClass.qualifiedName>();
         mContentProviderRouter = new <delegateClass.routerSimpleName>(delegate);
 
-<if(delegateClass.contentProviderDelegateInterface)>
-        boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());
+<if(delegateClass.implementsContentProviderDelegateInterface)>
+        boolean result = delegate.onCreate(getContext());
         return result;
 <else>
         return true;

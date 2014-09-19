@@ -38,54 +38,48 @@ import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
 
 /**
- * A content provider delegate interceptor which validates persisted data against staleness and updates the data if it
- * is deemed stale before proceeding with the request.
- * <p/>
- * Staleness is determined according to a caching strategy that is to be provided by subclasses. See
- * {@link CacheInterceptor#onCreateCachingStrategy(ContentProviderContext)} for more details.
- * <p/>
- * Synchronization is provided by a synchronization strategy that is to be provided by subclasses. See
- * {@link CacheInterceptor#onCreateSynchronizationStrategy(ContentProviderContext)} for more details.
- * <p/>
- * If the cache is deemed stale by the caching strategy, the synchronizer will be invoked to synchronize the data. All
- * of it happens before the underlying storage is accessed by the content provider so the synchronizer has a chance to
- * download or update the data in the persistent storage before the content provider can access it.
- * <p/>
- * Applying a cache interceptor to a content provider delegate follows the normal rules for provider interceptors.
- * Subclasses must include an annotation annotated with ProviderInterceptorPoint which is in turn applied to
- * specific provider delegate methods. Subclasses provide the caching and synchronization strategy to be used and this
- * class takes care of orchestrating the process.
- * <p/>
- * <h1>Pagination</h1>
- * <p/>
- * Cache interceptors supports pagination of content. If 'com.nudroid.provider.interceptor.cache.pagination' is passed
- * as a query string parameter in the content URI with a value of ALL or NEXT, the method
- * {@link SynchronizationStrategy#downloadPage(ContentProviderContext, String, int)} will be invoked instead. The page
- * number to download will be passed as a parameter and it is an abstraction of the page to download. It will be an
- * incremental integer number. The semantics of page download must be handled by synchronization strategy.
- * <p/>
- * ***NOTE: *** Page numbers are tracked by cache id. Each cache id has it's own track of downloaded pages. When using
- * pagination, care must be taken when selecting cache ids least a request ends up using pagination information from
- * another URL. The auto assigned cache id (which resolves to the qualified remote url) should be good for most cases.
- * <p/>
- * A value of ALL for pagination will validate the cache using the caching strategy and if the cache is stale the
- * download of the first page will be initiated. If cache is up to date, the synchronizatoin is not invoked and the
- * content provider will access whatever data has already been downloaded. This scenario should be used when accessing
- * an activity for the first time so either the first page is downloaded or cahced content is imediatelly served. As the
+ * <p>A content provider delegate interceptor which validates persisted data against staleness and updates the data if
+ * it is deemed stale before proceeding with the request.</p> <p> <p>Staleness is determined according to a caching
+ * strategy that is to be provided by subclasses. See {@link CacheInterceptor#onCreateCachingStrategy(ContentProviderContext)}
+ * for more details.</p> <p> <p>Synchronization is provided by a synchronization strategy that is to be provided by
+ * subclasses. See {@link CacheInterceptor#onCreateSynchronizationStrategy(ContentProviderContext)} for more
+ * details.</p> <p> <p>If the cache is deemed stale by the caching strategy, the synchronizer will be invoked to
+ * synchronize the data. All of it happens before the underlying storage is accessed by the content provider so the
+ * synchronizer has a chance to download or update the data in the persistent storage before the content provider can
+ * access it.</p> <p> <p>Applying a cache interceptor to a content provider delegate follows the normal rules for
+ * provider interceptors. Subclasses must include an annotation annotated with ProviderInterceptorPoint which is in turn
+ * applied to specific provider delegate methods. Subclasses provide the caching and synchronization strategy to be used
+ * and this class takes care of orchestrating the process.</p> <p> <h1>Accessing the cache id</h1> <p> The cache id can
+ * be injected in the url of the content provider delegate and read with a UriPlaceholder annotation. To have the value
+ * injected, add a query string parameter placeholder to the uri definition as below: <p>
+ * <pre>
+ * &#064;Query("[my_path]?[my_params]&com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId={cacheId}")
+ * public Cursor myMethod(..., &#064;UriPlaceholder("cacheId") String cacheId) {
+ *     ...
+ * }
+ * </pre>
+ * <p> The query string parameter name can be accessed by {@link com.nudroid.provider.interceptor.cache.CacheInterceptor#CACHE_ID_QUERY_STRING_PARAM_NAME}
+ * <p> <h1>Pagination</h1> <p> <p>Cache interceptors supports pagination of content. If
+ * 'com.nudroid.provider.interceptor.cache.pagination' {@link com.nudroid.provider.interceptor.cache.CacheInterceptor#PAGE_QUERY_STRING_PARAMETER_NAME}
+ * is passed as a query string parameter in the content URI with a value of ALL or NEXT, the method {@link
+ * SynchronizationStrategy#downloadPage(ContentProviderContext, String, int)} will be invoked instead. The page number
+ * to download will be passed as a parameter and it is an abstraction of the page to download. It will be an incremental
+ * integer number. The semantics of page download must be handled by synchronization strategy.</p> <p> <p>***NOTE: ***
+ * Page numbers are tracked by cache id. Each cache id has it's own track of downloaded pages. When using pagination,
+ * care must be taken when selecting cache ids least a request ends up using pagination information from another URL.
+ * The auto assigned cache id (which resolves to the qualified remote url) should be good for most cases .</p> <p> <p>A
+ * value of ALL for pagination will validate the cache using the caching strategy and if the cache is stale the download
+ * of the first page will be initiated. If cache is up to date, the synchronizatoin is not invoked and the content
+ * provider will access whatever data has already been downloaded. This scenario should be used when accessing an
+ * activity for the first time so either the first page is downloaded or cahced content is imediatelly served. As the
  * user scrolls to the end of the content (most probably on a list or grid view) requests can be sent with a value of
- * NEXT. This will request the synchronizer to download the next page of data.
- * <p/>
- * A value of NEXT never triggers a cache validation.
- * <p/>
- * <h1>Example</h1>
- * <p/>
- * Here's an example of a caching interceptor.
- * 
+ * NEXT. This will request the synchronizer to download the next page of data.</p> <p> <p>A value of NEXT never triggers
+ * a cache validation.</p> <p> <h1>Example</h1> <p> <p>Here's an example of a caching interceptor.</p> <p>
  * <pre>
  * package com.example.test_anotations.vision.custom;
- * 
+ *
  * import java.util.concurrent.TimeUnit;
- * 
+ *
  * import com.example.test_anotations.vision.base.AndroidTimeClock;
  * import com.example.test_anotations.vision.base.CacheInterceptor;
  * import com.example.test_anotations.vision.base.CachingStrategy;
@@ -93,73 +87,74 @@ import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
  * import com.example.test_anotations.vision.base.SynchronizationStrategy;
  * import com.nudroid.annotation.provider.interceptor.ProviderInterceptorPoint;
  * import com.nudroid.provider.interceptor.ContentProviderContext;
- * 
+ *
  * public class UserFavoritesCacheInterceptor extends CacheInterceptor {
- * 
+ *
  *     &#064;ProviderInterceptorPoint
  *     public static @interface Annotation {
  *         String remoteUrl();
- * 
+ *
  *         String cacheId() default &quot;&quot;;
- * 
+ *
  *         long updateInterval();
- * 
+ *
  *         TimeUnit timeUnit();
- * 
+ *
  *         String userId();
  *     }
- * 
+ *
  *     private static final AndroidTimeClock SYSTEM_CLOCK_SINGLETON = new AndroidTimeClock();
  *     private long mUpdateInterval;
  *     private TimeUnit mTimeUnit;
  *     private String mUserid;
- * 
+ *
  *     public UserFavoritesCacheInterceptor(Annotation annotation) {
- * 
+ *
  *         super(annotation.remoteUrl(), annotation.cacheId());
  *         this.mUpdateInterval = annotation.updateInterval();
  *         this.mTimeUnit = annotation.timeUnit();
  *         this.mUserid = annotation.userId();
  *     }
- * 
+ *
  *     &#064;Override
  *     public CachingStrategy onCreateCachingStrategy(ContentProviderContext context) {
- * 
+ *
  *         return new MaxAgeCacheStrategy(SYSTEM_CLOCK_SINGLETON, mUpdateInterval, mTimeUnit);
  *     }
- * 
+ *
  *     &#064;Override
  *     public SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context) {
- * 
+ *
  *         return new SynchronizationStrategy() {
- * 
+ *
  *             &#064;Override
  *             public boolean synchronize(ContentProviderContext context, String url) {
  *                 // Do whatever it is needed to download/sync data for user mUserId.
  *                 // If successful return true
  *                 return true;
  *             }
- * 
+ *
  *             &#064;Override
  *             public boolean downloadPage(ContentProviderContext context, String url, int page) {
- * 
+ *
  *                 if (page == 1) {
  *                     // Delete content from database for this query.
  *                     // Download page 1.
  *                     // Persist into storage.
  *                     return true;
  *                 } else {
- *                     // Download next page. Let's suppose results are ordered by date and the backend accepts a date to
+ *                     // Download next page. Let's suppose results are ordered by date and the backend accepts a date
+ * to
  *                     // be passed as a parameter so only results greater than the passed date are returned. In this
  *                     // scenario, the actual page number does not matter.
- * 
+ *
  *                     // Get last inserted record date.
  *                     // Call remote server and specify the date as a parameter.
  *                     // Insert new contents in the storage.
  *                     return true;
  *                 }
  *             }
- * 
+ *
  *             public void onError(ContentProviderContext context, Throwable e) {
  *                 // Handle error.
  *             }
@@ -167,9 +162,8 @@ import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
  *     }
  * }
  * </pre>
- * 
- * And how it can be applied to a provider delegate:
- * 
+ * <p> <p>And how it can be applied to a provider delegate:</p>
+ * <p>
  * <pre>
  * &#064;UserFavoritesCacheInterceptor.Annotation(
  *         remoteUrl = &quot;https://dev-hypnotoad-midlayer.herokuapp.com/api/users/{userId}/favorites&quot;,
@@ -178,31 +172,53 @@ import com.nudroid.provider.interceptor.GenericContentProviderInterceptor;
  *         userId = &quot;{userId}&quot;)
  * &#064;Query(&quot;/user/{userId}&quot;)
  * public Cursor findUserByX(@UriPlaceholder(&quot;userId&quot;) String userId) {
- * 
+ *
  *     return SQLITE_OPEN_HELPER.getReadableDatabase().query(&quot;UserFavorites&quot;,
- *             new String[] { &quot;_id, favoriteId&quot;, &quot;contentId&quot;, &quot;contentType&quot; }, &quot;userId = ?&quot;, new String[] { userId },
+ *             new String[] { &quot;_id, favoriteId&quot;, &quot;contentId&quot;, &quot;contentType&quot; },
+ * &quot;userId = ?&quot;, new String[] { userId },
  *             null, null, &quot;_id ASC&quot;);
  * }
  * </pre>
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public abstract class CacheInterceptor extends GenericContentProviderInterceptor {
 
-    private static final String CACHE_ID_PROPERTY_NAME = "cacheId";
+    /**
+     * The query string parameter name for controlling pagination of cache interceptors.
+     */
+    public static final String PAGE_QUERY_STRING_PARAMETER_NAME = "com.nudroid.provider.interceptor.cache.pagination";
+
+    /**
+     * The name of the query string parameter where the cache id will be injected.
+     */
+    public static final String CACHE_ID_QUERY_STRING_PARAM_NAME =
+            "com.nudroid.provider.interceptor.cache.CacheInterceptor.cacheId";
+
+    /**
+     * Preferences file where cache information is stored.
+     * <p>
+     * TODO: Instead of exposing the internals of how the cache manager stores its data, create a component to manage
+     * the cache with a properly defined interface which can be accessed by clients of the library.
+     */
+    public static final String CACHE_PAGINATION_PREFERENCES_FILE =
+            "com_nudroid_provider_interceptor_cache_CACHE_PAGINATION_PREFERENCES_FILE";
+
     private static final String REMOTE_URL_PROPERTY_NAME = "remoteUrl";
-    private static final String PAGE_QUERY_STRING_PARAMETER_NAME = "com.nudroid.provider.interceptor.cache.pagination";
-    private static final String PAGE_REMOVAL_REG_EXP = "com\\.nudroid\\.provider\\.interceptor\\.cache\\.pagination\\=[^\\&]*(\\&+)?";
+    private static final String PAGE_REMOVAL_REG_EXP =
+            "\\&?com\\.nudroid\\.provider\\.interceptor\\.cache\\.pagination\\=[^\\&]*(\\&+)?";
+
     private static Map<String, Semaphore> sSemaphoresForCacheId = new HashMap<String, Semaphore>();
 
     /**
      * Supported pagination instructions for the synchronizer.
-     * 
+     *
      * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
      */
     public static enum PaginationType {
         /**
-         * Uses whatever content has already been downloaded. Triggers the download of the first page if cache is empty.
+         * Uses whatever content has already been downloaded. Triggers the download of the first page if cache is
+         * empty.
          */
         ALL,
 
@@ -227,12 +243,11 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param remoteUrl
-     *            The remote url to download data from.
-     * 
+     *         The remote url to download data from.
      * @param cacheId
-     *            The id of the cache to use.
+     *         The id of the cache to use.
      */
     public CacheInterceptor(String remoteUrl, String cacheId) {
 
@@ -244,25 +259,12 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
                     REMOTE_URL_PROPERTY_NAME));
         }
 
-        if (cacheId == null || cacheId.trim().equals("")) {
-
-            this.mCacheId = mRemoteUrl;
-        } else {
-
-            this.mCacheId = cacheId;
-        }
-
-        if (this.mCacheId == null || this.mCacheId.trim().endsWith("")) {
-            Log.d(sTag, String.format(
-                    "Parameter %s not set. Cache id is null. Subclasses must implement getCacheId(Context)",
-                    CACHE_ID_PROPERTY_NAME));
-        }
+        this.mCacheId = cacheId;
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
-     * 
+     *
      * @see ContentProviderInterceptor#onCreate(ContentProviderContext)
      */
     public void onCreate(ContentProviderContext context) {
@@ -273,14 +275,20 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
 
     /**
      * Called when the cache interceptor is being created to provide the strategy to use.
-     * 
+     *
+     * @param context
+     *         A reference to the content provider context
+     *
      * @return The caching strategy to use for synchronizing the cache for this request.
      */
     public abstract SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context);
 
     /**
      * Called when the cache interceptor is being created to provide the strategy to use.
-     * 
+     *
+     * @param context
+     *         A reference to the content provider context
+     *
      * @return The caching strategy to use for verifying the cache for this request.
      */
     public abstract CachingStrategy onCreateCachingStrategy(ContentProviderContext context);
@@ -288,10 +296,10 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
     /**
      * Gets the remote url to use. By default, returns the remote url passed in the constructor but can be overridden to
      * return something else.
-     * 
+     *
      * @param context
-     *            a reference to the content provider delegate context for this request.
-     * 
+     *         A reference to the content provider context
+     *
      * @return The remote url to use for synchronization.
      */
     public String getRemoteUrl(ContentProviderContext context) {
@@ -302,34 +310,42 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
     /**
      * Gets the cache id to use. By default, returns the cache id passed in the constructor but can be overridden to
      * return something else.
-     * 
-     * @param context
-     *            a reference to the content provider delegate context for this request.
-     * 
+     *
      * @return The cache id to use for synchronization.
      */
-    public String getCacheId(ContentProviderContext context) {
+    public String getCacheId() {
 
         return mCacheId;
     }
 
     /**
-     * Orchestrates the logic for checking and updating the cache.
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * Orchestrates the logic for checking and updating the cache. {@inheritDoc}
+     *
      * @see GenericContentProviderInterceptor#before(ContentProviderContext)
      */
     public void before(ContentProviderContext context) {
 
-        final String cacheId = Base64.encodeToString(getCacheId(context).getBytes(), Base64.NO_PADDING | Base64.NO_WRAP
-                | Base64.URL_SAFE);
-
         PaginationType paginationType = PaginationType.NONE;
         String paginationTypeName = context.uri.getQueryParameter(PAGE_QUERY_STRING_PARAMETER_NAME);
-        context.uri = Uri.parse(context.uri.toString().replaceAll(PAGE_REMOVAL_REG_EXP, ""));
+        context.uri = Uri.parse(context.uri.toString()
+                .replaceAll(PAGE_REMOVAL_REG_EXP, ""));
 
-        if (paginationTypeName != null && !paginationTypeName.trim().equals("")) {
+        if (mCacheId == null || mCacheId.isEmpty()) {
+
+            this.mCacheId = Base64.encodeToString(context.uri.toString()
+                    .getBytes(), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE);
+        }
+
+        if (context.uri.getQuery() != null) {
+            context.uri = Uri.parse(
+                    String.format("%s&%s=%s", context.uri.toString(), CACHE_ID_QUERY_STRING_PARAM_NAME, this.mCacheId));
+        } else {
+            context.uri = Uri.parse(
+                    String.format("%s?%s=%s", context.uri.toString(), CACHE_ID_QUERY_STRING_PARAM_NAME, this.mCacheId));
+        }
+
+        if (paginationTypeName != null && !paginationTypeName.trim()
+                .isEmpty()) {
 
             try {
 
@@ -340,12 +356,12 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
         }
 
         boolean wasInterrupted = false;
-        final Semaphore semaphore = getSemaphore(cacheId);
+        final Semaphore semaphore = getSemaphore(this.mCacheId);
 
         try {
 
             semaphore.acquire();
-            checkAndUpdateCache(context, cacheId, paginationType);
+            checkAndUpdateCache(context, this.mCacheId, paginationType);
         } catch (InterruptedException e) {
 
             wasInterrupted = true;
@@ -373,97 +389,100 @@ public abstract class CacheInterceptor extends GenericContentProviderInterceptor
         }
     }
 
-    private void checkAndUpdateCache(ContentProviderContext context, final String cacheId, PaginationType paginationType) {
+    private void checkAndUpdateCache(ContentProviderContext context, final String cacheId,
+                                     PaginationType paginationType) {
         switch (paginationType) {
-        /*
-         * If no pagination is requested, just validate cache and call synchronization is cache is stale.
-         */
-        case NONE:
-            if (!mCachingStrategy.isUpToDate(context, cacheId)) {
+            /*
+             * If no pagination is requested, just validate cache and call synchronization if cache is stale.
+             */
+            case NONE:
+                if (!mCachingStrategy.isUpToDate(context, cacheId)) {
 
-                boolean wasSynchronized = false;
+                    boolean wasSynchronized = false;
 
-                try {
-                    wasSynchronized = mSynchronizationStrategy.synchronize(context, getRemoteUrl(context));
-                } catch (Throwable e) {
-                    mSynchronizationStrategy.onError(context, e);
+                    try {
+                        wasSynchronized = mSynchronizationStrategy.synchronize(context, getRemoteUrl(context));
+                    } catch (Throwable e) {
+                        mSynchronizationStrategy.onError(context, e);
+                    }
+
+                    if (wasSynchronized) {
+
+                        SharedPreferences preferences =
+                                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE,
+                                        Context.MODE_PRIVATE);
+                        Editor editor = preferences.edit();
+                        editor.remove(cacheId);
+                        editor.commit();
+                    }
+
+                    mCachingStrategy.cacheUpdateFinished(context, cacheId, wasSynchronized);
                 }
 
-                if (wasSynchronized) {
+                break;
+            /*
+             * If requesting current paginated cache, validate cache and download first page if cache is stale.
+             */
+            case ALL:
 
-                    SharedPreferences preferences = context.context.getSharedPreferences("PAGE_BY_CACHE",
-                            Context.MODE_PRIVATE);
-                    Editor editor = preferences.edit();
-                    editor.clear();
-                    editor.commit();
+                if (!mCachingStrategy.isUpToDate(context, cacheId)) {
+
+                    boolean pageDownloaded = false;
+
+                    try {
+                        pageDownloaded = mSynchronizationStrategy.downloadPage(context, getRemoteUrl(context), 1);
+                    } catch (Throwable e) {
+                        mSynchronizationStrategy.onError(context, e);
+                    }
+
+                    if (pageDownloaded) {
+
+                        SharedPreferences preferences =
+                                context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE,
+                                        Context.MODE_PRIVATE);
+                        Editor editor = preferences.edit();
+                        editor.putInt(cacheId, 1);
+                        editor.commit();
+                    }
+
+                    mCachingStrategy.cacheUpdateFinished(context, cacheId, pageDownloaded);
                 }
 
-                mCachingStrategy.cacheUpdateFinished(context, cacheId, wasSynchronized);
-            }
-
-            break;
-        /*
-         * If requesting current paginated cache, validate cache and download first page if cache is stale.
-         */
-        case ALL:
-
-            if (!mCachingStrategy.isUpToDate(context, cacheId)) {
+                break;
+            /*
+             * If downloading the next page, do not validate the cache. Just go ahead and download next page.
+             */
+            case NEXT:
 
                 boolean pageDownloaded = false;
 
+                SharedPreferences preferences =
+                        context.context.getSharedPreferences(CACHE_PAGINATION_PREFERENCES_FILE, Context.MODE_PRIVATE);
+                int currentPage = preferences.getInt(cacheId, 1);
+
                 try {
-                    pageDownloaded = mSynchronizationStrategy.downloadPage(context, getRemoteUrl(context), 1);
+                    pageDownloaded =
+                            mSynchronizationStrategy.downloadPage(context, getRemoteUrl(context), currentPage + 1);
                 } catch (Throwable e) {
                     mSynchronizationStrategy.onError(context, e);
                 }
 
                 if (pageDownloaded) {
 
-                    SharedPreferences preferences = context.context.getSharedPreferences("PAGE_BY_CACHE",
-                            Context.MODE_PRIVATE);
                     Editor editor = preferences.edit();
-                    editor.putInt(cacheId, 1);
+                    editor.putInt(cacheId, currentPage + 1);
                     editor.commit();
                 }
 
-                mCachingStrategy.cacheUpdateFinished(context, cacheId, pageDownloaded);
-            }
-
-            break;
-        /*
-         * If downloading the next page, do not validate the cache. Just go ahead and download next page.
-         */
-        case NEXT:
-
-            boolean pageDownloaded = false;
-
-            SharedPreferences preferences = context.context.getSharedPreferences("PAGE_BY_CACHE", Context.MODE_PRIVATE);
-            int currentPage = preferences.getInt(cacheId, 1);
-
-            try {
-                pageDownloaded = mSynchronizationStrategy.downloadPage(context, getRemoteUrl(context), currentPage + 1);
-            } catch (Throwable e) {
-                mSynchronizationStrategy.onError(context, e);
-            }
-
-            if (pageDownloaded) {
-
-                Editor editor = preferences.edit();
-                editor.putInt(cacheId, currentPage + 1);
-                editor.commit();
-            }
-
-            break;
-        default:
-            break;
+                break;
+            default:
+                break;
         }
     }
 
     /**
-     * No-op. There's nothing to do after the content provider gets the results.
-     * <p/>
-     * {@inheritDoc}
-     * 
+     * No-op. There's nothing to do after the content provider gets the results. {@inheritDoc}
+     *
      * @see GenericContentProviderInterceptor#after(ContentProviderContext, Object)
      */
     public <T> T after(ContentProviderContext contentProviderContext, T result) {

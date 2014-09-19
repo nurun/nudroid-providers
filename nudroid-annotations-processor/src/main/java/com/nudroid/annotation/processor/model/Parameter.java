@@ -32,8 +32,14 @@ import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.annotation.provider.delegate.UriPlaceholder;
 
 /**
- * Represents a parameter accepted by a delegate method.
- * 
+ * Contains metadata of a parameter from a delegate method.
+ * <p>
+ * Includes information about the parameter:
+ * <p>
+ * <ul> <li> If it is one of context, projection, selection, selection args, sort order, content values or uri</li> <li>
+ * The type of the parameter</li> <li> The key name, placeholder name and placeholder type if this parameter binds to a
+ * URi placeholder</li> </ul>
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class Parameter {
@@ -53,70 +59,77 @@ public class Parameter {
 
     /**
      * The parameter is annotated with {@link ContextRef}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContext() {
         return mContext;
     }
 
     /**
      * The parameter is annotated with {@link Projection}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isProjection() {
         return mProjection;
     }
 
     /**
      * The parameter is annotated with {@link Selection}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSelection() {
         return mSelection;
     }
 
     /**
      * The parameter is annotated with {@link SelectionArgs}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSelectionArgs() {
         return mSelectionArgs;
     }
 
     /**
      * The parameter is annotated with {@link SortOrder}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isSortOrder() {
         return mSortOrder;
     }
 
     /**
      * The parameter is annotated with {@link ContentValuesRef}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContentValues() {
         return mContentValues;
     }
 
     /**
      * The parameter is a annotated with {@link ContentUri}.
-     * 
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public boolean isContentUri() {
         return mContentUri;
     }
 
     /**
      * The parameter is of type {@link String}.
-     * 
+     *
      * @return <tt>true</tt> if {@link String}, <tt>false</tt> otherwise.
      */
     public boolean isString() {
@@ -124,8 +137,8 @@ public class Parameter {
     }
 
     /**
-     * The parameter is a annotated with {@link UriPlaceholder}.
-     * 
+     * The parameter is a annotated with {@link UriPlaceholder} and binds to a path placeholder.
+     *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
     public boolean isPathParameter() {
@@ -133,8 +146,8 @@ public class Parameter {
     }
 
     /**
-     * The parameter is a placeholder appearing in the query string of the URL.
-     * 
+     * The parameter is a annotated with {@link UriPlaceholder} and binds to a query string placeholder.
+     *
      * @return <tt>true</tt> if it is a query param, <tt>false</tt> otherwise.
      */
     public boolean isQueryParameter() {
@@ -142,118 +155,98 @@ public class Parameter {
     }
 
     /**
-     * For path parameters, gets the position in the URI path this parameter maps to.
-     * 
+     * For path parameters, gets the position in the URI path this parameter maps to. For query strings, gets the name
+     * of the query string parameter.
+     *
      * @return The position in the URI path this parameter maps to.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getKeyName() {
         return mKeyName;
     }
 
     /**
      * Returns the placeholder name for this parameter.
-     * 
+     *
      * @return The placeholder name.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getPlaceholderName() {
         return mPlaceholderName;
     }
 
     /**
-     * Get's this parameter type's qualified name.
-     * 
-     * @return This parameter type's name.
+     * Gets the qualified name of the parameter type.
+     *
+     * @return the qualified name of the parameter type
      */
+    @SuppressWarnings("UnusedDeclaration")
     public String getParameterType() {
         return mParameterType;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContextRef}.
-     * 
-     * @param isContext
-     *            If the parameter is annotated or not.
      */
-    public void setContext(boolean isContext) {
+    public void setContext() {
 
-        this.mContext = isContext;
+        this.mContext = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Projection}.
-     * 
-     * @param isProjection
-     *            If the parameter is annotated or not.
      */
-    public void setProjection(boolean isProjection) {
-        this.mProjection = isProjection;
+    public void setProjection() {
+        this.mProjection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Selection}.
-     * 
-     * @param isSelection
-     *            If the parameter is annotated or not.
      */
-    public void setSelection(boolean isSelection) {
-        this.mSelection = isSelection;
+    public void setSelection() {
+        this.mSelection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SelectionArgs}.
-     * 
-     * @param isSelectionArgs
-     *            If the parameter is annotated or not.
      */
-    public void setSelectionArgs(boolean isSelectionArgs) {
-        this.mSelectionArgs = isSelectionArgs;
+    public void setSelectionArgs() {
+        this.mSelectionArgs = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SortOrder}.
-     * 
-     * @param isSortOrder
-     *            If the parameter is annotated or not.
      */
-    public void setSortOrder(boolean isSortOrder) {
-        this.mSortOrder = isSortOrder;
+    public void setSortOrder() {
+        this.mSortOrder = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
-     * 
-     * @param isContentValues
-     *            If the parameter is annotated or not.
      */
-    public void setContentValues(boolean isContentValues) {
-        this.mContentValues = isContentValues;
+    public void setContentValues() {
+        this.mContentValues = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentUri}.
-     * 
-     * @param isContentUri
-     *            If the parameter is annotated or not.
      */
-    public void setContentUri(boolean isContentUri) {
-        this.mContentUri = isContentUri;
+    public void setContentUri() {
+        this.mContentUri = true;
     }
 
     /**
      * Sets if this parameter is of type {@link String}.
-     * 
-     * @param isString
-     *            If the parameter is of type {@link String}.
      */
-    public void setString(boolean isString) {
-        this.mString = isString;
+    public void setString() {
+        this.mString = true;
     }
 
     /**
      * Sets the path placeholder position in the URI this parameter maps to.
-     * 
+     *
      * @param keyName
-     *            The position in the URI's path.
+     *         The position in the URI's path.
      */
     public void setKeyName(String keyName) {
         this.mKeyName = keyName;
@@ -261,19 +254,19 @@ public class Parameter {
 
     /**
      * Sets this parameter placeholder name.
-     * 
+     *
      * @param mPlaceholderName
-     *            the placeholder name to set.
+     *         the placeholder name to set.
      */
     public void setPlaceholderName(String mPlaceholderName) {
         this.mPlaceholderName = mPlaceholderName;
     }
 
     /**
-     * Sets the parameter type's name.
-     * 
+     * Sets the qualified name of the parameter type.
+     *
      * @param mParameterType
-     *            The type of the parameter.
+     *         The qualified name of the type of the parameter.
      */
     public void setParameterType(String mParameterType) {
         this.mParameterType = mParameterType;
@@ -281,26 +274,24 @@ public class Parameter {
 
     /**
      * Sets the type of placeholder for this parameter.
-     * 
+     *
      * @param placeholderType
-     *            The type of placeholder.
+     *         The type of placeholder.
      */
     public void setUriPlaceholderType(UriPlaceholderType placeholderType) {
         this.mUriPlaceholderType = placeholderType;
     }
 
     /**
-     * <p/>
      * {@inheritDoc}
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "Parameter [mContext=" + mContext + ", mProjection=" + mProjection + ", mSelection=" + mSelection
-                + ", mSelectionArgs=" + mSelectionArgs + ", mSortOrder=" + mSortOrder + ", mContentValues="
-                + mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mKeyName=" + mKeyName
-                + ", mParamType=" + mUriPlaceholderType + "]";
+        return "Parameter [mContext=" + mContext + ", mProjection=" + mProjection + ", mSelection=" + mSelection +
+                ", mSelectionArgs=" + mSelectionArgs + ", mSortOrder=" + mSortOrder + ", mContentValues=" +
+                mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mKeyName=" + mKeyName +
+                ", mParamType=" + mUriPlaceholderType + "]";
     }
-
 }

@@ -22,9 +22,26 @@
 
 package com.nudroid.annotation.processor;
 
+import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.processor.model.DelegateMethod;
+import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.MethodBinding;
+import com.nudroid.annotation.processor.model.Parameter;
+import com.nudroid.annotation.processor.model.UriMatcherPathPatternType;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
+import com.nudroid.annotation.provider.delegate.ContentUri;
+import com.nudroid.annotation.provider.delegate.ContextRef;
+import com.nudroid.annotation.provider.delegate.Projection;
+import com.nudroid.annotation.provider.delegate.Query;
+import com.nudroid.annotation.provider.delegate.Selection;
+import com.nudroid.annotation.provider.delegate.SelectionArgs;
+import com.nudroid.annotation.provider.delegate.SortOrder;
+import com.nudroid.annotation.provider.delegate.UriPlaceholder;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -36,77 +53,68 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import com.google.common.base.Joiner;
-import com.nudroid.annotation.processor.model.InterceptorBlueprint;
-import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.DelegateUri;
-import com.nudroid.annotation.processor.model.Parameter;
-import com.nudroid.annotation.provider.delegate.ContentProvider;
-import com.nudroid.annotation.provider.delegate.ContentUri;
-import com.nudroid.annotation.provider.delegate.ContextRef;
-import com.nudroid.annotation.provider.delegate.Projection;
-import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.Selection;
-import com.nudroid.annotation.provider.delegate.SelectionArgs;
-import com.nudroid.annotation.provider.delegate.SortOrder;
-import com.nudroid.annotation.provider.delegate.UriPlaceholder;
-
 /**
  * Processes the Query annotations on a class.
- * 
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class QueryAnnotationProcessor {
+class QueryProcessor {
 
     private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
 
-    private LoggingUtils mLogger;
+    private final LoggingUtils mLogger;
 
-    private TypeMirror mContextType;
-    private TypeMirror mStringType;
-    private TypeMirror mArrayOfStringsType;
-    private TypeMirror mUriType;
-    private Types mTypeUtils;
-    private Elements mElementUtils;
+    private final TypeMirror mContextType;
+    private final TypeMirror mStringType;
+    private final TypeMirror mArrayOfStringsType;
+    private final TypeMirror mUriType;
+    private final Types mTypeUtils;
+    private final Elements mElementUtils;
 
     /**
      * Creates an instance of this class.
-     * 
+     *
      * @param processorContext
-     *            The processor context parameter object.
+     *         The processor context parameter object.
      */
-    QueryAnnotationProcessor(ProcessorContext processorContext) {
+    QueryProcessor(ProcessorContext processorContext) {
 
         this.mTypeUtils = processorContext.typeUtils;
         this.mElementUtils = processorContext.elementUtils;
         this.mLogger = processorContext.logger;
 
-        mContextType = processorContext.elementUtils.getTypeElement("android.content.Context").asType();
-        mStringType = processorContext.elementUtils.getTypeElement(String.class.getName()).asType();
+        mContextType = processorContext.elementUtils.getTypeElement("android.content.Context")
+                .asType();
+        mStringType = processorContext.elementUtils.getTypeElement(String.class.getName())
+                .asType();
         mArrayOfStringsType = processorContext.typeUtils.getArrayType(mStringType);
-        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri").asType();
+        mUriType = processorContext.elementUtils.getTypeElement("android.net.Uri")
+                .asType();
     }
 
     /**
      * Process the {@link Query} annotations on this round.
-     * 
-     * @param continuation
-     *            The continuation environment.
+     *
      * @param roundEnv
-     *            The round environment to process.
+     *         The round environment to process.
      * @param metadata
-     *            The annotation metadata for the processor.
+     *         the Metadata model to gather the results of the processing
      */
-    void process(Continuation continuation, RoundEnvironment roundEnv, Metadata metadata) {
+    //TODO Bug on nudroid annotations: If a parameter is added to the method signature but it is not present in the queryString (and also check path) it throws a NullPointerException.
+    // TODO If using primitive type, (like long) app crashes when converting placeholders. See convert() on router for
+    // details (it only Checks Long not long).
+    void process(RoundEnvironment roundEnv, Metadata metadata) {
 
         mLogger.info("Start processing @Query annotations.");
 
-        Set<? extends Element> queryMethods = continuation.getElementsAnotatedWith(Query.class, roundEnv);
+        Set<? extends Element> queryMethods = roundEnv.getElementsAnnotatedWith(Query.class);
 
         if (queryMethods.size() > 0) {
+
             mLogger.trace(String.format("    Methods annotated with %s for the round:\n        - %s",
-                    Query.class.getSimpleName(), Joiner.on("\n        - ").skipNulls().join(queryMethods)));
+                    Query.class.getSimpleName(), queryMethods.stream()
+                            .map(Element::toString)
+                            .collect(Collectors.joining("\n        - "))));
         }
 
         for (Element queryMethod : queryMethods) {
@@ -125,8 +133,7 @@ class QueryAnnotationProcessor {
 
                 mLogger.trace("    Processing " + queryMethod);
                 DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass,
-                        metadata);
+                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass);
 
                 if (delegateMethod != null) {
 
@@ -141,26 +148,40 @@ class QueryAnnotationProcessor {
         mLogger.info("Done processing @Query annotations.");
     }
 
-    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass,
-            Metadata metadata) {
+    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass) {
 
         Query query = queryMethod.getAnnotation(Query.class);
         String pathAndQuery = query.value();
 
-        DelegateUri delegateUri = null;
+        MethodBinding methodBinding;
 
         try {
 
-            delegateUri = delegateClass.registerPath(queryMethod, pathAndQuery);
+            //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
+            List<UriMatcherPathPatternType> placeholderTypes = new ArrayList<>();
+
+            List<? extends VariableElement> parameters = queryMethod.getParameters();
+
+            for (VariableElement param : parameters) {
+
+                UriPlaceholder annotation = param.getAnnotation(UriPlaceholder.class);
+
+                if (annotation != null) {
+
+                    placeholderTypes.add(
+                            UriMatcherPathPatternType.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                }
+            }
+
+            methodBinding = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
             mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
         } catch (DuplicatePathException e) {
 
             mLogger.trace(String.format(
                     "        Path '%s' has already been registered by method %s. Signaling compilation error.",
                     pathAndQuery, e.getOriginalMethod()));
-            mLogger.error(
-                    String.format("An equivalent path has already been registered by method '%s'",
-                            e.getOriginalMethod()), queryMethod);
+            mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
+                    e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
@@ -172,17 +193,16 @@ class QueryAnnotationProcessor {
             return null;
         }
 
-        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, delegateUri);
+        boolean hasValidAnnotations = hasValidSignature(queryMethod, query, methodBinding);
 
         if (!hasValidAnnotations) {
 
             return null;
         }
 
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod, delegateUri);
-        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
+        DelegateMethod delegateMethod = methodBinding.setQueryDelegateMethod(queryMethod);
 
-        delegateMethod.setQueryParameterNames(delegateUri.getQueryParameterNames());
+        mLogger.trace(String.format("    Added delegate method %s.", queryMethod));
 
         List<? extends VariableElement> parameters = queryMethod.getParameters();
 
@@ -190,43 +210,38 @@ class QueryAnnotationProcessor {
 
             Parameter parameter = new Parameter();
 
-            if (methodParameter.getAnnotation(ContextRef.class) != null)
-                parameter.setContext(true);
-            if (methodParameter.getAnnotation(Projection.class) != null)
-                parameter.setProjection(true);
-            if (methodParameter.getAnnotation(Selection.class) != null)
-                parameter.setSelection(true);
-            if (methodParameter.getAnnotation(SelectionArgs.class) != null)
-                parameter.setSelectionArgs(true);
-            if (methodParameter.getAnnotation(SortOrder.class) != null)
-                parameter.setSortOrder(true);
-            if (methodParameter.getAnnotation(ContentUri.class) != null)
-                parameter.setContentUri(true);
+            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext();
+            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection();
+            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection();
+            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs();
+            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder();
+            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri();
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (methodParameter.asType().toString().equals(mStringType.toString()))
-                parameter.setString(true);
+            if (methodParameter.asType()
+                    .toString()
+                    .equals(mStringType.toString())) parameter.setString();
 
             final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 
             if (uriPlaceholder != null) {
 
                 parameter.setPlaceholderName(uriPlaceholder.value());
-                parameter.setParameterType(methodParameter.asType().toString());
-                parameter.setUriPlaceholderType(delegateUri.getUriPlaceholderType(uriPlaceholder.value()));
-                parameter.setKeyName(delegateUri.getParameterPosition(uriPlaceholder.value()));
+                parameter.setParameterType(methodParameter.asType()
+                        .toString());
+                parameter.setUriPlaceholderType(methodBinding.getUriPlaceholderType(uriPlaceholder.value()));
+                parameter.setKeyName(methodBinding.getParameterPosition(uriPlaceholder.value()));
             }
 
             delegateMethod.addParameter(parameter);
         }
 
-        delegateClass.addMethod(delegateMethod);
-        metadata.registerDelegateMethod(queryMethod, delegateMethod);
+        //        delegateClass.addMethod(delegateMethod);
 
         return delegateMethod;
     }
 
-    private boolean hasValidSignature(ExecutableElement method, Query query, DelegateUri uri) {
+    private boolean hasValidSignature(ExecutableElement method, Query query, MethodBinding uri) {
 
         boolean isValid = true;
 
@@ -244,32 +259,34 @@ class QueryAnnotationProcessor {
 
         for (VariableElement parameterElement : parameters) {
 
-            List<Class<?>> accumulatedAnnotations = new ArrayList<Class<?>>();
+            List<Class<?>> accumulatedAnnotations = new ArrayList<>();
 
             final TypeMirror parameterType = parameterElement.asType();
 
-            isValid = validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
+            isValid &= validateParameterAnnotation(parameterElement, ContextRef.class, parameterType, mContextType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, Projection.class, parameterType,
+            isValid &=
+                    validateParameterAnnotation(parameterElement, Projection.class, parameterType, mArrayOfStringsType,
+                            accumulatedAnnotations);
+            isValid &= validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
+                    accumulatedAnnotations);
+            isValid &= validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
                     mArrayOfStringsType, accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, Selection.class, parameterType, mStringType,
+            isValid &= validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
                     accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, SelectionArgs.class, parameterType,
-                    mArrayOfStringsType, accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, SortOrder.class, parameterType, mStringType,
-                    accumulatedAnnotations);
-            isValid = validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
+            isValid &= validateParameterAnnotation(parameterElement, ContentUri.class, parameterType, mUriType,
                     accumulatedAnnotations);
 
-            isValid = validateUriPlaceholderAnnotation(parameterElement, query, uri, accumulatedAnnotations);
+            isValid &= validateUriPlaceholderAnnotation(parameterElement, query, uri, accumulatedAnnotations);
         }
 
         return isValid;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private boolean validateParameterAnnotation(VariableElement parameterElement, Class annotationClass,
-            TypeMirror parameterType, TypeMirror requiredType, List<Class<?>> accumulatedAnnotations) {
+                                                TypeMirror parameterType, TypeMirror requiredType,
+                                                List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -281,34 +298,33 @@ class QueryAnnotationProcessor {
 
                 isValid = false;
 
-                mLogger.trace(String
-                        .format("        Multiple incompatible annotatoins on same parameter [%s]. Signaling compilatoin error.",
-                                accumulatedAnnotations));
-                mLogger.error(
-                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                mLogger.trace(String.format(
+                        "        Multiple incompatible annotatoins on same parameter [%s]. Signaling compilatoin error.",
+                        accumulatedAnnotations));
+                mLogger.error(String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
                         parameterElement);
             }
 
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-            if (!parameterType.toString().equals(requiredType.toString())) {
+            if (!parameterType.toString()
+                    .equals(requiredType.toString())) {
 
                 isValid = false;
 
-                mLogger.trace(String.format(
-                        "        Parameter is not of expected type %s. Signaling compilatoin error.", requiredType,
-                        parameterElement));
-                mLogger.error(
-                        String.format("Parameters annotated with @%s must be of type %s.",
-                                annotationClass.getSimpleName(), requiredType), parameterElement);
+                mLogger.trace(
+                        String.format("        Parameter is not of expected type %s. Signaling compilation error.",
+                                requiredType));
+                mLogger.error(String.format("Parameters annotated with @%s must be of type %s.",
+                        annotationClass.getSimpleName(), requiredType), parameterElement);
             }
         }
 
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, DelegateUri uri,
-            List<Class<?>> accumulatedAnnotations) {
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, MethodBinding uri,
+                                                     List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
@@ -328,18 +344,17 @@ class QueryAnnotationProcessor {
 
                 isValid = false;
 
-                mLogger.trace(String.format("        Multiple annotatoins on same parameter."
-                        + " Signaling compilatoin error."));
-                mLogger.error(
-                        String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
+                mLogger.trace(String.format(
+                        "        Multiple annotatoins on same parameter." + " Signaling compilatoin error."));
+                mLogger.error(String.format("Parameters can only be annotated with one of %s.", accumulatedAnnotations),
                         parameterElement);
             }
 
             if (!uri.containsPlaceholder(placeholderName)) {
 
-                mLogger.trace(String.format(
-                        "        Couldn't find placeholder %s on URI path. Signaling compilation error.",
-                        placeholderName));
+                mLogger.trace(
+                        String.format("        Couldn't find placeholder %s on URI path. Signaling compilation error.",
+                                placeholderName));
                 mLogger.error(String.format("Could not find placeholder named '%s' on uri path '%s'.", placeholderName,
                         uriPathAndQuery), parameterElement);
 
@@ -352,23 +367,32 @@ class QueryAnnotationProcessor {
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
 
-        for (InterceptorBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+        if (metadata.getInterceptorBlueprints()
+                .size() == 0) {
+            return;
+        }
 
-            mLogger.trace(String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
+        List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
+                .getAnnotationMirrors();
 
-            List<? extends AnnotationMirror> annotationsMirrors = delegateMethod.getExecutableElement()
-                    .getAnnotationMirrors();
+        for (AnnotationMirror mirror : annotationsMirrors) {
 
-            for (AnnotationMirror mirror : annotationsMirrors) {
+            for (InterceptorPointAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+
+                mLogger.trace(
+                        String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
 
                 final TypeElement annotationTypeElement = concreteAnnotation.getTypeElement();
 
                 // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same
                 // qualified name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (mirror.getAnnotationType().toString().equals(annotationTypeElement.asType().toString())) {
+                if (mirror.getAnnotationType()
+                        .toString()
+                        .equals(annotationTypeElement.asType()
+                                .toString())) {
 
-                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptorPoint(mirror, mElementUtils,
-                            mTypeUtils, mLogger));
+                    delegateMethod.addInterceptor(
+                            concreteAnnotation.createInterceptorPoint(mirror, mElementUtils, mTypeUtils, mLogger));
                     mLogger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

@@ -20,41 +20,37 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.annotation.provider.delegate;
+apply plugin: 'java'
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+sourceCompatibility = JavaVersion.VERSION_1_7
+version = '1.0'
 
-/**
- * <p>Flags which parameter from a content provider delegate method will be passed the reference for the Uri provided to
- * the original content provider method.</p>
- *
- * <p>This annotation bears meaning only on {@link Query}, {@link Update}, {@link Insert} or {@link Delete} annotated
- * methods.</p>
- *
- * <p>Example usage:</p>
- *
- * <pre>
- * import import android.net.Uri;
- *
- * &#064;Query(&quot;/users&quot;)
- * public Cursor listUsers(@ContentUri Uri uriPassedToTheQueryMethodInTheContentProvider) {
- *
- *     ...
- * }
- *
- * &#064;Update(&quot;/users&quot;)
- * public int updateUser(@ContentUri Uri uriPassedToTheUpdateMethodInTheContentProvider, ...) {
- *
- *     ...
- * }
- * </pre>
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
- */
-@Target({ElementType.PARAMETER})
-@Documented
-public @interface ContentUri {
+repositories {
+    mavenCentral()
+}
 
+def aptOutputDir = project.file("${project.projectDir}/generated/src")
+
+idea {
+    module {
+        sourceDirs += aptOutputDir
+    }
+}
+
+dependencies {
+    compile project(':nudroid-annotations-processor-all')
+}
+
+compileJava.doFirst {
+    println "Creating " + aptOutputDir.getPath()
+    aptOutputDir.mkdirs()
+}
+
+compileJava {
+    options.compilerArgs = ['-s',  aptOutputDir.getPath(), "-Acom.nudroid.annotation.processor.log.level=TRACE",
+                            "-proc:only"]
+}
+
+clean{
+    delete aptOutputDir
 }

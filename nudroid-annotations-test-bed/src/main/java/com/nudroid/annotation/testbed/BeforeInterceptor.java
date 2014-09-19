@@ -20,61 +20,45 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.annotation.processor.model;
+package com.nudroid.annotation.testbed;
+
+import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
+import com.nudroid.provider.interceptor.ContentProviderContext;
+import com.nudroid.provider.interceptor.cache.CacheInterceptor;
+import com.nudroid.provider.interceptor.cache.CachingStrategy;
+import com.nudroid.provider.interceptor.cache.SynchronizationStrategy;
 
 /**
- * A content provider authority.
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * Cache validation interceptor for the cntent service.
  */
-public class Authority {
+public class BeforeInterceptor extends CacheInterceptor {
 
-    private final String mName;
-
-    /**
-     * Creates an authority representation.
-     *
-     * @param authorityName
-     *         The authority name.
-     */
-    public Authority(String authorityName) {
-
-        this.mName = authorityName;
-    }
 
     /**
-     * Gets the authority name.
+     * Creates an instance of this class.
      *
-     * @return The authority name.
+     * @param remoteUrl The remote url to download data from.
+     * @param cacheId   The id of the cache to use.
      */
-    public String getName() {
-
-        return mName;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "Authority '" + mName + "'";
+    public BeforeInterceptor(String remoteUrl, String cacheId) {
+        super(remoteUrl, cacheId);
     }
 
     @Override
-    public boolean equals(Object o) {
-
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Authority authority = (Authority) o;
-
-        return mName.equals(authority.mName);
+    public SynchronizationStrategy onCreateSynchronizationStrategy(ContentProviderContext context) {
+        return null;
     }
 
     @Override
-    public int hashCode() {
-        return mName.hashCode();
+    public CachingStrategy onCreateCachingStrategy(ContentProviderContext context) {
+        return null;
+    }
+
+    /**
+     * The interceptor annotation to be applied to methods.
+     */
+    @InterceptorPointcut
+    public static @interface Interceptor {
+
     }
 }

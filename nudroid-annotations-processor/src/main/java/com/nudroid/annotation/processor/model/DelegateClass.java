@@ -22,82 +22,146 @@
 
 package com.nudroid.annotation.processor.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-
 import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
+import java.util.List;
+import java.util.NavigableSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+
 /**
- * Holds information about the delegate class for a content provider.
- * 
+ * A delegate class handles ContentResolver requests on behalf of a ContentProvider. Each delegate class maps to a
+ * content provider and vice versa. The content provider matches a content URI with a particular method in the delegate
+ * class forwards (delegates) the call to the target method.
+ *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DelegateClass {
 
-    private String mQualifiedName;
-    private String mSimpleName;
-    private Authority mAuthority;
-    private List<MatcherUri> mMactherUris = new ArrayList<MatcherUri>();
-    private Set<DelegateMethod> mDelegateMethods = new HashSet<DelegateMethod>();
-    private Set<InterceptorPoint> mRegisteredInterceptors = new HashSet<InterceptorPoint>();
-    private Map<Integer, UriIdDelegateMethodMapper> mUriIdToDelegateMethodsRegistry = new LinkedHashMap<Integer, UriIdDelegateMethodMapper>();
-    private Map<DelegateUri, ExecutableElement> mDelegateUris = new HashMap<DelegateUri, ExecutableElement>();
+    private final String mQualifiedName;
+    private final TypeElement mTypeElement;
+    private final String mBasePackageName;
+    private final String mContentProviderSimpleName;
+    private final String mRouterSimpleName;
+    private final Authority mAuthority;
+    private boolean mHasImplementedDelegateInterface;
     private int mMatcherUriIdCount = 0;
-    private TypeElement mTypeElement;
-    private boolean mHasImplementDelegateInterface;
-    private String mBasePackageName;
-    private String mContentProviderSimpleName;
-    private String mRouterSimpleName;
+
+    //TODO Check if there's a more performing way of doing this check.
+    /* UriMatcher has an undocumented matching algorithm. It will match the first path segment (in the order they have
+     * been added) and ignore the rest of the entries even if the selected match fails on a later stage. For example:
+     *
+     *     * / *
+     *     page / * / *
+     *
+     * will not match 'page/section/33'. 'page' will match the first '*' so UriMatcher will try to use that entry to
+     * validate the path. Since the path has three segments while the pattern only has 2, it will fail but it WILL NOT
+     * try to match against the next (and correct) pattern.
+     *
+     * However, if we add these URIs in reverse order:
+     *
+     *     page / * / *
+     *     * / *
+     *
+     * Then it will match since the first entry will be selected. Basically, it traverses the list of patterns and stops
+     * as soon as it finds an entry whose first item match the input string.
+     *
+     * The sorting algorithm below sorts the entries by placing literal segments on top of the list based on where
+     * they appear in the pth. The closer to the beginning of the path, the higher their priority. Paths with the
+     * same priority are then sorted by path segment length.
+     *
+     * Uris will be sorted as they are added to this set by the provided closure.
+     */
+    private final NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
+
+        String[] uri1Paths = uri1.getNormalizedPath()
+                .split("/");
+        String[] uri2Paths = uri2.getNormalizedPath()
+                .split("/");
+
+        /* First sort by path literals. */
+        for (int i = 0; i < Math.min(uri1Paths.length, uri2Paths.length); i++) {
+
+            if (!UriMatcherPathPatternType.isPattern(uri1Paths[i]) &&
+                    UriMatcherPathPatternType.isPattern(uri2Paths[i])) {
+                return -1;
+            }
+
+            if (UriMatcherPathPatternType.isPattern(uri1Paths[i]) &&
+                    !UriMatcherPathPatternType.isPattern(uri2Paths[i])) {
+                return 1;
+            }
+        }
+
+        /* If uri structure is the same, sort by size. */
+        int pathSegmentCountDelta = uri2Paths.length - uri1Paths.length;
+
+        /* If size is the same, sort by alphabetical order. */
+        if (pathSegmentCountDelta == 0) {
+
+            for (int i = 0; i < uri1Paths.length; i++) {
+
+                int order = uri1Paths[i].compareTo(uri2Paths[i]);
+
+                if (order != 0) {
+                    return order;
+                }
+            }
+        }
+
+        return pathSegmentCountDelta;
+    });
 
     /**
      * Creates an instance of this class.
-     * 
-     * @param authorityName
-     *            The authority name being handled by the delegate class.
-     * 
+     *
+     * @param authority
+     *         The authority being handled by the delegate class.
      * @param typeElement
-     *            The {@link TypeElement} for the delegate class as provided by a round environment.
+     *         The {@link TypeElement} for the delegate class as provided by the round environment.
      */
-    public DelegateClass(String authorityName, TypeElement typeElement) {
+    public DelegateClass(String authority, TypeElement typeElement) {
 
         this.mTypeElement = typeElement;
         this.mQualifiedName = typeElement.toString();
-        this.mSimpleName = typeElement.getSimpleName().toString();
-        this.mAuthority = new Authority(authorityName);
+        this.mAuthority = new Authority(authority);
 
-        String baseName = this.mSimpleName;
-        baseName = baseName.replaceAll("(?i)Delegate", "").replaceAll("(?i)ContentProvider", "");
+        String contentProviderBaseName = typeElement.getSimpleName()
+                .toString();
+        contentProviderBaseName = contentProviderBaseName.replaceAll("(?i)Delegate", "")
+                .replaceAll("(?i)ContentProvider", "");
 
-        StringBuilder providerSimpleName = new StringBuilder(baseName);
-        StringBuilder routerSimpleName = new StringBuilder(this.mSimpleName);
+        StringBuilder providerSimpleName = new StringBuilder(contentProviderBaseName);
+        StringBuilder routerSimpleName = new StringBuilder(typeElement.getSimpleName()
+                .toString());
         Element parentElement = typeElement.getEnclosingElement();
 
-        while (parentElement != null && !parentElement.getKind().equals(ElementKind.PACKAGE)) {
+        /* If the enclosing element is not a package, the delegate class is an inner class. Suffix the name with the
+        names of the parent classes. */
+        while (parentElement != null && !parentElement.getKind()
+                .equals(ElementKind.PACKAGE)) {
 
-            providerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
-            routerSimpleName.insert(0, "$").insert(0, parentElement.getSimpleName());
+            providerSimpleName.insert(0, "$")
+                    .insert(0, parentElement.getSimpleName());
+            routerSimpleName.insert(0, "$")
+                    .insert(0, parentElement.getSimpleName());
             parentElement = parentElement.getEnclosingElement();
         }
 
-        providerSimpleName.append("ContentProvider");
-        routerSimpleName.append("Router");
+        providerSimpleName.append("ContentProvider_");
+        routerSimpleName.append("Router_");
 
-        if (parentElement != null && parentElement.getKind().equals(ElementKind.PACKAGE)) {
+        if (parentElement != null && parentElement.getKind()
+                .equals(ElementKind.PACKAGE)) {
 
-            this.mBasePackageName = ((PackageElement) parentElement).getQualifiedName().toString();
+            this.mBasePackageName = ((PackageElement) parentElement).getQualifiedName()
+                    .toString();
         } else {
 
             this.mBasePackageName = "";
@@ -108,83 +172,59 @@ public class DelegateClass {
     }
 
     /**
-     * Adds a delegate method to this class.
-     * 
-     * @param delegateMethod
-     *            The method to be added.
-     */
-    public void addMethod(DelegateMethod delegateMethod) {
-
-        mDelegateMethods.add(delegateMethod);
-        delegateMethod.setDelegateClass(this);
-        UriIdDelegateMethodMapper uriToDelegateMapper = mUriIdToDelegateMethodsRegistry.get(delegateMethod.getUriId());
-
-        if (uriToDelegateMapper == null) {
-
-            uriToDelegateMapper = new UriIdDelegateMethodMapper(delegateMethod.getUriId());
-            mUriIdToDelegateMethodsRegistry.put(delegateMethod.getUriId(), uriToDelegateMapper);
-        }
-
-        uriToDelegateMapper.add(delegateMethod);
-    }
-
-    /**
-     * Registers a path to be matched by the content provider uri matcher.
-     * 
-     * @param queryMethodElement
-     *            The method the path appears on.
-     * 
+     * Registers a @Query path and query string to be handled by this delegate class.
+     *
      * @param pathAndQuery
-     *            The path to register.
+     *         The path and query string to register.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
+     * @return A new MethodBinding object binding the path and query string combination to the target method.
+     *
+     * @throws DuplicatePathException
+     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public DelegateUri registerPath(ExecutableElement queryMethodElement, String pathAndQuery) {
+    public MethodBinding registerPathForQuery(String pathAndQuery,
+                                              List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
-        MatcherUri matcherUri = new MatcherUri(mAuthority, pathAndQuery);
-
-        if (!mMactherUris.contains(matcherUri)) {
-            matcherUri.setId(++mMatcherUriIdCount);
-            mMactherUris.add(matcherUri);
-        }
-
-        DelegateUri delegateUri = new DelegateUri(mMactherUris.get(mMactherUris.indexOf(matcherUri)), pathAndQuery);
-
-        ExecutableElement existingDelegateMethod = mDelegateUris.get(delegateUri);
-
-        if (existingDelegateMethod != null) {
-
-            throw new DuplicatePathException(existingDelegateMethod);
-        }
-
-        mDelegateUris.put(delegateUri, queryMethodElement);
-
-        return delegateUri;
+        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
+        return matcherUri.registerQueryUri(pathAndQuery);
     }
 
     /**
-     * Registers an interceptor for this class.
-     * 
-     * @param interceptor
-     *            The interceptor to register.
+     * Registers a @Update path and query string to be handled by this delegate class.
+     *
+     * @param pathAndQuery
+     *         The path and query string to register.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
+     * @return A new MethodBinding object binding the path and query string combination to the target method.
+     *
+     * @throws DuplicatePathException
+     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public void registerInterceptor(InterceptorPoint interceptor) {
+    public MethodBinding registerPathForUpdate(String pathAndQuery,
+                                               List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
-        mRegisteredInterceptors.add(interceptor);
+        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
+        return matcherUri.registerUpdateUri(pathAndQuery);
     }
 
     /**
      * Sets if the delegate class implements the delegate interface.
-     * 
+     *
      * @param doesImplementDelegateInterface
-     *            <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *            otherwise.
+     *         <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     *         otherwise.
      */
     public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
-        this.mHasImplementDelegateInterface = doesImplementDelegateInterface;
+        this.mHasImplementedDelegateInterface = doesImplementDelegateInterface;
     }
 
     /**
      * Gets the {@link TypeElement} mapped by this class.
-     * 
+     *
      * @return The {@link TypeElement} mapped by this class.
      */
     public TypeElement getTypeElement() {
@@ -193,7 +233,7 @@ public class DelegateClass {
 
     /**
      * Gets the fully qualified name of the delegate class.
-     * 
+     *
      * @return The fully qualified name of the delegate class.
      */
     public String getQualifiedName() {
@@ -202,65 +242,21 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the simple name of the delegate class (i.e. without the package name).
-     * 
-     * @return The qualified name of the delegate class (i.e. without the package name).
-     */
-    public String getSimpleName() {
-        return mSimpleName;
-    }
-
-    /**
      * Gets the authority associated with this class.
-     * 
+     *
      * @return The authority associated with this class.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public Authority getAuthority() {
 
         return mAuthority;
     }
 
     /**
-     * Gets the URIs this delegate class handles.
-     * 
-     * @return The URIs this delegate class handles.
-     */
-    public List<MatcherUri> getMactherUris() {
-
-        return mMactherUris;
-    }
-
-    /**
-     * Gets the mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-     * 
-     * @return The mapping of uri ids to the delegate methods responsible to process requests matching the uri.
-     */
-    public List<DelegateMethod> getMethodsForUriId(int uriId) {
-
-        return mUriIdToDelegateMethodsRegistry.get(uriId).getDelegateMethods();
-    }
-
-    /**
-     * Gets all the URI ids this class is responsible to process.
-     * 
-     * @return All the URI ids this class is responsible to process.
-     */
-    public Set<Integer> getUriIds() {
-
-        return mUriIdToDelegateMethodsRegistry.keySet();
-    }
-    
-    public Collection<UriIdDelegateMethodMapper> getUriToDelegateMethodMapperSet() {
-        
-        return mUriIdToDelegateMethodsRegistry.values();
-    }
-
-    /**
-     * Gets the simple name of the router class which will be created to route calls to the delegate class (i.e. without
-     * the package name).
-     * 
-     * @return The simple name of the router class which will be created to route calls to the delegate class (i.e.
-     *         without the package name).
+     * Gets the simple name of the router class which will be created to route calls to this delegate class (i.e.
+     * without the package name).
+     *
+     * @return The simple name of the router class which will be created to route calls to this delegate class.
      */
     public String getRouterSimpleName() {
 
@@ -269,7 +265,7 @@ public class DelegateClass {
 
     /**
      * Gets the simple name of this delegate's content provider (i.e. without the package name).
-     * 
+     *
      * @return The simple name of this delegate's content provider.
      */
     public String getContentProviderSimpleName() {
@@ -278,39 +274,8 @@ public class DelegateClass {
     }
 
     /**
-     * Gets the set of delegate methods declared in this delegate class.
-     * 
-     * @return The set of delegate methods declared in this delegate class.
-     */
-    public Set<DelegateMethod> getDelegateMethods() {
-
-        return mDelegateMethods;
-    }
-
-    /**
-     * Gets the registered interceptor on this class.
-     * 
-     * @return The registered interceptor on this class.
-     */
-    public Set<InterceptorPoint> getRegisteredInterceptors() {
-
-        return mRegisteredInterceptors;
-    }
-
-    /**
-     * Checks if the delegate class implements the {@link ContentProvider} interface.
-     * 
-     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *         otherwise.
-     */
-    public boolean hasContentProviderDelegateInterface() {
-
-        return mHasImplementDelegateInterface;
-    }
-
-    /**
      * Gets the base package name for the generated class files.
-     * 
+     *
      * @return The base package name for the generated source files.
      */
     public String getBasePackageName() {
@@ -319,13 +284,84 @@ public class DelegateClass {
     }
 
     /**
-     * @see java.lang.Object#toString()
+     * Checks if the delegate class implements the {@link ContentProvider} interface.
+     *
+     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
+     * otherwise.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public boolean getImplementsContentProviderDelegateInterface() {
+
+        return mHasImplementedDelegateInterface;
+    }
+
+    /**
+     * Gets the URIs this delegate class handles.
+     *
+     * @return The {@link MatcherUri}s this delegate class handles.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public NavigableSet<MatcherUri> getMatcherUris() {
+
+        return mMatcherUris;
+    }
+
+    /**
+     * Checks if a {@link MatcherUri} has already been created for the path and query. If yes, returns that instance. If
+     * not, a new one is created and registered.
+     *
+     * @param pathAndQuery
+     *         The path and query to check.
+     * @param placeholderTargetTypes
+     *         The types of the parameters mapping to the placeholders, in the order they appear.
+     *
+     * @return The {@link MatcherUri} for the path and query.
+     */
+    private MatcherUri getMatcherUriFor(String pathAndQuery, List<UriMatcherPathPatternType> placeholderTargetTypes) {
+
+        final MatcherUri newCandidate = new MatcherUri(mAuthority, pathAndQuery, placeholderTargetTypes);
+
+        List<MatcherUri> matchingUris = mMatcherUris.stream().filter(newCandidate::equals).collect(Collectors.toList());
+
+        if (matchingUris.size() == 0) {
+
+            newCandidate.setId(++mMatcherUriIdCount);
+            mMatcherUris.add(newCandidate);
+
+            return newCandidate;
+        }
+
+        return matchingUris.get(0);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#hashCode()
      */
     @Override
-    public String toString() {
-        return "DelegateClass [mQualifiedName=" + mQualifiedName + ", mSimpleName=" + mSimpleName
-                + ", delegateMethods=" + mUriIdToDelegateMethodsRegistry + ", mMactherUris=" + mMactherUris
-                + ", mDelegateUris=" + mDelegateUris + ", authority=" + mAuthority + ", mMatcherUriIdCount="
-                + mMatcherUriIdCount + "]";
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mQualifiedName == null) ? 0 : mQualifiedName.hashCode());
+        return result;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        DelegateClass other = (DelegateClass) obj;
+        if (mQualifiedName == null) {
+            if (other.mQualifiedName != null) return false;
+        } else if (!mQualifiedName.equals(other.mQualifiedName)) return false;
+        return true;
+    }
+
 }
