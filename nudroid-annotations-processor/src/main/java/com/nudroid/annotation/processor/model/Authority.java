@@ -29,7 +29,7 @@ package com.nudroid.annotation.processor.model;
  */
 public class Authority {
 
-    private String mName;
+    private final String mName;
 
     /**
      * Creates an authority representation.

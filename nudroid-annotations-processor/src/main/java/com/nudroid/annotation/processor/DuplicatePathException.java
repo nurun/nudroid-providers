@@ -32,7 +32,7 @@ import javax.lang.model.element.ExecutableElement;
 public class DuplicatePathException extends IllegalUriPathException {
 
     private static final long serialVersionUID = -4364782083955709261L;
-    private ExecutableElement mOriginalMethod;
+    private final ExecutableElement mOriginalMethod;
 
     /**
      * @param existingDelegateMethod

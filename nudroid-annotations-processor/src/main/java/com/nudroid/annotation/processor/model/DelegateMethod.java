@@ -45,13 +45,13 @@ import com.nudroid.annotation.provider.delegate.Update;
  */
 public class DelegateMethod {
 
-    private String mName;
-    private List<Parameter> mParameters = new ArrayList<>();
-    private List<Parameter> mPathParameters = new ArrayList<>();
-    private List<Parameter> mQueryStringParameters = new ArrayList<>();
+    private final String mName;
+    private final List<Parameter> mParameters = new ArrayList<>();
+    private final List<Parameter> mPathParameters = new ArrayList<>();
+    private final List<Parameter> mQueryStringParameters = new ArrayList<>();
+    private final ExecutableElement mExecutableElement;
+    private final List<InterceptorPoint> mInterceptorElements = new ArrayList<>();
     private Set<String> mQueryStringParameterNames = new HashSet<>();
-    private ExecutableElement mExecutableElement;
-    private List<InterceptorPoint> mInterceptorElements = new ArrayList<>();
     private List<InterceptorPoint> mInverseInterceptorElements = null;
 
     /**

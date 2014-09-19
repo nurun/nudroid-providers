@@ -40,9 +40,9 @@ import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
  */
 class Metadata {
 
-    private Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<>();
-    private Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<>();
-    private Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints = new HashMap<>();
+    private final Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<>();
+    private final Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<>();
+    private final Map<TypeElement, InterceptorAnnotationBlueprint> mInterceptorBlueprints = new HashMap<>();
 
     /*
      * The stack is what tracks classes to be fed to the source code generator. Because of Eclipse's continuous build,
@@ -50,8 +50,8 @@ class Metadata {
      * Filer utility class will then fail because it can't create multiple instances of the same source file. The stack
      * is filled only once so each class is written only once.
      */
-    private Set<DelegateClass> mDelegateClassStack = new HashSet<>();
-    private Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack = new HashSet<>();
+    private final Set<DelegateClass> mDelegateClassStack = new HashSet<>();
+    private final Set<InterceptorAnnotationBlueprint> mInterceptorBlueprintStack = new HashSet<>();
 
     /**
      * Registers an authority and the corresponding annotated {@link TypeElement}.

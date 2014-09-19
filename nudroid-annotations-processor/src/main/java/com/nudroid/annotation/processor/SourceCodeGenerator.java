@@ -44,8 +44,8 @@ import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprint;
  */
 class SourceCodeGenerator {
 
-    private LoggingUtils mLogger;
-    private Filer mFiler;
+    private final LoggingUtils mLogger;
+    private final Filer mFiler;
 
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION =
             "com/nudroid/annotation/processor/RouterTemplate.stg";

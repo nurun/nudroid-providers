@@ -187,83 +187,59 @@ public class Parameter {
 
     /**
      * Sets if this parameter is annotated with {@link ContextRef}.
-     *
-     * @param isContext
-     *         If the parameter is annotated or not.
      */
-    public void setContext(boolean isContext) {
+    public void setContext() {
 
-        this.mContext = isContext;
+        this.mContext = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Projection}.
-     *
-     * @param isProjection
-     *         If the parameter is annotated or not.
      */
-    public void setProjection(boolean isProjection) {
-        this.mProjection = isProjection;
+    public void setProjection() {
+        this.mProjection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Selection}.
-     *
-     * @param isSelection
-     *         If the parameter is annotated or not.
      */
-    public void setSelection(boolean isSelection) {
-        this.mSelection = isSelection;
+    public void setSelection() {
+        this.mSelection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SelectionArgs}.
-     *
-     * @param isSelectionArgs
-     *         If the parameter is annotated or not.
      */
-    public void setSelectionArgs(boolean isSelectionArgs) {
-        this.mSelectionArgs = isSelectionArgs;
+    public void setSelectionArgs() {
+        this.mSelectionArgs = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SortOrder}.
-     *
-     * @param isSortOrder
-     *         If the parameter is annotated or not.
      */
-    public void setSortOrder(boolean isSortOrder) {
-        this.mSortOrder = isSortOrder;
+    public void setSortOrder() {
+        this.mSortOrder = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
-     *
-     * @param isContentValues
-     *         If the parameter is annotated or not.
      */
-    public void setContentValues(boolean isContentValues) {
-        this.mContentValues = isContentValues;
+    public void setContentValues() {
+        this.mContentValues = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentUri}.
-     *
-     * @param isContentUri
-     *         If the parameter is annotated or not.
      */
-    public void setContentUri(boolean isContentUri) {
-        this.mContentUri = isContentUri;
+    public void setContentUri() {
+        this.mContentUri = true;
     }
 
     /**
      * Sets if this parameter is of type {@link String}.
-     *
-     * @param isString
-     *         If the parameter is of type {@link String}.
      */
-    public void setString(boolean isString) {
-        this.mString = isString;
+    public void setString() {
+        this.mString = true;
     }
 
     /**

@@ -55,11 +55,11 @@ public class MethodBinding {
 
     private String mPath;
     private String mQueryString;
-    private Map<String, UriPlaceholder> mPlaceholders = new HashMap<>();
-    private Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<>();
+    private final Map<String, UriPlaceholder> mPlaceholders = new HashMap<>();
+    private final Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<>();
     private DelegateMethod mDelegateMethod;
 
-    private String mOriginalPathAndQuery;
+    private final String mOriginalPathAndQuery;
 
     /**
      * Creates an instance of this class.

@@ -52,13 +52,13 @@ import javax.lang.model.util.Types;
  */
 public class InterceptorAnnotationBlueprint {
 
-    private String mInterceptorAnnotationQualifiedName;
+    private final String mInterceptorAnnotationQualifiedName;
+    private final TypeElement mInterceptorAnnotationTypeElement;
+    private final TypeElement mInterceptorImplementationTypeElement;
+    private final List<AnnotationAttribute> mAttributes = new ArrayList<>();
+    private boolean mHasCustomConstructor;
     private String mConcreteClassName;
     private String mConcretePackageName;
-    private TypeElement mInterceptorAnnotationTypeElement;
-    private TypeElement mInterceptorImplementationTypeElement;
-    private boolean mHasCustomConstructor;
-    private List<AnnotationAttribute> mAttributes = new ArrayList<>();
 
     /**
      * Creates a new InterceptorBlueprint bean.

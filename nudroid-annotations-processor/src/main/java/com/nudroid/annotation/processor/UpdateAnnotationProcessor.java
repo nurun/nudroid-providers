@@ -63,14 +63,14 @@ class UpdateAnnotationProcessor {
 
     private static final String PRIMITIVE_INT_CLASS_NAME = "int";
 
-    private LoggingUtils mLogger;
+    private final LoggingUtils mLogger;
 
-    private TypeMirror mContextType;
-    private TypeMirror mStringType;
-    private TypeMirror mArrayOfStringsType;
-    private TypeMirror mUriType;
-    private Types mTypeUtils;
-    private Elements mElementUtils;
+    private final TypeMirror mContextType;
+    private final TypeMirror mStringType;
+    private final TypeMirror mArrayOfStringsType;
+    private final TypeMirror mUriType;
+    private final Types mTypeUtils;
+    private final Elements mElementUtils;
 
     /**
      * Creates an instance of this class.
@@ -208,18 +208,18 @@ class UpdateAnnotationProcessor {
 
             Parameter parameter = new Parameter();
 
-            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext(true);
-            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection(true);
-            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection(true);
-            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs(true);
-            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder(true);
-            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri(true);
-            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues(true);
+            if (methodParameter.getAnnotation(ContextRef.class) != null) parameter.setContext();
+            if (methodParameter.getAnnotation(Projection.class) != null) parameter.setProjection();
+            if (methodParameter.getAnnotation(Selection.class) != null) parameter.setSelection();
+            if (methodParameter.getAnnotation(SelectionArgs.class) != null) parameter.setSelectionArgs();
+            if (methodParameter.getAnnotation(SortOrder.class) != null) parameter.setSortOrder();
+            if (methodParameter.getAnnotation(ContentUri.class) != null) parameter.setContentUri();
+            if (methodParameter.getAnnotation(ContentValuesRef.class) != null) parameter.setContentValues();
             // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
             // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
             if (methodParameter.asType()
                     .toString()
-                    .equals(mStringType.toString())) parameter.setString(true);
+                    .equals(mStringType.toString())) parameter.setString();
 
             final UriPlaceholder uriPlaceholder = methodParameter.getAnnotation(UriPlaceholder.class);
 

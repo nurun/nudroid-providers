@@ -34,10 +34,10 @@ import javax.lang.model.element.TypeElement;
  */
 public class InterceptorPoint {
 
-    private TypeElement mInterceptorImplementationElement;
+    private final TypeElement mInterceptorImplementationElement;
     private boolean mHasCustomConstructor;
-    private InterceptorAnnotationBlueprint mConcreteAnnotation;
-    private List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
+    private final InterceptorAnnotationBlueprint mConcreteAnnotation;
+    private final List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
 
     /**
      * Creates a new Interceptor bean.

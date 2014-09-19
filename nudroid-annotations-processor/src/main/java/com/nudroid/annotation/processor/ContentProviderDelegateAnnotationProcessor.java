@@ -46,8 +46,8 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
  */
 class ContentProviderDelegateAnnotationProcessor {
 
-    private LoggingUtils mLogger;
-    private String mDelegateTypeName;
+    private final LoggingUtils mLogger;
+    private final String mDelegateTypeName;
 
     /**
      * Creates an instance of this class.

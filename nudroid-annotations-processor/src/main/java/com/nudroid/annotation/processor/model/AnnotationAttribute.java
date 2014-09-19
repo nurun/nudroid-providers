@@ -31,9 +31,9 @@ import javax.lang.model.element.ExecutableElement;
  */
 public class AnnotationAttribute {
 
-    private String mType;
-    private String mName;
-    private String mCapitalizedName;
+    private final String mType;
+    private final String mName;
+    private final String mCapitalizedName;
 
     /**
      * Creates an instance of this class.

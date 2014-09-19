@@ -44,14 +44,14 @@ import javax.lang.model.element.TypeElement;
  */
 public class DelegateClass {
 
-    private String mQualifiedName;
-    private int mMatcherUriIdCount = 0;
-    private TypeElement mTypeElement;
+    private final String mQualifiedName;
+    private final TypeElement mTypeElement;
+    private final String mBasePackageName;
+    private final String mContentProviderSimpleName;
+    private final String mRouterSimpleName;
+    private final Authority mAuthority;
     private boolean mHasImplementedDelegateInterface;
-    private String mBasePackageName;
-    private String mContentProviderSimpleName;
-    private String mRouterSimpleName;
-    private Authority mAuthority;
+    private int mMatcherUriIdCount = 0;
 
     //TODO Check if there's a more performing way of doing this check.
     /* UriMatcher has an undocumented matching algorithm. It will match the first path segment (in the order they have
@@ -78,7 +78,7 @@ public class DelegateClass {
      *
      * Uris will be sorted as they are added to this set by the provided closure.
      */
-    private NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
+    private final NavigableSet<MatcherUri> mMatcherUris = new TreeSet<>((uri1, uri2) -> {
 
         String[] uri1Paths = uri1.getNormalizedPath()
                 .split("/");

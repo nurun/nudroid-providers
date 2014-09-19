@@ -48,7 +48,7 @@ public class <delegateClass.contentProviderSimpleName> extends ContentProvider {
         mContentProviderRouter = new <delegateClass.routerSimpleName>(delegate);
 
 <if(delegateClass.implementsContentProviderDelegateInterface)>
-        boolean result = ((ContentProviderDelegate) delegate).onCreate(getContext());
+        boolean result = delegate.onCreate(getContext());
         return result;
 <else>
         return true;

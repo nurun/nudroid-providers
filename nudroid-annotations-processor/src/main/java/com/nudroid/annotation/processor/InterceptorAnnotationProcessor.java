@@ -48,9 +48,9 @@ import javax.lang.model.util.Types;
  */
 class InterceptorAnnotationProcessor {
 
-    private LoggingUtils mLogger;
-    private Types mTypeUtils;
-    private Elements mElementUtils;
+    private final LoggingUtils mLogger;
+    private final Types mTypeUtils;
+    private final Elements mElementUtils;
 
     /**
      * Creates an instance of this class.
@@ -122,8 +122,7 @@ class InterceptorAnnotationProcessor {
         mLogger.info(String.format("Done processing @%s annotations.", ProviderInterceptorPoint.class.getSimpleName()));
     }
 
-    private InterceptorAnnotationBlueprint createConcreteAnnotationMetadata(Element interceptorAnnotation,
-                                                                            Metadata metadata) {
+    private void createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
         if (interceptorAnnotation instanceof TypeElement) {
 
@@ -142,10 +141,6 @@ class InterceptorAnnotationProcessor {
                     .forEach(method -> annotation.addAttribute(new AnnotationAttribute((ExecutableElement) method)));
 
             metadata.registerConcreteAnnotation(annotation);
-
-            return annotation;
         }
-
-        return null;
     }
 }

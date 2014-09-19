@@ -29,8 +29,8 @@ package com.nudroid.annotation.processor.model;
  */
 public class InterceptorAnnotationParameter {
 
-    private String mLiteralValue;
-    private boolean mIsString;
+    private final String mLiteralValue;
+    private final boolean mIsString;
 
     /**
      * Creates an interceptor annotation parameter.

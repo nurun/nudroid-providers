@@ -30,9 +30,9 @@ package com.nudroid.annotation.processor;
 public class DuplicateUriPlaceholderException extends IllegalUriPathException {
 
     private static final long serialVersionUID = -3066482963147107085L;
-    private String duplicatePosition;
-    private String existingPosition;
-    private String placeholderName;
+    private final String duplicatePosition;
+    private final String existingPosition;
+    private final String placeholderName;
 
     /**
      * Creates an instance of this class.

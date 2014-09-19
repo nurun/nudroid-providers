@@ -41,12 +41,12 @@ public class MatcherUri {
     private static final String LEADING_SLASH_REGEXP = "^/";
 
     private int id;
-    private Authority mAuthority;
-    private String mPath;
+    private final Authority mAuthority;
+    private final String mPath;
     private boolean mHasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<MethodBinding> mQueryBindings = new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
+    private final NavigableSet<MethodBinding> mQueryBindings = new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
 
         if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
@@ -58,7 +58,7 @@ public class MatcherUri {
     });
 
     /* Delegate URIs are sorted by query parameter count */
-    private NavigableSet<MethodBinding> mUpdateBindings = new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
+    private final NavigableSet<MethodBinding> mUpdateBindings = new TreeSet<>((MethodBinding uri1, MethodBinding uri2) -> {
 
         if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
@@ -225,7 +225,7 @@ public class MatcherUri {
     /**
      * Check whether or not this matcher uri only matches paths containing query strings.
      *
-     * @return <tt>true</tt> if mathcing only paths with query string, <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if matching only paths with query string, <tt>false</tt> otherwise.
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean hasQueryStringMatchersOnly() {

@@ -31,7 +31,7 @@ import javax.lang.model.util.Types;
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class ProcessorContext {
+class ProcessorContext {
 
     /**
      * The processing environment object being used by this processor.
