@@ -49,23 +49,19 @@ public enum UriMatcherPathPatternType {
     }
 
     /**
-     * Given the parameter type, get the appropriate uri matcher patters.
+     * Given a class name, get the appropriate uri matcher pattern. This method returns STRING for "java.lang.String"
+     * and NUMBER for everything else.
      *
-     * @param mirror
-     *         the type of the parameter to map to the placeholder
-     * @param elementUtils
-     *         Elements reference
-     * @param typeUtils
-     *         Types reference
+     * @param className
+     *         the class name to check for
      *
-     * @return The proper URI pattern for the parameter type.
+     * @return the proper URI pattern for the parameter type
      */
-    public static UriMatcherPathPatternType fromTypeMirror(TypeMirror mirror, Elements elementUtils, Types typeUtils) {
+    public static UriMatcherPathPatternType fromClass(String className) {
 
-        TypeMirror stringType = elementUtils.getTypeElement(String.class.getName())
-                .asType();
+        String stringClassName = String.class.getName();
 
-        if (typeUtils.isSameType(stringType, mirror)) {
+        if (className.equals(stringClassName)) {
             return STRING;
         } else {
             return NUMBER;

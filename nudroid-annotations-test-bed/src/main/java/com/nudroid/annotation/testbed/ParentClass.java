@@ -50,9 +50,8 @@ public class ParentClass {
                 fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
                 zValue = Object.class, zValues = {Object.class, String.class})
         @MyCacheInterceptor.Interceptor("yahoo")
-        @Query("/terminals/cast/{oba}?a={baba}&b={bebe}")
-        public Cursor terminals(@UriPlaceholder("baba") String ba, @UriPlaceholder("bebe") String bb,
-                                @UriPlaceholder("oba") String oba) {
+        @Query("/terminals/cast/{oba}")
+        public Cursor terminals(@UriPlaceholder("oba") String oba) {
 
             //... perform query
             return null;

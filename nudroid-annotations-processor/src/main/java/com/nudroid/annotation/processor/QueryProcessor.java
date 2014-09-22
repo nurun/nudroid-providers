@@ -60,6 +60,7 @@ import javax.lang.model.util.Types;
  */
 class QueryProcessor {
 
+    private static final String PATH_AND_QUERY_STRING_REGEXP = "[^\\?]*\\?.*";
     private static final String ANDROID_DATABASE_CURSOR_CLASS_NAME = "android.database.Cursor";
 
     private final LoggingUtils mLogger;
@@ -151,13 +152,18 @@ class QueryProcessor {
     private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass) {
 
         Query query = queryMethod.getAnnotation(Query.class);
-        String pathAndQuery = query.value();
+        String path = query.value();
+
+        if (path.matches(PATH_AND_QUERY_STRING_REGEXP)) {
+
+            mLogger.error("Query strings are not allowed in path expressions", queryMethod);
+            return null;
+        }
 
         UriToMethodBinding uriToMethodBinding;
 
         try {
 
-            //TODO Check if there's a better way of doing this. Get the ParamTypePattern from the supported types map.
             List<UriMatcherPathPatternType> placeholderTypes = new ArrayList<>();
 
             List<? extends VariableElement> parameters = queryMethod.getParameters();
@@ -168,28 +174,27 @@ class QueryProcessor {
 
                 if (annotation != null) {
 
-                    placeholderTypes.add(
-                            UriMatcherPathPatternType.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                    placeholderTypes.add(UriMatcherPathPatternType.fromClass(param.asType()
+                                    .toString()));
                 }
             }
 
-            uriToMethodBinding = delegateClass.registerPathForQuery(pathAndQuery, placeholderTypes);
-            mLogger.trace(String.format("        Registering URI path '%s'.", pathAndQuery));
+            uriToMethodBinding = delegateClass.registerPathForQuery(path, placeholderTypes);
+            mLogger.trace(String.format("        Registering URI path '%s'.", path));
         } catch (DuplicatePathException e) {
 
-            mLogger.trace(String.format(
-                    "        Path '%s' has already been registered by method %s. Signaling compilation error.",
-                    pathAndQuery, e.getOriginalMethod()));
             mLogger.error(String.format("An equivalent path has already been registered by method '%s'",
                     e.getOriginalMethod()), queryMethod);
             return null;
         } catch (DuplicateUriPlaceholderException e) {
 
-            mLogger.trace(String.format("        Path '%s' has duplicated placeholder. Signaling compilation error.",
-                    pathAndQuery));
             mLogger.error(
                     String.format("Placeholder '%s' appearing at position '%s' is already present at position '%s'",
                             e.getPlaceholderName(), e.getDuplicatePosition(), e.getExistingPosition()), queryMethod);
+            return null;
+        } catch (IllegalUriPathException e) {
+
+            mLogger.error(String.format("Uri path '%s' is invalid: '%s'", path, e.getMessage()), queryMethod);
             return null;
         }
 
@@ -323,8 +328,8 @@ class QueryProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query, UriToMethodBinding uri,
-                                                     List<Class<?>> accumulatedAnnotations) {
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Query query,
+                                                     UriToMethodBinding uri, List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 

@@ -166,8 +166,8 @@ class UpdateProcessor {
 
                 if (annotation != null) {
 
-                    placeholderTypes.add(
-                            UriMatcherPathPatternType.fromTypeMirror(param.asType(), mElementUtils, mTypeUtils));
+                    placeholderTypes.add(UriMatcherPathPatternType.fromClass(param.asType()
+                                    .toString()));
                 }
             }
 
@@ -322,8 +322,8 @@ class UpdateProcessor {
         return isValid;
     }
 
-    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query, UriToMethodBinding uri,
-                                                     List<Class<?>> accumulatedAnnotations) {
+    private boolean validateUriPlaceholderAnnotation(VariableElement parameterElement, Update query,
+                                                     UriToMethodBinding uri, List<Class<?>> accumulatedAnnotations) {
 
         boolean isValid = true;
 
