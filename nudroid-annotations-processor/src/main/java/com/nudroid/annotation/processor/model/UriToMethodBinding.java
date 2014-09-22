@@ -55,7 +55,7 @@ public class UriToMethodBinding {
 
     private String mPath;
     private String mQueryString;
-    private final Map<String, UriPlaceholder> mPlaceholders = new HashMap<>();
+    private final Map<String, PathPlaceholder> mPlaceholders = new HashMap<>();
     private final Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<>();
     private DelegateMethod mDelegateMethod;
 
@@ -125,7 +125,7 @@ public class UriToMethodBinding {
      */
     public String getParameterPosition(String name) {
 
-        UriPlaceholder placeholder = mPlaceholders.get(name);
+        PathPlaceholder placeholder = mPlaceholders.get(name);
 
         return placeholder != null ? placeholder.getKey() : null;
     }
@@ -272,7 +272,7 @@ public class UriToMethodBinding {
                     .getKey(), Integer.toString(position));
         }
 
-        UriPlaceholder pathPlaceholder = new UriPlaceholder(placeholderName, position);
+        PathPlaceholder pathPlaceholder = new PathPlaceholder(placeholderName, position);
         mPlaceholders.put(placeholderName, pathPlaceholder);
     }
 
@@ -284,7 +284,7 @@ public class UriToMethodBinding {
                     .getKey(), queryParameterName);
         }
 
-        UriPlaceholder queryPlaceholder = new UriPlaceholder(placeholderName, queryParameterName);
+        PathPlaceholder queryPlaceholder = new PathPlaceholder(placeholderName, queryParameterName);
         mPlaceholders.put(placeholderName, queryPlaceholder);
     }
 
