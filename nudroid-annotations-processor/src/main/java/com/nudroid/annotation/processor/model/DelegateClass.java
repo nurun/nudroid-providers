@@ -179,12 +179,12 @@ public class DelegateClass {
      * @param placeholderTargetTypes
      *         The types of the parameters mapping to the placeholders, in the order they appear.
      *
-     * @return A new MethodBinding object binding the path and query string combination to the target method.
+     * @return A new UriToMethodBinding object binding the path and query string combination to the target method.
      *
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Query DelegateMethod.
      */
-    public MethodBinding registerPathForQuery(String pathAndQuery,
+    public UriToMethodBinding registerPathForQuery(String pathAndQuery,
                                               List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
@@ -199,12 +199,12 @@ public class DelegateClass {
      * @param placeholderTargetTypes
      *         The types of the parameters mapping to the placeholders, in the order they appear.
      *
-     * @return A new MethodBinding object binding the path and query string combination to the target method.
+     * @return A new UriToMethodBinding object binding the path and query string combination to the target method.
      *
      * @throws DuplicatePathException
      *         If the path and query string has already been associated with an existing @Update DelegateMethod.
      */
-    public MethodBinding registerPathForUpdate(String pathAndQuery,
+    public UriToMethodBinding registerPathForUpdate(String pathAndQuery,
                                                List<UriMatcherPathPatternType> placeholderTargetTypes) {
 
         MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);

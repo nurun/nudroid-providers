@@ -72,7 +72,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     private UpdateProcessor updateProcessor;
     private InterceptorPointcutProcessor interceptorPointcutProcessor;
 
-    private SourceCodeGenerator sourceCodeGenerator;
+    private SourceCodeWriter sourceCodeWriter;
 
     private int mRound = 0;
 
@@ -107,7 +107,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         queryProcessor = new QueryProcessor(processorContext);
         updateProcessor = new UpdateProcessor(processorContext);
         interceptorPointcutProcessor = new InterceptorPointcutProcessor(processorContext);
-        sourceCodeGenerator = new SourceCodeGenerator(processorContext);
+        sourceCodeWriter = new SourceCodeWriter(processorContext);
         mMetadata = new Metadata();
         initialized = true;
 
@@ -136,7 +136,7 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         queryProcessor.process(roundEnv, mMetadata);
         updateProcessor.process(roundEnv, mMetadata);
 
-        sourceCodeGenerator.generateCompanionSourceCode(mMetadata);
+        sourceCodeWriter.generateCompanionSourceCode(mMetadata);
 
         return true;
     }

@@ -42,7 +42,7 @@ import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprin
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class SourceCodeGenerator {
+class SourceCodeWriter {
 
     private final LoggingUtils mLogger;
     private final Filer mFiler;
@@ -63,7 +63,7 @@ class SourceCodeGenerator {
      * @param processorContext
      *         The processor context parameter object.
      */
-    SourceCodeGenerator(ProcessorContext processorContext) {
+    SourceCodeWriter(ProcessorContext processorContext) {
 
         ProcessingEnvironment mProcessingEnv = processorContext.processingEnv;
         this.mLogger = processorContext.logger;

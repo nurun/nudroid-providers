@@ -38,7 +38,7 @@ import javax.lang.model.element.ExecutableElement;
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class MethodBinding {
+public class UriToMethodBinding {
 
     private static final String PLACEHOLDER_WILDCARD = "*";
     private static final String AMPERSAND = "&";
@@ -69,7 +69,7 @@ public class MethodBinding {
      * @param pathAndQuery
      *         The path and optional query string this delegate URI must handle.
      */
-    public MethodBinding(String authority, String pathAndQuery) {
+    public UriToMethodBinding(String authority, String pathAndQuery) {
 
         this.mOriginalPathAndQuery = pathAndQuery;
 
@@ -304,7 +304,7 @@ public class MethodBinding {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        MethodBinding other = (MethodBinding) obj;
+        UriToMethodBinding other = (UriToMethodBinding) obj;
 
         if (mPath == null) {
             if (other.mPath != null) return false;
@@ -325,6 +325,6 @@ public class MethodBinding {
      */
     @Override
     public String toString() {
-        return "MethodBinding [mPath=" + mPath + ", queryString=" + mQueryString + "]";
+        return "UriToMethodBinding [mPath=" + mPath + ", queryString=" + mQueryString + "]";
     }
 }
