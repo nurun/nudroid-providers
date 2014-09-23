@@ -52,13 +52,13 @@ import javax.lang.model.util.Types;
  */
 public class InterceptorPointAnnotationBlueprint {
 
-    private final String mInterceptorAnnotationQualifiedName;
-    private final TypeElement mInterceptorAnnotationTypeElement;
-    private final TypeElement mInterceptorImplementationTypeElement;
-    private final List<AnnotationAttribute> mAttributes = new ArrayList<>();
-    private boolean mHasCustomConstructor;
-    private String mConcreteClassName;
-    private String mConcretePackageName;
+    private final String interceptorAnnotationQualifiedName;
+    private final TypeElement interceptorAnnotationTypeElement;
+    private final TypeElement interceptorImplementationTypeElement;
+    private final List<AnnotationAttribute> attributes = new ArrayList<>();
+    private boolean hasCustomConstructor;
+    private String concreteClassName;
+    private String concretePackageName;
 
     /**
      * Creates a new InterceptorBlueprint bean.
@@ -68,13 +68,13 @@ public class InterceptorPointAnnotationBlueprint {
      */
     public InterceptorPointAnnotationBlueprint(TypeElement typeElement) {
 
-        this.mInterceptorAnnotationTypeElement = typeElement;
-        this.mInterceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();
-        this.mInterceptorAnnotationQualifiedName = typeElement.getQualifiedName()
+        this.interceptorAnnotationTypeElement = typeElement;
+        this.interceptorImplementationTypeElement = (TypeElement) typeElement.getEnclosingElement();
+        this.interceptorAnnotationQualifiedName = typeElement.getQualifiedName()
                 .toString();
 
         List<ExecutableElement> constructors =
-                ElementFilter.constructorsIn(mInterceptorImplementationTypeElement.getEnclosedElements());
+                ElementFilter.constructorsIn(interceptorImplementationTypeElement.getEnclosedElements());
 
         for (ExecutableElement constructor : constructors) {
 
@@ -85,10 +85,10 @@ public class InterceptorPointAnnotationBlueprint {
             if (parameters.size() == 1 && parameters.get(0)
                     .asType()
                     .toString()
-                    .equals(mInterceptorAnnotationTypeElement.asType()
+                    .equals(interceptorAnnotationTypeElement.asType()
                             .toString())) {
 
-                this.mHasCustomConstructor = true;
+                this.hasCustomConstructor = true;
             }
         }
 
@@ -103,7 +103,7 @@ public class InterceptorPointAnnotationBlueprint {
      */
     public void addAttribute(AnnotationAttribute attribute) {
 
-        this.mAttributes.add(attribute);
+        this.attributes.add(attribute);
     }
 
     /**
@@ -114,7 +114,7 @@ public class InterceptorPointAnnotationBlueprint {
     @SuppressWarnings("UnusedDeclaration")
     public List<AnnotationAttribute> getAttributes() {
 
-        return mAttributes;
+        return attributes;
     }
 
     /**
@@ -124,7 +124,7 @@ public class InterceptorPointAnnotationBlueprint {
      */
     public TypeElement getTypeElement() {
 
-        return mInterceptorAnnotationTypeElement;
+        return interceptorAnnotationTypeElement;
     }
 
     /**
@@ -134,7 +134,7 @@ public class InterceptorPointAnnotationBlueprint {
      */
     public TypeElement getInterceptorTypeElement() {
 
-        return mInterceptorImplementationTypeElement;
+        return interceptorImplementationTypeElement;
     }
 
     /**
@@ -143,7 +143,7 @@ public class InterceptorPointAnnotationBlueprint {
      * @return The qualified name of the annotation class.
      */
     public String getAnnotationQualifiedName() {
-        return mInterceptorAnnotationQualifiedName;
+        return interceptorAnnotationQualifiedName;
     }
 
     /**
@@ -152,7 +152,7 @@ public class InterceptorPointAnnotationBlueprint {
      * @return The name of the concrete annotation implementation class.
      */
     public String getConcreteClassName() {
-        return mConcreteClassName;
+        return concreteClassName;
     }
 
     /**
@@ -161,7 +161,7 @@ public class InterceptorPointAnnotationBlueprint {
      * @return The package name of the concrete annotation implementation class.
      */
     public String getConcretePackageName() {
-        return mConcretePackageName;
+        return concretePackageName;
     }
 
     /**
@@ -182,7 +182,7 @@ public class InterceptorPointAnnotationBlueprint {
                                                    Types typeUtils, LoggingUtils logger) {
 
         InterceptorPoint interceptor = new InterceptorPoint(this);
-        interceptor.setHasCustomConstructor(mHasCustomConstructor);
+        interceptor.setHasCustomConstructor(hasCustomConstructor);
 
         SortedSet<ExecutableElement> methodKeys = new TreeSet<>(
                 (ExecutableElement o1, ExecutableElement o2) -> o1.getSimpleName()
@@ -222,14 +222,14 @@ public class InterceptorPointAnnotationBlueprint {
         if (parentElement != null && parentElement.getKind()
                 .equals(ElementKind.PACKAGE)) {
 
-            this.mConcretePackageName = ((PackageElement) parentElement).getQualifiedName()
+            this.concretePackageName = ((PackageElement) parentElement).getQualifiedName()
                     .toString();
         } else {
 
-            this.mConcretePackageName = "";
+            this.concretePackageName = "";
         }
 
-        this.mConcreteClassName = concreteSimpleName.toString();
+        this.concreteClassName = concreteSimpleName.toString();
     }
 
     private void generateAnnotationLiteral(InterceptorPoint interceptor, ExecutableElement attribute,

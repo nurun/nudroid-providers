@@ -31,9 +31,9 @@ import javax.lang.model.element.ExecutableElement;
  */
 public class AnnotationAttribute {
 
-    private final String mType;
-    private final String mName;
-    private final String mCapitalizedName;
+    private final String type;
+    private final String name;
+    private final String capitalizedName;
 
     /**
      * Creates an instance of this class.
@@ -43,13 +43,13 @@ public class AnnotationAttribute {
      */
     public AnnotationAttribute(ExecutableElement method) {
 
-        this.mType = method.getReturnType()
+        this.type = method.getReturnType()
                 .toString();
 
         final String methodName = method.getSimpleName()
                 .toString();
-        this.mName = methodName;
-        this.mCapitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
+        this.name = methodName;
+        this.capitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
     }
 
     /**
@@ -59,7 +59,7 @@ public class AnnotationAttribute {
      */
     public String getType() {
 
-        return mType;
+        return type;
     }
 
     /**
@@ -69,7 +69,7 @@ public class AnnotationAttribute {
      */
     public String getName() {
 
-        return mName;
+        return name;
     }
 
     /**
@@ -80,6 +80,6 @@ public class AnnotationAttribute {
     @SuppressWarnings("UnusedDeclaration")
     public String getCapitalizedName() {
 
-        return mCapitalizedName;
+        return capitalizedName;
     }
 }

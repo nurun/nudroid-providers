@@ -44,8 +44,8 @@ import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprin
  */
 class SourceCodeWriter {
 
-    private final LoggingUtils mLogger;
-    private final Filer mFiler;
+    private final LoggingUtils logger;
+    private final Filer filer;
 
     private static final String CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION =
             "com/nudroid/annotation/processor/RouterTemplate.stg";
@@ -66,8 +66,8 @@ class SourceCodeWriter {
     SourceCodeWriter(ProcessorContext processorContext) {
 
         ProcessingEnvironment mProcessingEnv = processorContext.processingEnv;
-        this.mLogger = processorContext.logger;
-        this.mFiler = mProcessingEnv.getFiler();
+        this.logger = processorContext.logger;
+        this.filer = mProcessingEnv.getFiler();
     }
 
     /**
@@ -83,13 +83,13 @@ class SourceCodeWriter {
 
         for (DelegateClass delegateClass : delegateClasses) {
 
-            mLogger.trace("Generating source code for class " + delegateClass.getTypeElement());
+            logger.trace("Generating source code for class " + delegateClass.getTypeElement());
 
             generateContentProviderSourceCode(delegateClass);
             generateContentProviderRouterSourceCode(delegateClass);
             metadata.popDelegateClass(delegateClass);
 
-            mLogger.trace("Done generating source code for class " + delegateClass.getTypeElement());
+            logger.trace("Done generating source code for class " + delegateClass.getTypeElement());
         }
 
         Set<InterceptorPointAnnotationBlueprint> concreteAnnotations =
@@ -97,11 +97,11 @@ class SourceCodeWriter {
 
         for (InterceptorPointAnnotationBlueprint annotation : concreteAnnotations) {
 
-            mLogger.trace(
+            logger.trace(
                     String.format("Generating concrete annotation class %s.", annotation.getAnnotationQualifiedName()));
             generateConcreteAnnotationSourceCode(annotation);
             metadata.popInterceptorBlueprint(annotation);
-            mLogger.trace(String.format("Done generating concrete annotation class %s.",
+            logger.trace(String.format("Done generating concrete annotation class %s.",
                     annotation.getAnnotationQualifiedName()));
 
         }
@@ -121,10 +121,10 @@ class SourceCodeWriter {
 
             if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
-                javaFile = mFiler.createSourceFile(delegateClass.getContentProviderSimpleName());
+                javaFile = filer.createSourceFile(delegateClass.getContentProviderSimpleName());
             } else {
 
-                javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+                javaFile = filer.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
                         delegateClass.getContentProviderSimpleName()));
             }
 
@@ -132,12 +132,12 @@ class SourceCodeWriter {
             writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
-            mLogger.error(
+            logger.error(
                     String.format("Error processing velocity script '%s': %s", CONCRETE_ANNOTATION_TEMPLATE_LOCATION,
                             e));
         }
 
-        mLogger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
+        logger.trace(String.format("    Generated Content Provider for class %s.", delegateClass.getTypeElement()));
     }
 
     private void generateContentProviderRouterSourceCode(DelegateClass delegateClass) {
@@ -152,10 +152,10 @@ class SourceCodeWriter {
 
             if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
 
-                javaFile = mFiler.createSourceFile(delegateClass.getRouterSimpleName());
+                javaFile = filer.createSourceFile(delegateClass.getRouterSimpleName());
             } else {
 
-                javaFile = mFiler.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
+                javaFile = filer.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
                         delegateClass.getRouterSimpleName()));
             }
 
@@ -164,11 +164,11 @@ class SourceCodeWriter {
             writerContentUriRegistry.close();
         } catch (Exception e) {
             e.printStackTrace();
-            mLogger.error(String.format("Error processing velocity script '%s': %s",
+            logger.error(String.format("Error processing velocity script '%s': %s",
                     CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION, e));
         }
 
-        mLogger.trace(String.format("    Generated Router for class %s.", delegateClass.getTypeElement()));
+        logger.trace(String.format("    Generated Router for class %s.", delegateClass.getTypeElement()));
     }
 
     private void generateConcreteAnnotationSourceCode(InterceptorPointAnnotationBlueprint annotation) {
@@ -183,10 +183,10 @@ class SourceCodeWriter {
 
             if (Strings.isNullOrEmpty(annotation.getConcretePackageName())) {
 
-                javaFile = mFiler.createSourceFile(annotation.getConcreteClassName());
+                javaFile = filer.createSourceFile(annotation.getConcreteClassName());
             } else {
 
-                javaFile = mFiler.createSourceFile(
+                javaFile = filer.createSourceFile(
                         String.format("%s.%s", annotation.getConcretePackageName(), annotation.getConcreteClassName()));
             }
 
@@ -194,11 +194,11 @@ class SourceCodeWriter {
             writerContentUriRegistry.write(result);
             writerContentUriRegistry.close();
         } catch (Exception e) {
-            mLogger.error(
+            logger.error(
                     String.format("Error processing velocity script '%s': %s", CONCRETE_ANNOTATION_TEMPLATE_LOCATION,
                             e));
         }
 
-        mLogger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
+        logger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
     }
 }

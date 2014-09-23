@@ -22,20 +22,16 @@
 
 package com.nudroid.annotation.processor.model;
 
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
-
 /**
  * The uri matcher patterns. "*" for string placeholders, "#" for number placeholders.
  */
 public enum UriMatcherPathPatternType {
     STRING("*"), NUMBER("#");
 
-    private final String mPattern;
+    private final String pattern;
 
     UriMatcherPathPatternType(String pattern) {
-        this.mPattern = pattern;
+        this.pattern = pattern;
     }
 
     /**
@@ -45,7 +41,7 @@ public enum UriMatcherPathPatternType {
      */
     public String getPattern() {
 
-        return mPattern;
+        return pattern;
     }
 
     /**
@@ -78,6 +74,6 @@ public enum UriMatcherPathPatternType {
      */
     public static boolean isPattern(String value) {
 
-        return value.equals(STRING.mPattern) || value.equals(NUMBER.mPattern);
+        return value.equals(STRING.pattern) || value.equals(NUMBER.pattern);
     }
 }

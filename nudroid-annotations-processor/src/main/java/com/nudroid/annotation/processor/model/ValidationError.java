@@ -22,20 +22,45 @@
 
 package com.nudroid.annotation.processor.model;
 
+import javax.lang.model.element.Element;
+
 /**
- * The type of the uri placeholder.
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * Signals a validation error encountered while processing the annotations.
  */
-public enum UriPlaceholderType {
+public class ValidationError {
+
+    private final String message;
+    private final Element element;
 
     /**
-     * A placeholder appearing in the path segment of a URI.
+     * Creates a validation error.
+     *
+     * @param message
+     *         the validation error message
+     * @param element
+     *         the element where the error was detected
      */
-    PATH_PARAM,
+    public ValidationError(String message, Element element) {
+
+        this.message = message;
+        this.element = element;
+    }
 
     /**
-     * A placeholder appearing in the query string segment of a URI.
+     * Gets the user friendly error message.
+     *
+     * @return the message
      */
-    QUERY_PARAM
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Gets the element the error was detect on.
+     *
+     * @return the element
+     */
+    public Element getElement() {
+        return element;
+    }
 }

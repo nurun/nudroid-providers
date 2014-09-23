@@ -49,9 +49,9 @@ import javax.lang.model.util.Types;
  */
 class InterceptorPointcutProcessor {
 
-    private final LoggingUtils mLogger;
-    private final Types mTypeUtils;
-    private final Elements mElementUtils;
+    private final LoggingUtils logger;
+    private final Types typeUtils;
+    private final Elements elementUtils;
 
     /**
      * Creates an instance of this class.
@@ -61,9 +61,9 @@ class InterceptorPointcutProcessor {
      */
     InterceptorPointcutProcessor(ProcessorContext processorContext) {
 
-        this.mLogger = processorContext.logger;
-        this.mTypeUtils = processorContext.typeUtils;
-        this.mElementUtils = processorContext.elementUtils;
+        this.logger = processorContext.logger;
+        this.typeUtils = processorContext.typeUtils;
+        this.elementUtils = processorContext.elementUtils;
     }
 
     /**
@@ -76,14 +76,14 @@ class InterceptorPointcutProcessor {
      */
     void process(RoundEnvironment roundEnv, Metadata metadata) {
 
-        mLogger.info(String.format("Start processing @%s annotations.", InterceptorPointcut.class.getSimpleName()));
+        logger.info(String.format("Start processing @%s annotations.", InterceptorPointcut.class.getSimpleName()));
 
         Set<? extends Element> interceptorAnnotations = roundEnv.getElementsAnnotatedWith(InterceptorPointcut
                 .class);
 
         if (interceptorAnnotations.size() > 0) {
 
-            mLogger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
+            logger.trace(String.format("    Interfaces annotated with @%s for the round:\n        - %s",
                     InterceptorPointcut.class.getSimpleName(), interceptorAnnotations.stream()
                             .map(Element::toString)
                             .collect(Collectors.joining("\n        - "))));
@@ -100,7 +100,7 @@ class InterceptorPointcutProcessor {
                 /* Interceptor annotations must be inner classes of the actual interceptor implementation. */
                 if (!ElementUtils.isClass(interceptorClass)) {
 
-                    mLogger.error(String.format(
+                    logger.error(String.format(
                                     "Interceptor annotations must be static elements of an enclosing %s implementation",
                                     com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
                             interceptorAnnotation);
@@ -108,11 +108,11 @@ class InterceptorPointcutProcessor {
                 }
 
                 TypeElement contentProviderInterfaceTypeElement =
-                        mElementUtils.getTypeElement(ContentProviderInterceptor.class.getName());
+                        elementUtils.getTypeElement(ContentProviderInterceptor.class.getName());
 
-                if (!mTypeUtils.isAssignable(interceptorClass.asType(), contentProviderInterfaceTypeElement.asType())) {
+                if (!typeUtils.isAssignable(interceptorClass.asType(), contentProviderInterfaceTypeElement.asType())) {
 
-                    mLogger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
+                    logger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
                                     com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
                             interceptorAnnotation);
                     continue;
@@ -120,12 +120,12 @@ class InterceptorPointcutProcessor {
 
                 createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
 
-                mLogger.trace(
+                logger.trace(
                         String.format("    Interceptor class for %s: %s", interceptorAnnotation, interceptorClass));
             }
         }
 
-        mLogger.info(String.format("Done processing @%s annotations.", InterceptorPointcut.class.getSimpleName()));
+        logger.info(String.format("Done processing @%s annotations.", InterceptorPointcut.class.getSimpleName()));
     }
 
     private void createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {

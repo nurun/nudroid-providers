@@ -22,37 +22,47 @@
 
 package com.nudroid.annotation.processor.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.lang.model.element.ExecutableElement;
-
+import com.nudroid.annotation.provider.delegate.ContentUri;
+import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
+import com.nudroid.annotation.provider.delegate.PathParam;
+import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Query;
+import com.nudroid.annotation.provider.delegate.QueryParam;
+import com.nudroid.annotation.provider.delegate.Selection;
+import com.nudroid.annotation.provider.delegate.SelectionArgs;
+import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.annotation.provider.delegate.Update;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
 /**
- * <p>Holds information about the delegate method for a content provider.</p>
- * <p>
- * <p>Delegate methods are methods annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link
- * Insert}, or {@link Delete}.</p>
+ * <p>Holds information about the delegate method for a content provider.</p> <p> <p>Delegate methods are methods
+ * annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link Insert}, or {@link
+ * Delete}.</p>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class DelegateMethod {
 
-    private final String mName;
-    private final List<Parameter> mParameters = new ArrayList<>();
-    private final List<Parameter> mPathParameters = new ArrayList<>();
-    private final List<Parameter> mQueryStringParameters = new ArrayList<>();
-    private final ExecutableElement mExecutableElement;
-    private final List<InterceptorPoint> mInterceptorElements = new ArrayList<>();
-    private Set<String> mQueryStringParameterNames = new HashSet<>();
-    private List<InterceptorPoint> mInverseInterceptorElements = null;
+    private final String name;
+    private final List<Parameter> parameters = new ArrayList<>();
+    private final Map<String, Parameter> pathParameters = new HashMap<>();
+    private final List<String> queryStringParameterNames = new ArrayList<>();
+    private final ExecutableElement executableElement;
+    private final List<InterceptorPoint> interceptorElements = new ArrayList<>();
+    private List<InterceptorPoint> inverseInterceptorElements = null;
 
     /**
      * Creates an instance of this class.
@@ -60,31 +70,15 @@ public class DelegateMethod {
      * @param element
      *         The {@link javax.lang.model.element.ExecutableElement} representing this delegate method.
      */
-    public DelegateMethod(ExecutableElement element) {
+    private DelegateMethod(ExecutableElement element) {
 
-        this.mName = element.getSimpleName()
+        this.name = element.getSimpleName()
                 .toString();
-        this.mExecutableElement = element;
+        this.executableElement = element;
     }
 
-    /**
-     * Adds a parameter definition to the list of parameters this method accepts. Parameters added to this method are
-     * not checked for validity (ex: duplicate names).
-     *
-     * @param parameter
-     *         The parameter to add.
-     */
-    public void addParameter(Parameter parameter) {
-
-        this.mParameters.add(parameter);
-
-        if (parameter.isPathParameter()) {
-            mPathParameters.add(parameter);
-        }
-
-        if (parameter.isQueryParameter()) {
-            mQueryStringParameters.add(parameter);
-        }
+    public List<String> getQueryStringParameterNames() {
+        return queryStringParameterNames;
     }
 
     /**
@@ -95,18 +89,7 @@ public class DelegateMethod {
      */
     public void addInterceptor(InterceptorPoint interceptor) {
 
-        this.mInterceptorElements.add(interceptor);
-    }
-
-    /**
-     * Sets the query string parameter names present in the URI mapped for this method.
-     *
-     * @param queryStringParameterNames
-     *         The set of query string parameter names.
-     */
-    public void setQueryParameterNames(Set<String> queryStringParameterNames) {
-
-        this.mQueryStringParameterNames = queryStringParameterNames;
+        this.interceptorElements.add(interceptor);
     }
 
     /**
@@ -116,7 +99,7 @@ public class DelegateMethod {
      */
     public ExecutableElement getExecutableElement() {
 
-        return mExecutableElement;
+        return executableElement;
     }
 
     /**
@@ -126,7 +109,7 @@ public class DelegateMethod {
      */
     public String getName() {
 
-        return mName;
+        return name;
     }
 
     /**
@@ -136,53 +119,7 @@ public class DelegateMethod {
      */
     public List<Parameter> getParameters() {
 
-        return mParameters;
-    }
-
-    /**
-     * Gets the list of parameters this method accepts mapped to a placeholder in the path portion or the URL. A subset
-     * of {@link #getParameters()}.
-     *
-     * @return List of parameters.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public List<Parameter> getPathParameters() {
-
-        return mPathParameters;
-    }
-
-    /**
-     * Gets the list of parameters this method accepts mapped to a placeholder in the query string portion of the URL. A
-     * subset of {@link #getParameters()}.
-     *
-     * @return List of parameters.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public List<Parameter> getQueryStringParameters() {
-
-        return mQueryStringParameters;
-    }
-
-    /**
-     * Gets the names of the query string parameters on the query string on the delegate annotation of this method.
-     *
-     * @return The set of query string parameter names.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public Set<String> getQueryStringParameterNames() {
-
-        return mQueryStringParameterNames;
-    }
-
-    /**
-     * Checks if this method URI has any placeholders in it's path.
-     *
-     * @return <tt>true</tt> if this method has any placeholder in its URI path, <tt>false</tt> otherwise.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public boolean getHasUriPlaceholders() {
-
-        return mPathParameters.size() > 0;
+        return parameters;
     }
 
     /**
@@ -194,7 +131,7 @@ public class DelegateMethod {
     @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getBeforeInterceptorList() {
 
-        return mInterceptorElements;
+        return interceptorElements;
     }
 
     /**
@@ -206,13 +143,26 @@ public class DelegateMethod {
     @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorPoint> getAfterInterceptorList() {
 
-        if (mInverseInterceptorElements == null) {
+        if (inverseInterceptorElements == null) {
 
-            mInverseInterceptorElements = new ArrayList<>(mInterceptorElements);
-            Collections.reverse(mInterceptorElements);
+            inverseInterceptorElements = new ArrayList<>(interceptorElements);
+            Collections.reverse(interceptorElements);
         }
 
-        return mInverseInterceptorElements;
+        return inverseInterceptorElements;
+    }
+
+    /**
+     * Given a name, searches the parameter list for a parameter annotated with PathParam matching the given name.
+     *
+     * @param placeholderName
+     *         the name to search for
+     *
+     * @return The parameters matching the criteria, or null if the parameter can't be found
+     */
+    Parameter findPathParameter(String placeholderName) {
+
+        return pathParameters.get(placeholderName);
     }
 
     /**
@@ -224,8 +174,8 @@ public class DelegateMethod {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((mName == null) ? 0 : mName.hashCode());
-        result = prime * result + ((mParameters == null) ? 0 : mParameters.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
         return result;
     }
 
@@ -240,27 +190,76 @@ public class DelegateMethod {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         DelegateMethod other = (DelegateMethod) obj;
-        if (mName == null) {
-            if (other.mName != null) return false;
-        } else if (!mName.equals(other.mName)) return false;
-        if (mParameters == null) {
-            if (other.mParameters != null) return false;
-        } else if (!mParameters.equals(other.mParameters)) return false;
+        if (name == null) {
+            if (other.name != null) return false;
+        } else if (!name.equals(other.name)) return false;
+        if (parameters == null) {
+            if (other.parameters != null) return false;
+        } else if (!parameters.equals(other.parameters)) return false;
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "DelegateMethod [mName=" + mName + ", mParameters=" +
-                mParameters + ", mPathParameters=" + mPathParameters +
-                ", mQueryStringParameters=" + mQueryStringParameters +
-                ", mQueryStringParameterNames=" + mQueryStringParameterNames +
-                ", mExecutableElement=" + mExecutableElement + ", mInterceptorElements=" + mInterceptorElements +
-                ", mInverseInterceptorElements=" + mInverseInterceptorElements + "]";
+        return "DelegateMethod{" +
+                "name='" + name + '\'' +
+                ", parameters=" + parameters +
+                ", pathParameters=" + pathParameters +
+                ", queryStringParameterNames=" + queryStringParameterNames +
+                ", executableElement=" + executableElement +
+                ", interceptorElements=" + interceptorElements +
+                ", inverseInterceptorElements=" + inverseInterceptorElements +
+                '}';
+    }
+
+    /**
+     * Builder pattern.
+     */
+    public static class Builder {
+
+        private ExecutableElement executableElement;
+        private Class<?>[] validAnnotations =
+                {ContextRef.class, Projection.class, Selection.class, SelectionArgs.class, SortOrder.class,
+                        ContentUri.class, PathParam.class, QueryParam.class};
+
+        /**
+         * Sets the executable element this delegate method represents.
+         *
+         * @param queryMethod
+         *         the method annotated with @Query
+         */
+        public Builder(ExecutableElement queryMethod) {
+
+            this.executableElement = queryMethod;
+        }
+
+        public DelegateMethod build(Elements elementUtils, Types typeUtils, Consumer<List<ValidationError>> error) {
+
+            List<ValidationError> errorAccumulator = new ArrayList<>();
+            DelegateMethod method = new DelegateMethod(this.executableElement);
+
+            List<? extends VariableElement> parameters = executableElement.getParameters();
+
+            for (VariableElement methodParameter : parameters) {
+
+                Parameter parameter = new Parameter.Builder().variableElement(methodParameter)
+                        .build(errorAccumulator, typeUtils, elementUtils);
+                method.parameters.add(parameter);
+
+                if (parameter.isPathParam()) {
+
+                    method.pathParameters.put(parameter.getPlaceholderName(), parameter);
+                } else if (parameter.isQueryParam()) {
+
+                    method.queryStringParameterNames.add(parameter.getPlaceholderName());
+                }
+            }
+
+            if (errorAccumulator.size() > 0) {
+                error.accept(errorAccumulator);
+            }
+
+            return method;
+        }
     }
 }

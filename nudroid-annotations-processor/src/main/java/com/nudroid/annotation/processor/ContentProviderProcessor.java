@@ -46,8 +46,8 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
  */
 class ContentProviderProcessor {
 
-    private final LoggingUtils mLogger;
-    private final String mContentProviderDelegateInterfaceName;
+    private final LoggingUtils logger;
+    private final String contentProviderDelegateInterfaceName;
 
     /**
      * Creates an instance of this class.
@@ -57,8 +57,8 @@ class ContentProviderProcessor {
      */
     ContentProviderProcessor(ProcessorContext processorContext) {
 
-        this.mLogger = processorContext.logger;
-        this.mContentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
+        this.logger = processorContext.logger;
+        this.contentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
     }
 
     /**
@@ -71,7 +71,7 @@ class ContentProviderProcessor {
      */
     void process(RoundEnvironment roundEnv, Metadata metadata) {
 
-        mLogger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
+        logger.info(String.format("Start processing @%s annotations.", ContentProvider.class.getSimpleName()));
 
         Set<? extends Element> delegateClassTypes = roundEnv.getElementsAnnotatedWith(ContentProvider.class);
 
@@ -81,7 +81,7 @@ class ContentProviderProcessor {
                     .map(Element::toString)
                     .collect(Collectors.joining("\n        - "));
 
-            mLogger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
+            logger.trace(String.format("    Classes annotated with @%s for the round:\n        - %s",
                     ContentProvider.class.getSimpleName(), classesForTheRound));
         }
 
@@ -95,34 +95,34 @@ class ContentProviderProcessor {
                 .filter(delegateClassType -> delegateClassType instanceof TypeElement)
                 .forEach(delegateClassType -> {
 
-                    mLogger.trace("    Processing " + delegateClassType);
+                    logger.trace("    Processing " + delegateClassType);
                     processContentProviderDelegateAnnotation((TypeElement) delegateClassType, metadata);
-                    mLogger.trace("    Done processing " + delegateClassType);
+                    logger.trace("    Done processing " + delegateClassType);
                 });
 
-        mLogger.info(String.format("Done processing @%s annotations.", ContentProvider.class.getSimpleName()));
+        logger.info(String.format("Done processing @%s annotations.", ContentProvider.class.getSimpleName()));
     }
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
         if (ElementUtils.isAbstract(delegateClassType)) {
 
-            mLogger.trace("        Class is abstract. Signaling compilation error.");
-            mLogger.error(String.format("@%s annotations are only allowed on concrete classes",
+            logger.trace("        Class is abstract. Signaling compilation error.");
+            logger.error(String.format("@%s annotations are only allowed on concrete classes",
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
 
-            mLogger.trace("        Class is not top level nor static. Signaling compilation error.");
-            mLogger.error(String.format("@%s annotations can only appear on top level or static classes",
+            logger.trace("        Class is not top level nor static. Signaling compilation error.");
+            logger.error(String.format("@%s annotations can only appear on top level or static classes",
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
         if (!validateClassHasPublicDefaultConstructor(delegateClassType)) {
 
-            mLogger.trace("        Class does not have a public default constructor. Signaling compilation error.");
-            mLogger.error(String.format("Classes annotated with @%s must have a public default constructor",
+            logger.trace("        Class does not have a public default constructor. Signaling compilation error.");
+            logger.error(String.format("Classes annotated with @%s must have a public default constructor",
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
@@ -134,30 +134,30 @@ class ContentProviderProcessor {
         }
 
         final String authorityName = contentProviderDelegateAnnotation.authority();
-        mLogger.trace(String.format("        Authority name ='%s'.", authorityName));
+        logger.trace(String.format("        Authority name ='%s'.", authorityName));
 
         DelegateClass delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
 
         if (delegateClassForAuthority != null) {
 
-            mLogger.trace(
+            logger.trace(
                     String.format("        Authority is already registered by class %s. Signaling compilation error.",
                             delegateClassForAuthority));
-            mLogger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
+            logger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
                     delegateClassForAuthority.getQualifiedName()), delegateClassType);
 
             return;
         }
 
-        mLogger.trace(
+        logger.trace(
                 String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
         delegateClassForAuthority = metadata.registerNewDelegateClass(authorityName, delegateClassType);
 
         if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
 
-            mLogger.trace("            Class is in the default package. Signaling compilation error.");
-            mLogger.error(String.format("Content providers can not be created in the default package."),
+            logger.trace("            Class is in the default package. Signaling compilation error.");
+            logger.error(String.format("Content providers can not be created in the default package."),
                     delegateClassType);
         }
 
@@ -168,14 +168,14 @@ class ContentProviderProcessor {
                 .map(TypeMirror::toString)
                 .collect(Collectors.toSet());
 
-        if (interfaceNames.contains(mContentProviderDelegateInterfaceName)) {
+        if (interfaceNames.contains(contentProviderDelegateInterfaceName)) {
 
-            mLogger.trace(String.format("            Class implements %s.", mContentProviderDelegateInterfaceName));
+            logger.trace(String.format("            Class implements %s.", contentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(true);
         } else {
 
-            mLogger.trace(String.format("            Class does not implement %s.",
-                    mContentProviderDelegateInterfaceName));
+            logger.trace(
+                    String.format("            Class does not implement %s.", contentProviderDelegateInterfaceName));
             delegateClassForAuthority.setImplementsDelegateInterface(false);
         }
     }

@@ -32,7 +32,7 @@ import javax.lang.model.element.ExecutableElement;
 public class DuplicatePathException extends IllegalUriPathException {
 
     private static final long serialVersionUID = -4364782083955709261L;
-    private final ExecutableElement mOriginalMethod;
+    private final ExecutableElement originalMethod;
 
     /**
      * @param existingDelegateMethod
@@ -41,7 +41,7 @@ public class DuplicatePathException extends IllegalUriPathException {
     public DuplicatePathException(ExecutableElement existingDelegateMethod) {
         super(String.format("An equivalent path has already been registerd by method %s", existingDelegateMethod));
 
-        this.mOriginalMethod = existingDelegateMethod;
+        this.originalMethod = existingDelegateMethod;
     }
 
     /**
@@ -51,6 +51,6 @@ public class DuplicatePathException extends IllegalUriPathException {
      */
     public Object getOriginalMethod() {
 
-        return mOriginalMethod;
+        return originalMethod;
     }
 }

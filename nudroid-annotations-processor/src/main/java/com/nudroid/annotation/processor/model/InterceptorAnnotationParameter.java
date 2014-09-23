@@ -29,8 +29,8 @@ package com.nudroid.annotation.processor.model;
  */
 public class InterceptorAnnotationParameter {
 
-    private final String mLiteralValue;
-    private final boolean mIsString;
+    private final String literalValue;
+    private final boolean isString;
 
     /**
      * Creates an interceptor annotation parameter.
@@ -42,9 +42,9 @@ public class InterceptorAnnotationParameter {
      */
     public InterceptorAnnotationParameter(String literalValue, Class<?> parameterType) {
 
-        this.mLiteralValue = literalValue;
+        this.literalValue = literalValue;
 
-        mIsString = parameterType.equals(String.class) || parameterType.equals(String[].class);
+        isString = parameterType.equals(String.class) || parameterType.equals(String[].class);
     }
 
     /**
@@ -54,7 +54,7 @@ public class InterceptorAnnotationParameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public String getLiteralValue() {
-        return mLiteralValue;
+        return literalValue;
     }
 
     /**
@@ -64,6 +64,6 @@ public class InterceptorAnnotationParameter {
      */
     public boolean isString() {
 
-        return mIsString;
+        return isString;
     }
 }

@@ -25,11 +25,19 @@ package com.nudroid.annotation.processor.model;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
+import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.annotation.provider.delegate.Projection;
+import com.nudroid.annotation.provider.delegate.QueryParam;
 import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
-import com.nudroid.annotation.provider.delegate.UriPlaceholder;
+
+import java.util.List;
+
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 /**
  * Contains metadata of a parameter from a delegate method.
@@ -44,18 +52,19 @@ import com.nudroid.annotation.provider.delegate.UriPlaceholder;
  */
 public class Parameter {
 
-    private boolean mContext;
-    private boolean mProjection;
-    private boolean mSelection;
-    private boolean mSelectionArgs;
-    private boolean mSortOrder;
-    private boolean mContentValues;
-    private boolean mContentUri;
-    private boolean mString;
-    private String mKeyName;
-    private String mPlaceholderName;
-    private String mParameterType;
-    private UriPlaceholderType mUriPlaceholderType;
+    private boolean isContext;
+    private boolean isProjection;
+    private boolean isSelection;
+    private boolean isSelectionArgs;
+    private boolean isSortOrder;
+    private boolean isContentValues;
+    private boolean isContentUri;
+    private boolean isString;
+    private boolean isPathParam;
+    private boolean isQueryParam;
+    private String keyName;
+    private String placeholderName;
+    private String parameterType;
 
     /**
      * The parameter is annotated with {@link ContextRef}.
@@ -64,7 +73,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isContext() {
-        return mContext;
+        return isContext;
     }
 
     /**
@@ -74,7 +83,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isProjection() {
-        return mProjection;
+        return isProjection;
     }
 
     /**
@@ -84,7 +93,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isSelection() {
-        return mSelection;
+        return isSelection;
     }
 
     /**
@@ -94,7 +103,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isSelectionArgs() {
-        return mSelectionArgs;
+        return isSelectionArgs;
     }
 
     /**
@@ -104,7 +113,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isSortOrder() {
-        return mSortOrder;
+        return isSortOrder;
     }
 
     /**
@@ -114,7 +123,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isContentValues() {
-        return mContentValues;
+        return isContentValues;
     }
 
     /**
@@ -124,7 +133,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public boolean isContentUri() {
-        return mContentUri;
+        return isContentUri;
     }
 
     /**
@@ -133,25 +142,15 @@ public class Parameter {
      * @return <tt>true</tt> if {@link String}, <tt>false</tt> otherwise.
      */
     public boolean isString() {
-        return mString;
+        return isString;
     }
 
-    /**
-     * The parameter is a annotated with {@link UriPlaceholder} and binds to a path placeholder.
-     *
-     * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
-     */
-    public boolean isPathParameter() {
-        return mUriPlaceholderType == UriPlaceholderType.PATH_PARAM;
+    public boolean isPathParam() {
+        return isPathParam;
     }
 
-    /**
-     * The parameter is a annotated with {@link UriPlaceholder} and binds to a query string placeholder.
-     *
-     * @return <tt>true</tt> if it is a query param, <tt>false</tt> otherwise.
-     */
-    public boolean isQueryParameter() {
-        return mUriPlaceholderType == UriPlaceholderType.QUERY_PARAM;
+    public boolean isQueryParam() {
+        return isQueryParam;
     }
 
     /**
@@ -162,7 +161,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public String getKeyName() {
-        return mKeyName;
+        return keyName;
     }
 
     /**
@@ -172,7 +171,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public String getPlaceholderName() {
-        return mPlaceholderName;
+        return placeholderName;
     }
 
     /**
@@ -182,7 +181,7 @@ public class Parameter {
      */
     @SuppressWarnings("UnusedDeclaration")
     public String getParameterType() {
-        return mParameterType;
+        return parameterType;
     }
 
     /**
@@ -190,56 +189,64 @@ public class Parameter {
      */
     public void setContext() {
 
-        this.mContext = true;
+        this.isContext = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Projection}.
      */
     public void setProjection() {
-        this.mProjection = true;
+        this.isProjection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link Selection}.
      */
     public void setSelection() {
-        this.mSelection = true;
+        this.isSelection = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SelectionArgs}.
      */
     public void setSelectionArgs() {
-        this.mSelectionArgs = true;
+        this.isSelectionArgs = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link SortOrder}.
      */
     public void setSortOrder() {
-        this.mSortOrder = true;
+        this.isSortOrder = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
      */
     public void setContentValues() {
-        this.mContentValues = true;
+        this.isContentValues = true;
     }
 
     /**
      * Sets if this parameter is annotated with {@link ContentUri}.
      */
     public void setContentUri() {
-        this.mContentUri = true;
+        this.isContentUri = true;
     }
 
     /**
      * Sets if this parameter is of type {@link String}.
      */
     public void setString() {
-        this.mString = true;
+        this.isString = true;
+    }
+
+    private void setPathParam() {
+        this.isPathParam = true;
+    }
+
+    private void setQueryParam() {
+        this.isQueryParam = true;
     }
 
     /**
@@ -248,8 +255,8 @@ public class Parameter {
      * @param keyName
      *         The position in the URI's path.
      */
-    public void setKeyName(String keyName) {
-        this.mKeyName = keyName;
+    public void setQueryStringName(String keyName) {
+        this.keyName = keyName;
     }
 
     /**
@@ -258,8 +265,8 @@ public class Parameter {
      * @param mPlaceholderName
      *         the placeholder name to set.
      */
-    public void setPlaceholderName(String mPlaceholderName) {
-        this.mPlaceholderName = mPlaceholderName;
+    public void setUriVariableName(String mPlaceholderName) {
+        this.placeholderName = mPlaceholderName;
     }
 
     /**
@@ -269,29 +276,157 @@ public class Parameter {
      *         The qualified name of the type of the parameter.
      */
     public void setParameterType(String mParameterType) {
-        this.mParameterType = mParameterType;
+        this.parameterType = mParameterType;
     }
 
-    /**
-     * Sets the type of placeholder for this parameter.
-     *
-     * @param placeholderType
-     *         The type of placeholder.
-     */
-    public void setUriPlaceholderType(UriPlaceholderType placeholderType) {
-        this.mUriPlaceholderType = placeholderType;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "Parameter [mContext=" + mContext + ", mProjection=" + mProjection + ", mSelection=" + mSelection +
-                ", mSelectionArgs=" + mSelectionArgs + ", mSortOrder=" + mSortOrder + ", mContentValues=" +
-                mContentValues + ", mContentUri=" + mContentUri + ", mString=" + mString + ", mKeyName=" + mKeyName +
-                ", mParamType=" + mUriPlaceholderType + "]";
+        return "Parameter{" +
+                "isContext=" + isContext +
+                ", isProjection=" + isProjection +
+                ", isSelection=" + isSelection +
+                ", isSelectionArgs=" + isSelectionArgs +
+                ", isSortOrder=" + isSortOrder +
+                ", isContentValues=" + isContentValues +
+                ", isContentUri=" + isContentUri +
+                ", isString=" + isString +
+                ", keyName='" + keyName + '\'' +
+                ", placeholderName='" + placeholderName + '\'' +
+                ", parameterType='" + parameterType + '\'' +
+                '}';
+    }
+
+    public static class Builder {
+
+        public static final String ANDROID_CONTEXT_CLASS_NAME = "android.content.Context";
+        public static final String ANDROID_URI_CLASS_NAME = "android.net.Uri";
+
+        private VariableElement variableElement;
+
+        public Builder variableElement(VariableElement variableElement) {
+
+            this.variableElement = variableElement;
+            return this;
+        }
+
+        public Parameter build(List<ValidationError> errorAccumulator, Types typeUtils, Elements elementUtils) {
+
+            Parameter parameter = new Parameter();
+
+            TypeMirror parameterType = variableElement.asType();
+
+            if (variableElement.getAnnotation(ContextRef.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(ANDROID_CONTEXT_CLASS_NAME)
+                        .asType())) {
+
+                    parameter.setContext();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type %s.",
+                                    ContextRef.class.getSimpleName(), ANDROID_CONTEXT_CLASS_NAME), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            if (variableElement.getAnnotation(Projection.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, typeUtils.getArrayType(
+                        elementUtils.getTypeElement(String.class.getName())
+                                .asType()))) {
+
+                    parameter.setProjection();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type array of %s.",
+                                    Projection.class.getSimpleName(), String.class.getName()), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            if (variableElement.getAnnotation(Selection.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(String.class.getName())
+                        .asType())) {
+
+                    parameter.setSelection();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type %s.",
+                                    Selection.class.getSimpleName(), String.class.getName()), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            if (variableElement.getAnnotation(SelectionArgs.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, typeUtils.getArrayType(
+                        elementUtils.getTypeElement(String.class.getName())
+                                .asType()))) {
+
+                    parameter.setSelectionArgs();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type array of %s.",
+                                    SelectionArgs.class.getSimpleName(), String.class.getName()), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            if (variableElement.getAnnotation(SortOrder.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(String.class.getName())
+                        .asType())) {
+
+                    parameter.setSortOrder();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type %s.",
+                                    SortOrder.class.getSimpleName(), String.class.getName()), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            if (variableElement.getAnnotation(ContentUri.class) != null) {
+
+                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(ANDROID_URI_CLASS_NAME)
+                        .asType())) {
+
+                    parameter.setContentUri();
+                } else {
+
+                    ValidationError error = new ValidationError(
+                            String.format("Parameters annotated with @%s must be of type %s.",
+                                    ContentUri.class.getSimpleName(), ANDROID_URI_CLASS_NAME), variableElement);
+                    errorAccumulator.add(error);
+                }
+            }
+
+            final PathParam pathParam = variableElement.getAnnotation(PathParam.class);
+
+            if (pathParam != null) {
+
+                parameter.setUriVariableName(pathParam.value());
+                parameter.setPathParam();
+            }
+
+            final QueryParam queryParam = variableElement.getAnnotation(QueryParam.class);
+
+            if (queryParam != null) {
+
+                parameter.setUriVariableName(queryParam.value());
+                parameter.setQueryParam();
+            }
+
+            parameter.setParameterType(variableElement.asType()
+                    .toString());
+
+            return parameter;
+        }
     }
 }

@@ -27,7 +27,7 @@ import android.database.Cursor;
 
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.UriPlaceholder;
+import com.nudroid.annotation.provider.delegate.PathParam;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 public class ParentClass {
@@ -37,12 +37,12 @@ public class ParentClass {
     @ContentProvider(authority = "com.nudroid.samples")
     public static class SampleContentProviderDelegate implements ContentProviderDelegate {
 
-        @Query("/channels/test")
-        public Cursor channels() {
-
-            //... perform query
-            return null;
-        }
+//        @Query("/channels/test")
+//        public Cursor channels() {
+//
+//            //... perform query
+//            return null;
+//        }
 
         @MyCacheInterceptor2.Interceptor(bValue = 1, bValues = {1, 2}, cValue = 'a', cValues = {'a', 'b'},
                 dValue = 1.0, dValues = {1.0, 2.0}, eValue = MyCacheInterceptor2.SampleEnum.ENUM_1,
@@ -50,8 +50,8 @@ public class ParentClass {
                 fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
                 zValue = Object.class, zValues = {Object.class, String.class})
         @MyCacheInterceptor.Interceptor("yahoo")
-        @Query("/terminals/cast/{oba}")
-        public Cursor terminals(@UriPlaceholder("oba") String oba) {
+        @Query("/terminals/cast/{obaba}/{obaba}")
+        public Cursor terminals(@PathParam("obaba") String theObaba) {
 
             //... perform query
             return null;

@@ -53,7 +53,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.PARAMETER})
 @Documented
-public @interface UriPlaceholder {
+public @interface PathParam {
 
     /**
      * Mandatory. The name of the placeholder in the path URL.

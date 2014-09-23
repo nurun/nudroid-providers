@@ -37,18 +37,13 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 /**
- * <p>Annotation processor creating the bindings necessary for Android content provider delegates.</p>
- * <p>
- * <h1>Logging</h1>
- * <p>
- * <p>This processor can be configured to display log messages during the annotation processing rounds. Log messages are
- * delivered through the processors {@link Messager} objects. In other words, they are issued as compiler notes, warning
- * or errors.</p>
- * <p>
- * <p> The logging level can be configured through the property <tt>com.nudroid.annotation.processor.log.level</tt>.</p>
- * <p>
- * <p>The logging level can either be configured through a processor property (with the -A option) or a system property
- * (with a -D option). Processor property configuration takes precedence over the system property.</p>
+ * <p>Annotation processor creating the bindings necessary for Android content provider delegates.</p> <p>
+ * <h1>Logging</h1> <p> <p>This processor can be configured to display log messages during the annotation processing
+ * rounds. Log messages are delivered through the processors {@link Messager} objects. In other words, they are issued
+ * as compiler notes, warning or errors.</p> <p> <p> The logging level can be configured through the property
+ * <tt>com.nudroid.annotation.processor.log.level</tt>.</p> <p> <p>The logging level can either be configured through a
+ * processor property (with the -A option) or a system property (with a -D option). Processor property configuration
+ * takes precedence over the system property.</p>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -63,20 +58,19 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private static final String LOG_LEVEL_PROPERTY_NAME = "com.nudroid.annotation.processor.log.level";
 
-    private LoggingUtils mLogger;
+    private LoggingUtils logger;
 
     private boolean initialized = false;
 
     private ContentProviderProcessor contentProviderProcessor;
     private QueryProcessor queryProcessor;
-    private UpdateProcessor updateProcessor;
     private InterceptorPointcutProcessor interceptorPointcutProcessor;
 
     private SourceCodeWriter sourceCodeWriter;
 
-    private int mRound = 0;
+    private int round = 0;
 
-    private Metadata mMetadata;
+    private Metadata metadata;
 
     /**
      * {@inheritDoc}
@@ -95,23 +89,22 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             logLevel = System.getProperty(LOG_LEVEL_PROPERTY_NAME);
         }
 
-        mLogger = new LoggingUtils(env.getMessager(), logLevel);
+        logger = new LoggingUtils(env.getMessager(), logLevel);
 
-        mLogger.debug("Initializing Nudroid persistence annotation processor.");
+        logger.debug("Initializing Nudroid persistence annotation processor.");
 
         Elements elementUtils = env.getElementUtils();
         Types typeUtils = env.getTypeUtils();
 
-        final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, mLogger);
+        final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, logger);
         contentProviderProcessor = new ContentProviderProcessor(processorContext);
         queryProcessor = new QueryProcessor(processorContext);
-        updateProcessor = new UpdateProcessor(processorContext);
         interceptorPointcutProcessor = new InterceptorPointcutProcessor(processorContext);
         sourceCodeWriter = new SourceCodeWriter(processorContext);
-        mMetadata = new Metadata();
+        metadata = new Metadata();
         initialized = true;
 
-        mLogger.debug("Initialization complete.");
+        logger.debug("Initialization complete.");
     }
 
     /**
@@ -122,21 +115,20 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        mLogger.info("Starting provider annotation processor round " + ++mRound);
+        logger.info("Starting provider annotation processor round " + ++round);
 
         if (!initialized) {
 
-            mLogger.error("Annotation processor not initialized. Aborting.");
+            logger.error("Annotation processor not initialized. Aborting.");
 
             return false;
         }
 
-        interceptorPointcutProcessor.process(roundEnv, mMetadata);
-        contentProviderProcessor.process(roundEnv, mMetadata);
-        queryProcessor.process(roundEnv, mMetadata);
-        updateProcessor.process(roundEnv, mMetadata);
+        interceptorPointcutProcessor.process(roundEnv, metadata);
+        contentProviderProcessor.process(roundEnv, metadata);
+        queryProcessor.process(roundEnv, metadata);
 
-        sourceCodeWriter.generateCompanionSourceCode(mMetadata);
+        sourceCodeWriter.generateCompanionSourceCode(metadata);
 
         return true;
     }

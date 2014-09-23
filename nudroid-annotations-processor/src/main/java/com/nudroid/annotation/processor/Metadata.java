@@ -40,9 +40,9 @@ import javax.lang.model.element.TypeElement;
  */
 class Metadata {
 
-    private final Map<String, DelegateClass> mRegisteredAuthorities = new HashMap<>();
-    private final Map<TypeElement, DelegateClass> mRegisteredDelegateClasses = new HashMap<>();
-    private final Map<TypeElement, InterceptorPointAnnotationBlueprint> mInterceptorPointAnnotationBlueprints =
+    private final Map<String, DelegateClass> registeredAuthorities = new HashMap<>();
+    private final Map<TypeElement, DelegateClass> registeredDelegateClasses = new HashMap<>();
+    private final Map<TypeElement, InterceptorPointAnnotationBlueprint> interceptorPointAnnotationBlueprints =
             new HashMap<>();
 
     /*
@@ -68,8 +68,8 @@ class Metadata {
     DelegateClass registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
 
         final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
-        mRegisteredAuthorities.put(authorityName, delegateClass);
-        mRegisteredDelegateClasses.put(delegateClassType, delegateClass);
+        registeredAuthorities.put(authorityName, delegateClass);
+        registeredDelegateClasses.put(delegateClassType, delegateClass);
         mDelegateClassPile.add(delegateClass);
         return delegateClass;
     }
@@ -93,7 +93,7 @@ class Metadata {
      */
     void registerAnnotationBlueprint(InterceptorPointAnnotationBlueprint annotation) {
 
-        this.mInterceptorPointAnnotationBlueprints.put(annotation.getTypeElement(), annotation);
+        this.interceptorPointAnnotationBlueprints.put(annotation.getTypeElement(), annotation);
         this.mInterceptorPointAnnotationBlueprintPile.add(annotation);
     }
 
@@ -129,7 +129,7 @@ class Metadata {
      */
     DelegateClass getDelegateClassForAuthority(String authorityName) {
 
-        return mRegisteredAuthorities.get(authorityName);
+        return registeredAuthorities.get(authorityName);
     }
 
     /**
@@ -143,7 +143,7 @@ class Metadata {
      */
     DelegateClass getDelegateClassForTypeElement(TypeElement typeElement) {
 
-        return mRegisteredDelegateClasses.get(typeElement);
+        return registeredDelegateClasses.get(typeElement);
     }
 
     /**
@@ -163,7 +163,7 @@ class Metadata {
      */
     Collection<InterceptorPointAnnotationBlueprint> getInterceptorBlueprints() {
 
-        return mInterceptorPointAnnotationBlueprints.values();
+        return interceptorPointAnnotationBlueprints.values();
     }
 
     /**
@@ -173,8 +173,8 @@ class Metadata {
      */
     @Override
     public String toString() {
-        return "Metadata [mRegisteredAuthorities=" + mRegisteredAuthorities + ", \nmRegisteredDelegateClasses=" +
-                mRegisteredDelegateClasses + ", \nmConcreteAnnotations=" + mInterceptorPointAnnotationBlueprints +
+        return "Metadata [registeredAuthorities=" + registeredAuthorities + ", \nregisteredDelegateClasses=" +
+                registeredDelegateClasses + ", \nmConcreteAnnotations=" + interceptorPointAnnotationBlueprints +
                 ", \nmConcreteAnnotationValues=" + mInterceptorPointAnnotationBlueprintPile +
                 ", \nmDelegateClassValues=" +
                 mDelegateClassPile + "]";

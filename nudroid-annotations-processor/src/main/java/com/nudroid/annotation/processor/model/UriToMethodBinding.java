@@ -22,16 +22,17 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.nudroid.annotation.processor.DuplicateUriPlaceholderException;
-import com.nudroid.annotation.processor.IllegalUriPathException;
+import com.google.common.base.Splitter;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.lang.model.element.ExecutableElement;
 
 /**
  * A mapping between a path and a method. This class maps a path (+ query string) to a target delegate method.
@@ -40,291 +41,239 @@ import javax.lang.model.element.ExecutableElement;
  */
 public class UriToMethodBinding {
 
-    private static final String PLACEHOLDER_WILDCARD = "*";
-    private static final String AMPERSAND = "&";
-    private static final String LEADING_AMPERSANDS = "^&+";
-    private static final String INTERROGATION_MARK = "\\?";
-    private static final String LEADING_INTERROGATION_MARKS = "^\\?+";
-    private static final String SLASH = "/";
-
-    private static final String LEADING_SLASH = "^/";
-    private static final String EMPTY_STRING = "";
-    private static final String EQUALS_SIGN = "=";
-
     private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(PLACEHOLDER_REGEXP);
 
-    private String mPath;
-    private String mQueryString;
-    private final Map<String, PathPlaceholder> mPlaceholders = new HashMap<>();
-    private final Map<String, String> mQueryStringParameterNamesAndValues = new HashMap<>();
-    private DelegateMethod mDelegateMethod;
+    private DelegateMethod delegateMethod;
+    private String path;
+    private Map<String, PathParamBinding> pathPlaceholders = new HashMap<>();
+    private Set<String> queryStringParameters = new HashSet<>();
 
-    private final String mOriginalPathAndQuery;
+    private UriToMethodBinding() {
 
-    /**
-     * Creates an instance of this class.
-     *
-     * @param authority
-     *         This delegate uri authority.
-     * @param pathAndQuery
-     *         The path and optional query string this delegate URI must handle.
-     */
-    public UriToMethodBinding(String authority, String pathAndQuery) {
-
-        this.mOriginalPathAndQuery = pathAndQuery;
-
-        parsePlaceholders(pathAndQuery);
-        String normalizedPath = pathAndQuery.replaceAll(PLACEHOLDER_REGEXP, PLACEHOLDER_WILDCARD)
-                .replaceAll(LEADING_SLASH, EMPTY_STRING);
-        URI uri;
-
-        try {
-            uri = URI.create(String.format("content://%s/%s", authority, normalizedPath));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalUriPathException(e);
-        }
-
-        this.mPath = uri.getPath();
-        this.mQueryString = uri.getQuery();
     }
 
     /**
-     * Gets the path portion of this URI. The path will already be normalized for a <a
+     * Gets the path this binding applies to. The path will already be normalized for a <a
      * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a> (i.e. placeholder
-     * names will be replaced by '*').
+     * names will be replaced by '*' or ''#).
      *
      * @return The normalized path for this URI.
      */
-    public String getNormalizedPath() {
-        return mPath;
+    public String getPath() {
+
+        return path;
     }
 
     /**
-     * Checks if this URI has the specified placeholder name.
+     * Gets the delegate method for for this binding.
      *
-     * @param parameterName
-     *         The name of the placeholder to check.
-     *
-     * @return <tt>true</tt> if this URI has a path or query string placeholder named as parameterName, <tt>false</tt>
-     * otherwise.
-     */
-    public boolean containsPlaceholder(String parameterName) {
-
-        return mPlaceholders.containsKey(parameterName);
-    }
-
-    /**
-     * Gets a string representation of the position this named parameter appears in this URI's path and query string.
-     *
-     * @param name
-     *         The name of the path placeholder to check.
-     *
-     * @return The position this named parameter appears in this URI's path. Will return a position for a path
-     * placeholder or a name for a query string placeholder. Returns <tt>null</tt> if the path does not contain the
-     * named placeholder.
-     */
-    public String getParameterPosition(String name) {
-
-        PathPlaceholder placeholder = mPlaceholders.get(name);
-
-        return placeholder != null ? placeholder.getKey() : null;
-    }
-
-    /**
-     * Gets the map o query string parameter names and their values for this URI.
-     *
-     * @return The map o query string parameter names and values for this URI.
-     */
-    public Map<String, String> getQueryParameterNamesAndValues() {
-
-        return mQueryStringParameterNamesAndValues;
-    }
-
-    /**
-     * Gets the amount of query string parameters in this URI.
-     *
-     * @return The number of query string parameters in this URI.
-     */
-    public int getQueryStringParameterCount() {
-
-        return mQueryStringParameterNamesAndValues.size();
-    }
-
-    /**
-     * Gets the placeholder type associated with the given placeholder name.
-     *
-     * @param placeholderName
-     *         The name of the placeholder.
-     *
-     * @return The type of placeholder associated to the given placeholder name.
-     */
-    public UriPlaceholderType getUriPlaceholderType(String placeholderName) {
-
-        return mPlaceholders.get(placeholderName)
-                .getUriPlaceholderType();
-    }
-
-    /**
-     * Gets the delegate method for a query operation.
-     *
-     * @return The DelegateMethod for the query operation or null if this URI does not respond to query requests.
+     * @return the delegate method
      */
     public DelegateMethod getDelegateMethod() {
-
-        return mDelegateMethod;
-    }
-
-    /**
-     * Creates a new DelegateMethod instance and registers it as a query delegate. Overrides any previously set query
-     * DelegateMethod for this URI.
-     *
-     * @param queryMethod
-     *         The ExecutableElement for the method in the delegate class which will answer for queries against this
-     *         URI.
-     *
-     * @return The newly create and registered query DelegateMethod.
-     */
-    public DelegateMethod setQueryDelegateMethod(ExecutableElement queryMethod) {
-
-        DelegateMethod delegateMethod = new DelegateMethod(queryMethod);
-        delegateMethod.setQueryParameterNames(this.getQueryParameterNamesAndValues()
-                .keySet());
-
-        mDelegateMethod = delegateMethod;
 
         return delegateMethod;
     }
 
     /**
-     * Parses the path and query string and finds placeholders.
+     * Counts the parameters for the delegate method mapping to a query string parameter.
      *
-     * @param pathAndQuery
-     *         The path and query string to parse.
+     * @return the number of parameters mapping to a query string parameter
      */
-    private void parsePlaceholders(String pathAndQuery) {
+    public int getQueryStringParameterCount() {
 
-        Pattern placeholderPattern = Pattern.compile(PLACEHOLDER_REGEXP);
-
-        String[] pathAndQueryString = pathAndQuery.split(INTERROGATION_MARK);
-
-        if (pathAndQueryString.length > 2) {
-
-            throw new IllegalUriPathException(String.format("The path '%s' is invalid.", pathAndQuery));
-        }
-
-        if (pathAndQueryString.length >= 1) {
-
-            String pathSection = pathAndQueryString[0];
-            pathSection = pathSection.replaceAll(LEADING_SLASH, EMPTY_STRING);
-
-            String[] pathElements = pathSection.split(SLASH);
-
-            for (int position = 0; position < pathElements.length; position++) {
-
-                Matcher m = placeholderPattern.matcher(pathElements[position]);
-
-                if (m.find()) {
-
-                    String placeholderName = m.group(1);
-                    addPathPlaceholder(placeholderName, position);
-                }
-            }
-        }
-
-        if (pathAndQueryString.length == 2) {
-
-            String querySection = pathAndQueryString[1];
-
-            querySection = querySection.replaceAll(LEADING_INTERROGATION_MARKS, EMPTY_STRING);
-            querySection = querySection.replaceAll(LEADING_AMPERSANDS, EMPTY_STRING);
-
-            String[] queryVars = querySection.split(AMPERSAND);
-
-            for (String queryVar : queryVars) {
-
-                String[] nameAndValue = queryVar.split(EQUALS_SIGN);
-
-                if (nameAndValue.length != 2) {
-
-                    throw new IllegalUriPathException(
-                            String.format("Segment '%s' on path %s is invalid.", queryVar, mOriginalPathAndQuery));
-                }
-
-                Matcher m = placeholderPattern.matcher(nameAndValue[1]);
-
-                if (m.matches()) {
-
-                    mQueryStringParameterNamesAndValues.put(nameAndValue[0], PLACEHOLDER_WILDCARD);
-                    String placeholderName = m.group(1);
-                    addQueryPlaceholder(placeholderName, nameAndValue[0]);
-                } else {
-                    mQueryStringParameterNamesAndValues.put(nameAndValue[0], nameAndValue[1]);
-                }
-            }
-        }
+        return queryStringParameters.size();
     }
 
-    private void addPathPlaceholder(String placeholderName, int position) {
+    /**
+     * Checks if this URI has the specified placeholder name.
+     *
+     * @param placeholderName
+     *         the name of the placeholder to check
+     *
+     * @return <tt>true</tt> if this URI has a path or placeholder with the giben name, <tt>false</tt> otherwise
+     */
+    public boolean containsPathPlaceholder(String placeholderName) {
 
-        if (mPlaceholders.containsKey(placeholderName)) {
-
-            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName)
-                    .getKey(), Integer.toString(position));
-        }
-
-        PathPlaceholder pathPlaceholder = new PathPlaceholder(placeholderName, position);
-        mPlaceholders.put(placeholderName, pathPlaceholder);
+        return pathPlaceholders.containsKey(placeholderName);
     }
 
-    private void addQueryPlaceholder(String placeholderName, String queryParameterName) {
+    /**
+     * Gets the position this a placeholder appears in the URI's path.
+     *
+     * @param name
+     *         the name of the path placeholder to check
+     *
+     * @return the position for a placeholder given the name, -1 if the placeholder does not exist
+     */
+    public int findPathPlaceholderPosition(String name) {
 
-        if (mPlaceholders.containsKey(placeholderName)) {
+        PathParamBinding placeholder = pathPlaceholders.get(name);
+        return placeholder != null ? placeholder.getPosition() : -1;
+    }
 
-            throw new DuplicateUriPlaceholderException(placeholderName, mPlaceholders.get(placeholderName)
-                    .getKey(), queryParameterName);
-        }
+    /**
+     * Gets the placeholder type associated with the given placeholder name.
+     *
+     * @param name
+     *         the name of the placeholder
+     *
+     * @return the pattern type, or null if the placeholder does not exist
+     */
+    public UriMatcherPathPatternType findUriMatcherPathPatternType(String name) {
 
-        PathPlaceholder queryPlaceholder = new PathPlaceholder(placeholderName, queryParameterName);
-        mPlaceholders.put(placeholderName, queryPlaceholder);
+        PathParamBinding placeholder = pathPlaceholders.get(name);
+        return placeholder != null ? placeholder.getPatternType() : null;
+    }
+
+    @SuppressWarnings("SimplifiableIfStatement")
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UriToMethodBinding that = (UriToMethodBinding) o;
+
+        if (!path.equals(that.path)) return false;
+        return queryStringParameters.equals(that.queryStringParameters);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
-        result = prime * result + ((mDelegateMethod == null) ? 0 : mDelegateMethod.hashCode());
-        result = prime * result +
-                ((mQueryStringParameterNamesAndValues == null) ? 0 : mQueryStringParameterNamesAndValues.hashCode());
+
+        int result = path.hashCode();
+        result = 31 * result + queryStringParameters.hashCode();
+
         return result;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        UriToMethodBinding other = (UriToMethodBinding) obj;
-
-        if (mPath == null) {
-            if (other.mPath != null) return false;
-        } else if (!mPath.equals(other.mPath)) return false;
-        if (mDelegateMethod == null) {
-            if (other.mDelegateMethod != null) return false;
-        } else if (!mDelegateMethod.equals(other.mDelegateMethod)) return false;
-        if (mQueryStringParameterNamesAndValues == null) {
-            if (other.mQueryStringParameterNamesAndValues != null) return false;
-        } else if (!mQueryStringParameterNamesAndValues.equals(other.mQueryStringParameterNamesAndValues)) return false;
-        return true;
+    public String toString() {
+        return "UriToMethodBinding{" +
+                "delegateMethod=" + delegateMethod +
+                ", path='" + path + '\'' +
+                ", pathPlaceholders=" + pathPlaceholders +
+                ", queryStringParameters=" + queryStringParameters +
+                '}';
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#toString()
+     * Builder pattern.
      */
-    @Override
-    public String toString() {
-        return "UriToMethodBinding [mPath=" + mPath + ", queryString=" + mQueryString + "]";
+    public static class Builder {
+
+        private String path;
+        private DelegateMethod delegateMethod;
+
+        /**
+         * Sets the path it binds from. The path must contain the PathParam placeholders, if applicable.
+         *
+         * @param path
+         *         the path to bind from
+         *
+         * @return this builder
+         */
+        public Builder path(String path) {
+
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * Sets the delegate method the path binds to.
+         *
+         * @param delegateMethod
+         *         the delegate method the path binds to
+         *
+         * @return this builder
+         */
+        public Builder delegateMethod(DelegateMethod delegateMethod) {
+
+            this.delegateMethod = delegateMethod;
+            return this;
+        }
+
+        /**
+         * Builds the binding between the path and delegate method
+         *
+         * @param errorValidationCallback
+         *         the callback to be notified of validation errors
+         *
+         * @return the binding between the path and method
+         */
+        public UriToMethodBinding build(Consumer<List<ValidationError>> errorValidationCallback) {
+
+            List<ValidationError> errorAccumulator = new ArrayList<>(delegateMethod.getParameters()
+                    .size());
+
+            UriToMethodBinding binding = new UriToMethodBinding();
+            parsePlaceholders(binding, path, errorAccumulator);
+            binding.delegateMethod = delegateMethod;
+
+            binding.queryStringParameters = new HashSet<>(delegateMethod.getQueryStringParameterNames());
+
+            if (errorAccumulator.size() > 0) {
+
+                errorValidationCallback.accept(errorAccumulator);
+            }
+
+            return binding;
+        }
+
+        private void parsePlaceholders(UriToMethodBinding binding, String path,
+                                       List<ValidationError> errorAccumulator) {
+
+            Map<String, PathParamBinding> pathPlaceholders = new HashMap<>();
+            String normalizedPath = path;
+
+            /* ignores duplicated separators (i.e. "//")*/
+            List<String> pathElements = Splitter.on('/')
+                    .trimResults()
+                    .omitEmptyStrings()
+                    .splitToList(path);
+
+            for (int i = 0; i < pathElements.size(); i++) {
+
+                Matcher m = PLACEHOLDER_PATTERN.matcher(pathElements.get(i));
+
+                if (m.find()) {
+
+                    String placeholderName = m.group(1);
+
+                    Parameter parameter = delegateMethod.findPathParameter(placeholderName);
+
+                    if (parameter == null) {
+
+                        ValidationError error = new ValidationError(
+                                String.format("Placeholder '%s' is not mapped by " + "any @PathParam parameters",
+                                        placeholderName), delegateMethod.getExecutableElement());
+                        errorAccumulator.add(error);
+                        continue;
+                    }
+
+                    PathParamBinding existingPlaceholder = pathPlaceholders.get(placeholderName);
+
+                    if (existingPlaceholder != null) {
+                        ValidationError error = new ValidationError(String.format(
+                                "Placeholder '%s' appearing at position '%s' is already present at position '%s'",
+                                placeholderName, i, existingPlaceholder.getPosition()),
+                                delegateMethod.getExecutableElement());
+                        errorAccumulator.add(error);
+                        continue;
+                    }
+
+                    PathParamBinding placeholder = new PathParamBinding(placeholderName, i,
+                            UriMatcherPathPatternType.fromClass(parameter.getParameterType()));
+                    pathPlaceholders.put(placeholderName, placeholder);
+
+                    normalizedPath = normalizedPath.replaceAll(PLACEHOLDER_REGEXP, placeholder.getPatternType()
+                            .getPattern());
+                }
+            }
+
+            binding.pathPlaceholders = pathPlaceholders;
+            binding.path = normalizedPath;
+        }
     }
 }

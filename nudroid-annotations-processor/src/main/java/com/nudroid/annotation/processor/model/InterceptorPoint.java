@@ -34,10 +34,10 @@ import javax.lang.model.element.TypeElement;
  */
 public class InterceptorPoint {
 
-    private final TypeElement mInterceptorImplementationElement;
-    private boolean mHasCustomConstructor;
-    private final InterceptorPointAnnotationBlueprint mConcreteAnnotation;
-    private final List<InterceptorAnnotationParameter> mConcreteAnnotationConstructorArguments = new ArrayList<>();
+    private final TypeElement interceptorImplementationElement;
+    private boolean hasCustomConstructor;
+    private final InterceptorPointAnnotationBlueprint concreteAnnotation;
+    private final List<InterceptorAnnotationParameter> concreteAnnotationConstructorArguments = new ArrayList<>();
 
     /**
      * Creates a new Interceptor bean.
@@ -47,8 +47,8 @@ public class InterceptorPoint {
      */
     public InterceptorPoint(InterceptorPointAnnotationBlueprint concreteAnnotation) {
 
-        this.mInterceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
-        this.mConcreteAnnotation = concreteAnnotation;
+        this.interceptorImplementationElement = concreteAnnotation.getInterceptorTypeElement();
+        this.concreteAnnotation = concreteAnnotation;
     }
 
     /**
@@ -59,7 +59,7 @@ public class InterceptorPoint {
     @SuppressWarnings("UnusedDeclaration")
     public String getQualifiedName() {
 
-        return mInterceptorImplementationElement.getQualifiedName()
+        return interceptorImplementationElement.getQualifiedName()
                 .toString();
     }
 
@@ -71,7 +71,7 @@ public class InterceptorPoint {
     @SuppressWarnings("UnusedDeclaration")
     public String getSimpleName() {
 
-        return mInterceptorImplementationElement.getSimpleName()
+        return interceptorImplementationElement.getSimpleName()
                 .toString();
     }
 
@@ -83,7 +83,7 @@ public class InterceptorPoint {
     @SuppressWarnings("UnusedDeclaration")
     public boolean hasCustomConstructor() {
 
-        return mHasCustomConstructor;
+        return hasCustomConstructor;
     }
 
     /**
@@ -94,7 +94,7 @@ public class InterceptorPoint {
     @SuppressWarnings("UnusedDeclaration")
     public String getConcreteAnnotationQualifiedName() {
 
-        return mConcreteAnnotation.getConcreteClassName();
+        return concreteAnnotation.getConcreteClassName();
     }
 
     /**
@@ -105,7 +105,7 @@ public class InterceptorPoint {
     @SuppressWarnings("UnusedDeclaration")
     public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
-        return mConcreteAnnotationConstructorArguments;
+        return concreteAnnotationConstructorArguments;
     }
 
     /**
@@ -117,7 +117,7 @@ public class InterceptorPoint {
      */
     void addConcreteAnnotationConstructorLiteral(InterceptorAnnotationParameter value) {
 
-        mConcreteAnnotationConstructorArguments.add(value);
+        concreteAnnotationConstructorArguments.add(value);
     }
 
     /**
@@ -128,6 +128,6 @@ public class InterceptorPoint {
      */
     void setHasCustomConstructor(boolean hasCustomConstructor) {
 
-        this.mHasCustomConstructor = hasCustomConstructor;
+        this.hasCustomConstructor = hasCustomConstructor;
     }
 }

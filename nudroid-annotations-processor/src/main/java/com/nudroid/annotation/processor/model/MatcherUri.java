@@ -40,9 +40,9 @@ public class MatcherUri {
     private static final String LEADING_SLASH_REGEXP = "^/";
 
     private int id;
-    private final Authority mAuthority;
-    private final String mPath;
-    private boolean mHasQueryStringMatchersOnly = true;
+    private final Authority authority;
+    private final String path;
+    private boolean hasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
     private final NavigableSet<UriToMethodBinding> mQueryBindings =
@@ -50,8 +50,8 @@ public class MatcherUri {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
-                    return uri1.getNormalizedPath()
-                            .compareTo(uri2.getNormalizedPath());
+                    return uri1.getPath()
+                            .compareTo(uri2.getPath());
                 }
 
                 return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
@@ -63,8 +63,8 @@ public class MatcherUri {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
 
-                    return uri1.getNormalizedPath()
-                            .compareTo(uri2.getNormalizedPath());
+                    return uri1.getPath()
+                            .compareTo(uri2.getPath());
                 }
 
                 return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
@@ -95,8 +95,22 @@ public class MatcherUri {
 
         normalizedPath = normalizedPath.replaceAll(LEADING_SLASH_REGEXP, "");
 
-        this.mAuthority = authority;
-        this.mPath = normalizedPath;
+        this.authority = authority;
+        this.path = normalizedPath;
+    }
+
+    /**
+     * Creates an instance of this class.
+     *
+     * @param authority
+     *         the authority for this URI
+     * @param path
+     *         the uri path, with UriMatcher wildcards
+     */
+    public MatcherUri(Authority authority, String path) {
+
+        this.authority = authority;
+        this.path = path;
     }
 
     /**
@@ -123,38 +137,34 @@ public class MatcherUri {
     }
 
     /**
-     * Registers a new {@link UriToMethodBinding} for a query method for the provided path and query string. Delegate
-     * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
-     * URLs.
+     * Registers a uri to method binding.
      *
-     * @param path
-     *         The path and query to register as a query delegate uri.
-     *
-     * @return A new UriToMethodBinding object binding the path and query string combination to the target method.
-     *
-     * @throws DuplicatePathException
-     *         If the path and query string has already been associated with an existing @Query DelegateMethod.
+     * @param uriToMethodBinding
+     *         the binding to register
      */
-    public UriToMethodBinding registerQueryUri(String path) {
+    public void registerBindingForQuery(UriToMethodBinding uriToMethodBinding, List<ValidationError> errorAccumulator) {
 
-        final UriToMethodBinding candidateUriToMethodBinding = new UriToMethodBinding(mAuthority.getName(), path);
-
-        UriToMethodBinding registeredUriToMethodBinding = findEquivalentQueryMethodBinding(candidateUriToMethodBinding);
+        UriToMethodBinding registeredUriToMethodBinding = findEquivalentQueryMethodBinding(uriToMethodBinding);
 
         if (registeredUriToMethodBinding != null) {
 
-            throw new DuplicatePathException(registeredUriToMethodBinding.getDelegateMethod()
+            ValidationError error = new ValidationError(
+                    String.format("An equivalent path has already been registered by method '%s'",
+                            registeredUriToMethodBinding.getDelegateMethod()
+                                    .getExecutableElement()), uriToMethodBinding.getDelegateMethod()
                     .getExecutableElement());
+
+            errorAccumulator.add(error);
+
+            return;
         }
 
-        mQueryBindings.add(candidateUriToMethodBinding);
+        mQueryBindings.add(uriToMethodBinding);
 
-        if (candidateUriToMethodBinding.getQueryStringParameterCount() == 0) {
+        if (uriToMethodBinding.getQueryStringParameterCount() == 0) {
 
-            mHasQueryStringMatchersOnly = false;
+            hasQueryStringMatchersOnly = false;
         }
-
-        return candidateUriToMethodBinding;
     }
 
     /**
@@ -172,26 +182,28 @@ public class MatcherUri {
      */
     public UriToMethodBinding registerUpdateUri(String pathAndQuery) {
 
-        final UriToMethodBinding candidateUriToMethodBinding =
-                new UriToMethodBinding(mAuthority.getName(), pathAndQuery);
+//        final UriToMethodBinding candidateUriToMethodBinding =
+//                new UriToMethodBinding(authority.getName(), pathAndQuery);
+//
+//        UriToMethodBinding registeredUriToMethodBinding =
+//                findEquivalentUpdateMethodBinding(candidateUriToMethodBinding);
+//
+//        if (registeredUriToMethodBinding != null) {
+//
+//            throw new DuplicatePathException(registeredUriToMethodBinding.getDelegateMethod()
+//                    .getExecutableElement());
+//        }
+//
+//        mUpdateBindings.add(candidateUriToMethodBinding);
+//
+//        if (candidateUriToMethodBinding.getQueryStringParameterCount() == 0) {
+//
+//            hasQueryStringMatchersOnly = false;
+//        }
+//
+//        return candidateUriToMethodBinding;
 
-        UriToMethodBinding registeredUriToMethodBinding =
-                findEquivalentUpdateMethodBinding(candidateUriToMethodBinding);
-
-        if (registeredUriToMethodBinding != null) {
-
-            throw new DuplicatePathException(registeredUriToMethodBinding.getDelegateMethod()
-                    .getExecutableElement());
-        }
-
-        mUpdateBindings.add(candidateUriToMethodBinding);
-
-        if (candidateUriToMethodBinding.getQueryStringParameterCount() == 0) {
-
-            mHasQueryStringMatchersOnly = false;
-        }
-
-        return candidateUriToMethodBinding;
+        return null;
     }
 
     /**
@@ -213,7 +225,7 @@ public class MatcherUri {
     @SuppressWarnings("UnusedDeclaration")
     public String getAuthorityName() {
 
-        return mAuthority.getName();
+        return authority.getName();
     }
 
     /**
@@ -224,7 +236,7 @@ public class MatcherUri {
      */
     public String getNormalizedPath() {
 
-        return mPath;
+        return path;
     }
 
     /**
@@ -235,7 +247,7 @@ public class MatcherUri {
     @SuppressWarnings("UnusedDeclaration")
     public boolean hasQueryStringMatchersOnly() {
 
-        return mHasQueryStringMatchersOnly;
+        return hasQueryStringMatchersOnly;
     }
 
     /**
@@ -247,8 +259,8 @@ public class MatcherUri {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((mAuthority == null) ? 0 : mAuthority.hashCode());
-        result = prime * result + ((mPath == null) ? 0 : mPath.hashCode());
+        result = prime * result + ((authority == null) ? 0 : authority.hashCode());
+        result = prime * result + ((path == null) ? 0 : path.hashCode());
         return result;
     }
 
@@ -263,12 +275,12 @@ public class MatcherUri {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         MatcherUri other = (MatcherUri) obj;
-        if (mAuthority == null) {
-            if (other.mAuthority != null) return false;
-        } else if (!mAuthority.equals(other.mAuthority)) return false;
-        if (mPath == null) {
-            if (other.mPath != null) return false;
-        } else if (!mPath.equals(other.mPath)) return false;
+        if (authority == null) {
+            if (other.authority != null) return false;
+        } else if (!authority.equals(other.authority)) return false;
+        if (path == null) {
+            if (other.path != null) return false;
+        } else if (!path.equals(other.path)) return false;
         return true;
     }
 
@@ -279,7 +291,7 @@ public class MatcherUri {
      */
     @Override
     public String toString() {
-        return "MatcherUri [id=" + id + ", mAuthority=" + mAuthority + ", mPath=" + mPath + "]";
+        return "MatcherUri [id=" + id + ", authority=" + authority + ", path=" + path + "]";
     }
 
     /**
@@ -312,5 +324,11 @@ public class MatcherUri {
         return matchingUriToMethodBindings.isEmpty() ? null : matchingUriToMethodBindings.get(0);
     }
 
-
+//    /**
+//     * Builder pattern.
+//     */
+//    public static class Builder {
+//        public MatcherUri build() {
+//        }
+//    }
 }
