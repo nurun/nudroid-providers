@@ -23,6 +23,7 @@
 package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.processor.DuplicatePathException;
+import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 import java.util.ArrayList;
@@ -121,7 +122,7 @@ public class DelegateClass {
         return pathSegmentCountDelta;
     });
 
-    private Map<String, MatcherUri> matcherUriRegistry = new HashMap<>();
+    private final Map<String, MatcherUri> matcherUriRegistry = new HashMap<>();
 
     /**
      * Creates an instance of this class.
@@ -215,26 +216,6 @@ public class DelegateClass {
     }
 
     /**
-     * Registers a @Update path and query string to be handled by this delegate class.
-     *
-     * @param pathAndQuery
-     *         The path and query string to register.
-     * @param placeholderTargetTypes
-     *         The types of the parameters mapping to the placeholders, in the order they appear.
-     *
-     * @return A new UriToMethodBinding object binding the path and query string combination to the target method.
-     *
-     * @throws DuplicatePathException
-     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
-     */
-    public UriToMethodBinding registerPathForUpdate(String pathAndQuery,
-                                                    List<UriMatcherPathPatternType> placeholderTargetTypes) {
-
-//        MatcherUri matcherUri = getMatcherUriFor(pathAndQuery, placeholderTargetTypes);
-        return null;
-    }
-
-    /**
      * Sets if the delegate class implements the delegate interface.
      *
      * @param doesImplementDelegateInterface
@@ -269,7 +250,7 @@ public class DelegateClass {
      *
      * @return The authority associated with this class.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy("ContentProviderTemplate.stg")
     public Authority getAuthority() {
 
         return authority;
@@ -312,7 +293,7 @@ public class DelegateClass {
      * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
      * otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy("ContentProviderTemplate.stg")
     public boolean getImplementsContentProviderDelegateInterface() {
 
         return hasImplementedDelegateInterface;
@@ -323,7 +304,7 @@ public class DelegateClass {
      *
      * @return The {@link MatcherUri}s this delegate class handles.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"ContentProviderTemplate.stg", "RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public NavigableSet<MatcherUri> getMatcherUris() {
 
         return matcherUris;

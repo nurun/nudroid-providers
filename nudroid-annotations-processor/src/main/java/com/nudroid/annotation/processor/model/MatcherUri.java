@@ -23,6 +23,7 @@
 package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.processor.DuplicatePathException;
+import com.nudroid.annotation.processor.UsedBy;
 
 import java.util.List;
 import java.util.NavigableSet;
@@ -35,9 +36,6 @@ import java.util.stream.Collectors;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 public class MatcherUri {
-
-    private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
-    private static final String LEADING_SLASH_REGEXP = "^/";
 
     private int id;
     private final Authority authority;
@@ -74,35 +72,6 @@ public class MatcherUri {
      * Creates an instance of this class.
      *
      * @param authority
-     *         The authority for this URI.
-     * @param path
-     *         the uri path, with placeholders
-     * @param placeholderTargetTypes
-     *         The types of the parameters mapping to the placeholders, in the order they appear.
-     */
-    //TODO This was a quick fix for a BUG faced on project. Review this and refactor it better. For now,
-    // we assume anything which is not a string is a number. Do a proper assessment. Keep a collection of mappings
-    // and utilities, map all supported types and their corresponding ParamTypePattern and get from that map,
-    // throwing an exception if the type is not supported.
-    public MatcherUri(Authority authority, String path, List<UriMatcherPathPatternType> placeholderTargetTypes) {
-
-        String normalizedPath = path;
-
-        for (UriMatcherPathPatternType pattern : placeholderTargetTypes) {
-
-            normalizedPath = normalizedPath.replaceFirst(PLACEHOLDER_REGEXP, pattern.getPattern());
-        }
-
-        normalizedPath = normalizedPath.replaceAll(LEADING_SLASH_REGEXP, "");
-
-        this.authority = authority;
-        this.path = normalizedPath;
-    }
-
-    /**
-     * Creates an instance of this class.
-     *
-     * @param authority
      *         the authority for this URI
      * @param path
      *         the uri path, with UriMatcher wildcards
@@ -119,7 +88,7 @@ public class MatcherUri {
      *
      * @return The set of delegate uris which handles @Query methods
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg"})
     public NavigableSet<UriToMethodBinding> getQueryBindings() {
 
         return queryBindings;
@@ -130,7 +99,7 @@ public class MatcherUri {
      *
      * @return The set of delegate uris which handles @Update methods
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg"})
     public NavigableSet<UriToMethodBinding> getUpdateBindings() {
 
         return updateBindings;
@@ -168,50 +137,11 @@ public class MatcherUri {
     }
 
     /**
-     * Registers a new {@link UriToMethodBinding} for an update method for the provided path and query string. Delegate
-     * uris (as opposed to matcher uris) does take the query string into consideration when differentiating between
-     * URLs.
-     *
-     * @param pathAndQuery
-     *         The path and query to register as a query delegate uri.
-     *
-     * @return A new UriToMethodBinding object binding the path and query string combination to the target method.
-     *
-     * @throws DuplicatePathException
-     *         If the path and query string has already been associated with an existing @Update DelegateMethod.
-     */
-    public UriToMethodBinding registerUpdateUri(String pathAndQuery) {
-
-//        final UriToMethodBinding candidateUriToMethodBinding =
-//                new UriToMethodBinding(authority.getName(), pathAndQuery);
-//
-//        UriToMethodBinding registeredUriToMethodBinding =
-//                findEquivalentUpdateMethodBinding(candidateUriToMethodBinding);
-//
-//        if (registeredUriToMethodBinding != null) {
-//
-//            throw new DuplicatePathException(registeredUriToMethodBinding.getDelegateMethod()
-//                    .getExecutableElement());
-//        }
-//
-//        updateBindings.add(candidateUriToMethodBinding);
-//
-//        if (candidateUriToMethodBinding.getQueryStringParameterCount() == 0) {
-//
-//            hasQueryStringMatchersOnly = false;
-//        }
-//
-//        return candidateUriToMethodBinding;
-
-        return null;
-    }
-
-    /**
      * Gets the id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
      *
      * @return The id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplate.stg", "RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public int getId() {
 
         return this.id;
@@ -222,7 +152,7 @@ public class MatcherUri {
      *
      * @return The authority name of this URI.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy("RouterTemplate.stg")
     public String getAuthorityName() {
 
         return authority.getName();
@@ -244,7 +174,9 @@ public class MatcherUri {
      *
      * @return <tt>true</tt> if matching only paths with query string, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    //TODO review the approach for binding uris to methods using query strings
+    //TODO see if this method is required. it' name bother me a lot
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean hasQueryStringMatchersOnly() {
 
         return hasQueryStringMatchersOnly;
@@ -314,21 +246,4 @@ public class MatcherUri {
 
         return matchingUriToMethodBindings.isEmpty() ? null : matchingUriToMethodBindings.get(0);
     }
-
-    private UriToMethodBinding findEquivalentUpdateMethodBinding(final UriToMethodBinding candidateUriToMethodBinding) {
-
-        List<UriToMethodBinding> matchingUriToMethodBindings = updateBindings.stream()
-                .filter(candidateUriToMethodBinding::equals)
-                .collect(Collectors.toList());
-
-        return matchingUriToMethodBindings.isEmpty() ? null : matchingUriToMethodBindings.get(0);
-    }
-
-//    /**
-//     * Builder pattern.
-//     */
-//    public static class Builder {
-//        public MatcherUri build() {
-//        }
-//    }
 }

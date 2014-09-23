@@ -22,6 +22,8 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class InterceptorPoint {
      *
      * @return The fully qualified name of the interceptor class.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getQualifiedName() {
 
         return interceptorImplementationElement.getQualifiedName()
@@ -68,7 +70,7 @@ public class InterceptorPoint {
      *
      * @return The simple name of the interceptor class.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getSimpleName() {
 
         return interceptorImplementationElement.getSimpleName()
@@ -80,7 +82,7 @@ public class InterceptorPoint {
      *
      * @return <tt>true</tt> is it has, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean hasCustomConstructor() {
 
         return hasCustomConstructor;
@@ -91,7 +93,7 @@ public class InterceptorPoint {
      *
      * @return the qualified name of the concrete annotation implementation for this interceptor.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getConcreteAnnotationQualifiedName() {
 
         return concreteAnnotation.getConcreteClassName();
@@ -102,7 +104,7 @@ public class InterceptorPoint {
      *
      * @return The list of source code literals to create a new instance of the concrete annotation.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public List<InterceptorAnnotationParameter> getConcreteAnnotationConstructorArgumentLiterals() {
 
         return concreteAnnotationConstructorArguments;

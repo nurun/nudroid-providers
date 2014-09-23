@@ -22,6 +22,8 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
+
 import javax.lang.model.element.ExecutableElement;
 
 /**
@@ -53,10 +55,11 @@ public class AnnotationAttribute {
     }
 
     /**
-     * Gets the (return) type of this attribute.
+     * Gets the type of this annotation attribute.
      *
-     * @return The type of this attribute.
+     * @return the type of this annotation attribute
      */
+    @UsedBy("ConcreteAnnotationTemplate.stg")
     public String getType() {
 
         return type;
@@ -67,6 +70,7 @@ public class AnnotationAttribute {
      *
      * @return The name of this attribute.
      */
+    @UsedBy("ConcreteAnnotationTemplate.stg")
     public String getName() {
 
         return name;
@@ -77,7 +81,7 @@ public class AnnotationAttribute {
      *
      * @return The capitalized name of this attribute.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy("ConcreteAnnotationTemplate.stg")
     public String getCapitalizedName() {
 
         return capitalizedName;

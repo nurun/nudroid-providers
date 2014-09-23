@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Delete;
@@ -107,6 +108,7 @@ public class DelegateMethod {
      *
      * @return The method name.
      */
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getName() {
 
         return name;
@@ -128,7 +130,7 @@ public class DelegateMethod {
      *
      * @return The list of interceptors for this delegate method.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public List<InterceptorPoint> getBeforeInterceptorList() {
 
         return interceptorElements;
@@ -140,7 +142,7 @@ public class DelegateMethod {
      *
      * @return The list of interceptors for this delegate method.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public List<InterceptorPoint> getAfterInterceptorList() {
 
         if (inverseInterceptorElements == null) {
@@ -217,10 +219,7 @@ public class DelegateMethod {
      */
     public static class Builder {
 
-        private ExecutableElement executableElement;
-        private Class<?>[] validAnnotations =
-                {ContextRef.class, Projection.class, Selection.class, SelectionArgs.class, SortOrder.class,
-                        ContentUri.class, PathParam.class, QueryParam.class};
+        private final ExecutableElement executableElement;
 
         /**
          * Sets the executable element this delegate method represents.

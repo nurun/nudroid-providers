@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
@@ -59,10 +60,9 @@ public class Parameter {
     private boolean isSortOrder;
     private boolean isContentValues;
     private boolean isContentUri;
-    private boolean isString;
+    private boolean requiresConversion;
     private boolean isPathParam;
     private boolean isQueryParam;
-    private String keyName;
     private String placeholderName;
     private String parameterType;
 
@@ -71,7 +71,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isContext() {
         return isContext;
     }
@@ -81,7 +81,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isProjection() {
         return isProjection;
     }
@@ -91,7 +91,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isSelection() {
         return isSelection;
     }
@@ -101,7 +101,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isSelectionArgs() {
         return isSelectionArgs;
     }
@@ -111,7 +111,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isSortOrder() {
         return isSortOrder;
     }
@@ -121,7 +121,7 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isContentValues() {
         return isContentValues;
     }
@@ -131,18 +131,20 @@ public class Parameter {
      *
      * @return <tt>true</tt> if annotated, <tt>false</tt> otherwise.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isContentUri() {
         return isContentUri;
     }
 
     /**
-     * The parameter is of type {@link String}.
+     * Checks if the parameters needs conversion from String.
      *
-     * @return <tt>true</tt> if {@link String}, <tt>false</tt> otherwise.
+     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise
      */
-    public boolean isString() {
-        return isString;
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
+    public boolean getRequiresConversion() {
+
+        return requiresConversion;
     }
 
     /**
@@ -168,19 +170,9 @@ public class Parameter {
      *
      * @return <tt>true</tt> if it does, <tt>false</tt> otherwise.
      */
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isUriParameter() {
         return isPathParam || isQueryParam;
-    }
-
-    /**
-     * For path parameters, gets the position in the URI path this parameter maps to. For query strings, gets the name
-     * of the query string parameter.
-     *
-     * @return The position in the URI path this parameter maps to.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public String getKeyName() {
-        return keyName;
     }
 
     /**
@@ -188,7 +180,6 @@ public class Parameter {
      *
      * @return The placeholder name.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public String getPlaceholderName() {
         return placeholderName;
     }
@@ -198,7 +189,6 @@ public class Parameter {
      *
      * @return the qualified name of the parameter type
      */
-    @SuppressWarnings("UnusedDeclaration")
     public String getParameterType() {
         return parameterType;
     }
@@ -242,6 +232,8 @@ public class Parameter {
     /**
      * Sets if this parameter is annotated with {@link ContentValuesRef}.
      */
+    //TODO will be required for update(). Remove SuppressWarnings when so.
+    @SuppressWarnings("UnusedDeclaration")
     public void setContentValues() {
         this.isContentValues = true;
     }
@@ -256,8 +248,8 @@ public class Parameter {
     /**
      * Sets if this parameter is of type {@link String}.
      */
-    public void setString() {
-        this.isString = true;
+    public void setRequiresConversion() {
+        this.requiresConversion = true;
     }
 
     private void setPathParam() {
@@ -266,16 +258,6 @@ public class Parameter {
 
     private void setQueryParam() {
         this.isQueryParam = true;
-    }
-
-    /**
-     * Sets the path placeholder position in the URI this parameter maps to.
-     *
-     * @param keyName
-     *         The position in the URI's path.
-     */
-    public void setQueryStringName(String keyName) {
-        this.keyName = keyName;
     }
 
     /**
@@ -308,8 +290,7 @@ public class Parameter {
                 ", isSortOrder=" + isSortOrder +
                 ", isContentValues=" + isContentValues +
                 ", isContentUri=" + isContentUri +
-                ", isString=" + isString +
-                ", keyName='" + keyName + '\'' +
+                ", getRequiresConversion=" + requiresConversion +
                 ", placeholderName='" + placeholderName + '\'' +
                 ", parameterType='" + parameterType + '\'' +
                 '}';
@@ -432,6 +413,12 @@ public class Parameter {
 
                 parameter.setUriVariableName(pathParam.value());
                 parameter.setPathParam();
+
+                if (!typeUtils.isSameType(variableElement.asType(), elementUtils.getTypeElement(String.class.getName())
+                        .asType())) {
+
+                    parameter.setRequiresConversion();
+                }
             }
 
             final QueryParam queryParam = variableElement.getAnnotation(QueryParam.class);
@@ -440,6 +427,12 @@ public class Parameter {
 
                 parameter.setUriVariableName(queryParam.value());
                 parameter.setQueryParam();
+
+                if (!typeUtils.isSameType(variableElement.asType(), elementUtils.getTypeElement(String.class.getName())
+                        .asType())) {
+
+                    parameter.setRequiresConversion();
+                }
             }
 
             parameter.setParameterType(variableElement.asType()

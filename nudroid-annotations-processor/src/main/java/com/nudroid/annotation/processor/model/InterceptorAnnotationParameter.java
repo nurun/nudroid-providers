@@ -22,6 +22,8 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
+
 /**
  * Represents an interceptor annotation parameter.
  *
@@ -52,7 +54,7 @@ public class InterceptorAnnotationParameter {
      *
      * @return The literal representation of this parameter (as it appears in the source code).
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getLiteralValue() {
         return literalValue;
     }
@@ -62,6 +64,7 @@ public class InterceptorAnnotationParameter {
      *
      * @return <tt>true</tt> if this parameter is a String or array of Strings, <tt>false</tt> otherwise
      */
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean isString() {
 
         return isString;

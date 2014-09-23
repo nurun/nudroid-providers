@@ -23,6 +23,7 @@
 package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.processor.LoggingUtils;
+import com.nudroid.annotation.processor.UsedBy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +112,7 @@ public class InterceptorPointAnnotationBlueprint {
      *
      * @return The attributes of this concrete annotation.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"ConcreteAnnotationTemplate.stg"})
     public List<AnnotationAttribute> getAttributes() {
 
         return attributes;

@@ -5,15 +5,15 @@ private <attribute.type> m<attribute.capitalizedName>;
 
 
 
-generateConstructorParameters(parameter) ::= <<
-<parameter.type> <parameter.name>
+generateConstructorParameters(attribute) ::= <<
+<attribute.type> <attribute.name>
 >>
 
 
 
 
-generateConstructorAssignments(parameter) ::= <<
-this.m<parameter.capitalizedName> = <parameter.name>;
+generateConstructorAssignments(attribute) ::= <<
+this.m<attribute.capitalizedName> = <attribute.name>;
 >>
 
 

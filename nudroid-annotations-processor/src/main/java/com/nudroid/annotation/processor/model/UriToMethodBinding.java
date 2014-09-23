@@ -23,6 +23,7 @@
 package com.nudroid.annotation.processor.model;
 
 import com.google.common.base.Splitter;
+import com.nudroid.annotation.processor.UsedBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,52 +88,11 @@ public class UriToMethodBinding {
     }
 
     /**
-     * Checks if this URI has the specified placeholder name.
-     *
-     * @param placeholderName
-     *         the name of the placeholder to check
-     *
-     * @return <tt>true</tt> if this URI has a path or placeholder with the giben name, <tt>false</tt> otherwise
-     */
-    public boolean containsPathPlaceholder(String placeholderName) {
-
-        return pathParameterBindings.containsKey(placeholderName);
-    }
-
-    /**
-     * Gets the position this a placeholder appears in the URI's path.
-     *
-     * @param name
-     *         the name of the path placeholder to check
-     *
-     * @return the position for a placeholder given the name, -1 if the placeholder does not exist
-     */
-    public int findPathPlaceholderPosition(String name) {
-
-        PathParamBinding placeholder = pathParameterBindings.get(name);
-        return placeholder != null ? placeholder.getPosition() : -1;
-    }
-
-    /**
-     * Gets the placeholder type associated with the given placeholder name.
-     *
-     * @param name
-     *         the name of the placeholder
-     *
-     * @return the pattern type, or null if the placeholder does not exist
-     */
-    public UriMatcherPathPatternType findUriMatcherPathPatternType(String name) {
-
-        PathParamBinding placeholder = pathParameterBindings.get(name);
-        return placeholder != null ? placeholder.getPatternType() : null;
-    }
-
-    /**
      * Checks if this delegate method has path parameters.
      *
      * @return <tt>true</tt> if yes, <tt>false</tt> otherwise
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean getHasUriPlaceholders() {
 
         return pathParameterBindings.size() > 0;
@@ -143,7 +103,7 @@ public class UriToMethodBinding {
      *
      * @return the path parameters bindings
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public Collection<PathParamBinding> getPathParameterBindings() {
 
         return pathParameterBindings.values();
@@ -154,7 +114,7 @@ public class UriToMethodBinding {
      *
      * @return the query parameters bindings
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public Collection<String> getQueryStringParameterBindings() {
 
         return queryStringParameters;

@@ -14,10 +14,10 @@ query_generateDelegateMethodParameterList(parameter) ::= <%
     <elseif(parameter.contentUri)>
         contentProviderContext.uri
     <elseif(parameter.uriParameter)>
-        <if(parameter.string)>
-            contentProviderContext.placeholders.get("<parameter.placeholderName>")
-        <else>
+        <if(parameter.requiresConversion)>
             convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
+        <else>
+            contentProviderContext.placeholders.get("<parameter.placeholderName>")
         <endif>
     <else>
         null
@@ -66,8 +66,8 @@ l<interceptor.simpleName>.beforeQuery(contentProviderContext);
 
 
 
-query_populateContextPathParameters(parameter) ::= <%
-    contentProviderContext.placeholders.put("<parameter.name>", pathSegments.get(<parameter.position>));
+query_populateContextPathParameters(parameterBinding) ::= <%
+    contentProviderContext.placeholders.put("<parameterBinding.name>", pathSegments.get(<parameterBinding.position>));
 %>
 
 

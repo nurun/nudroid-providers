@@ -45,11 +45,12 @@ public class ParentClass {
 //            return null;
 //        }
 
-//        @MyCacheInterceptor2.Interceptor(bValue = 1, bValues = {1, 2}, cValue = 'a', cValues = {'a', 'b'},
-//                dValue = 1.0, dValues = {1.0, 2.0}, eValue = MyCacheInterceptor2.SampleEnum.ENUM_1,
-//                eValues = {MyCacheInterceptor2.SampleEnum.ENUM_1, MyCacheInterceptor2.SampleEnum.ENUM_2},
-//                fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
-//                zValue = Object.class, zValues = {Object.class, String.class})
+        @MyCacheInterceptor2.Interceptor(bValue = 1, bValues = {1, 2}, cValue = 'a', cValues = {'a', 'b'},
+                dValue = 1.0, dValues = {1.0, 2.0}, eValue = MyCacheInterceptor2.SampleEnum.ENUM_1,
+                eValues = {MyCacheInterceptor2.SampleEnum.ENUM_1, MyCacheInterceptor2.SampleEnum.ENUM_2},
+                fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
+                zValue = Object.class, zValues = {Object.class, String.class}, sValue = "{obaba}/{obaba2}/{1}",
+                sValues = {"{obaba}/{obaba2}/{2}", "{obaba}/{obaba2}/{3}"})
 //        @MyCacheInterceptor.Interceptor("yahoo")
         @Query("/terminals/cast/{obaba}")
         public Cursor terminals(@PathParam("obaba") long theObaba, @QueryParam("obaba2") String anotherObaba) {

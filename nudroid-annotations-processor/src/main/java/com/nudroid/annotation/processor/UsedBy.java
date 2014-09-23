@@ -22,35 +22,24 @@
 
 package com.nudroid.annotation.processor;
 
-import javax.lang.model.element.ExecutableElement;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 
 /**
- * Exception raised when the URI provided to the delegate method is duplicated.
+ * <p>For documentation purposes, denotes the method is used by a set of template. Helps identify methods which are used
+ * by templates only so the IDE can ignore unused declaration warnings.</p>
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class DuplicatePathException extends IllegalUriPathException {
-
-    private static final long serialVersionUID = -4364782083955709261L;
-    private final ExecutableElement originalMethod;
-
-    /**
-     * @param existingDelegateMethod
-     *         The delegate method which already define the path.
-     */
-    public DuplicatePathException(ExecutableElement existingDelegateMethod) {
-        super(String.format("An equivalent path has already been registerd by method %s", existingDelegateMethod));
-
-        this.originalMethod = existingDelegateMethod;
-    }
+@Target({ElementType.METHOD})
+@Documented
+public @interface UsedBy {
 
     /**
-     * Gets the method which originally registered the offending path.
+     * The list of templates the method is supposed to be used on.
      *
-     * @return The method which originally registered the offending path.
+     * @return the list of templates the method is used on
      */
-    public Object getOriginalMethod() {
-
-        return originalMethod;
-    }
+    String[] value();
 }

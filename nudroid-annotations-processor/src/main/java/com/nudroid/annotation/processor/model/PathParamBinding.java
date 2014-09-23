@@ -22,6 +22,8 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.UsedBy;
+
 /**
  * A placeholder in a delegate method annotation URI.
  *
@@ -66,6 +68,7 @@ class PathParamBinding {
      *
      * @return the name
      */
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getName() {
 
         return name;
