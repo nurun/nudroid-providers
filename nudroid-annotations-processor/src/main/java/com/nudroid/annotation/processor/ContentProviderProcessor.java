@@ -22,6 +22,11 @@
 
 package com.nudroid.annotation.processor;
 
+import com.google.common.base.Strings;
+import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
+import com.nudroid.provider.delegate.ContentProviderDelegate;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,11 +39,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
-import com.google.common.base.Strings;
-import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.provider.delegate.ContentProvider;
-import com.nudroid.provider.delegate.ContentProviderDelegate;
-
 /**
  * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
  *
@@ -48,6 +48,7 @@ class ContentProviderProcessor {
 
     private final LoggingUtils logger;
     private final String contentProviderDelegateInterfaceName;
+    private final ProcessorUtils processorUtils;
 
     /**
      * Creates an instance of this class.
@@ -58,6 +59,7 @@ class ContentProviderProcessor {
     ContentProviderProcessor(ProcessorContext processorContext) {
 
         this.logger = processorContext.logger;
+        this.processorUtils = processorContext.processorUtils;
         this.contentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
     }
 
@@ -105,7 +107,7 @@ class ContentProviderProcessor {
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        if (ElementUtils.isAbstract(delegateClassType)) {
+        if (processorUtils.isAbstract(delegateClassType)) {
 
             logger.trace("        Class is abstract. Signaling compilation error.");
             logger.error(String.format("@%s annotations are only allowed on concrete classes",
@@ -186,7 +188,7 @@ class ContentProviderProcessor {
 
         Element enclosingDelegateClassElement = delegateClassType.getEnclosingElement();
 
-        return !(ElementUtils.isClassOrInterface(enclosingDelegateClassElement) &&
+        return !(processorUtils.isClassOrInterface(enclosingDelegateClassElement) &&
                 !delegateClassModifiers.contains(Modifier.STATIC));
 
     }

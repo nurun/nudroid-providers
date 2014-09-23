@@ -39,8 +39,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * Processes the Query annotations on a class.
@@ -51,10 +49,8 @@ class QueryProcessor {
 
     private static final String PATH_AND_QUERY_STRING_REGEXP = "[^\\?]*\\?.*";
 
+    private final ProcessorUtils processorUtils;
     private final LoggingUtils logger;
-
-    private final Types typeUtils;
-    private final Elements elementUtils;
 
     /**
      * Creates an instance of this class.
@@ -64,8 +60,7 @@ class QueryProcessor {
      */
     QueryProcessor(ProcessorContext processorContext) {
 
-        this.typeUtils = processorContext.typeUtils;
-        this.elementUtils = processorContext.elementUtils;
+        this.processorUtils = processorContext.processorUtils;
         this.logger = processorContext.logger;
     }
 
@@ -136,12 +131,11 @@ class QueryProcessor {
             return null;
         }
 
-        DelegateMethod delegateMethod =
-                new DelegateMethod.Builder(queryMethod).build(this.elementUtils, this.typeUtils, errors -> {
-                    for (ValidationError error : errors) {
-                        logger.error(error.getMessage(), error.getElement());
-                    }
-                });
+        DelegateMethod delegateMethod = new DelegateMethod.Builder(queryMethod).build(this.processorUtils, errors -> {
+            for (ValidationError error : errors) {
+                logger.error(error.getMessage(), error.getElement());
+            }
+        });
 
         UriToMethodBinding uriToMethodBinding = new UriToMethodBinding.Builder().path(path)
                 .delegateMethod(delegateMethod)
@@ -188,7 +182,7 @@ class QueryProcessor {
                                 .toString())) {
 
                     delegateMethod.addInterceptor(
-                            concreteAnnotation.createInterceptorPoint(mirror, elementUtils, typeUtils, logger));
+                            concreteAnnotation.createInterceptorPoint(mirror, processorUtils, logger));
                     logger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

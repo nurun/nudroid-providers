@@ -38,8 +38,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * Add validation to interceptor constructors. <br/> Processes @{@link com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut}
@@ -49,9 +47,8 @@ import javax.lang.model.util.Types;
  */
 class InterceptorPointcutProcessor {
 
+    private final ProcessorUtils processorUtils;
     private final LoggingUtils logger;
-    private final Types typeUtils;
-    private final Elements elementUtils;
 
     /**
      * Creates an instance of this class.
@@ -61,9 +58,8 @@ class InterceptorPointcutProcessor {
      */
     InterceptorPointcutProcessor(ProcessorContext processorContext) {
 
+        this.processorUtils = processorContext.processorUtils;
         this.logger = processorContext.logger;
-        this.typeUtils = processorContext.typeUtils;
-        this.elementUtils = processorContext.elementUtils;
     }
 
     /**
@@ -98,19 +94,15 @@ class InterceptorPointcutProcessor {
                 Element interceptorClass = interceptorAnnotation.getEnclosingElement();
 
                 /* Interceptor annotations must be inner classes of the actual interceptor implementation. */
-                if (!ElementUtils.isClass(interceptorClass)) {
+                if (!processorUtils.isClass(interceptorClass)) {
 
                     logger.error(String.format(
                                     "Interceptor annotations must be static elements of an enclosing %s implementation",
-                                    com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
-                            interceptorAnnotation);
+                                    ContentProviderInterceptor.class.getName()), interceptorAnnotation);
                     continue;
                 }
 
-                TypeElement contentProviderInterfaceTypeElement =
-                        elementUtils.getTypeElement(ContentProviderInterceptor.class.getName());
-
-                if (!typeUtils.isAssignable(interceptorClass.asType(), contentProviderInterfaceTypeElement.asType())) {
+                if (!processorUtils.implementsContentProviderInterceptor((TypeElement) interceptorClass)) {
 
                     logger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
                                     com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),

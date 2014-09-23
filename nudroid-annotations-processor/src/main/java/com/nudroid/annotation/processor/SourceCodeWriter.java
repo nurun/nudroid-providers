@@ -22,6 +22,13 @@
 
 package com.nudroid.annotation.processor;
 
+import com.google.common.base.Strings;
+import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroupFile;
+
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,13 +36,6 @@ import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
-
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroupFile;
-
-import com.google.common.base.Strings;
-import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
 
 /**
  * Generates the source code for the content provider delegates based on the gathered metadata.

@@ -26,6 +26,8 @@ import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
 import com.nudroid.provider.interceptor.ContentProviderContext;
 import com.nudroid.provider.interceptor.ContentProviderInterceptorAdapter;
 
+import java.util.Collection;
+
 /**
  * Cache validation interceptor for the cntent service.
  */
@@ -57,30 +59,39 @@ public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
          * The remote url to call to fetch up to date data.
          */
         String sValue() default "default string";
+
         String[] sValues() default {"default array element 1", "default array element 2"};
 
-        byte bValue();
-        byte[] bValues();
+        byte bValue() default 3;
 
-        char cValue();
-        char[] cValues();
+        byte[] bValues() default {44, 55};
 
-        int iValue();
-        int[] iValues();
+        char cValue() default 'c';
 
-        long lValue();
-        long[] lValues();
+        char[] cValues() default {'d', 'e'};
 
-        float fValue();
-        float[] fValues();
+        int iValue() default 300;
 
-        double dValue();
-        double[] dValues();
+        int[] iValues() default {444, 555};
 
-        Class<?> zValue();
-        Class<?>[] zValues();
+        long lValue() default 1000;
 
-        SampleEnum eValue();
-        SampleEnum[] eValues();
+        long[] lValues() default {5000, 6666};
+
+        float fValue() default 0.0f;
+
+        float[] fValues() default {2.89f, 2.00009f};
+
+        double dValue() default -1000.0;
+
+        double[] dValues() default {1.999999999999, 1.0000000007};
+
+        Class<?> zValue() default String.class;
+
+        Class<?>[] zValues() default {Object.class, Collection.class};
+
+        SampleEnum eValue() default SampleEnum.ENUM_1;
+
+        SampleEnum[] eValues() default {SampleEnum.ENUM_1, SampleEnum.ENUM_1, SampleEnum.ENUM_2};
     }
 }

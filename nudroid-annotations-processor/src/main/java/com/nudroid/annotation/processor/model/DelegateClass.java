@@ -22,7 +22,6 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.nudroid.annotation.processor.DuplicatePathException;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 

@@ -96,7 +96,8 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         Elements elementUtils = env.getElementUtils();
         Types typeUtils = env.getTypeUtils();
 
-        final ProcessorContext processorContext = new ProcessorContext(processingEnv, elementUtils, typeUtils, logger);
+        final ProcessorContext processorContext =
+                new ProcessorContext(processingEnv, new ProcessorUtils(typeUtils, elementUtils), logger);
         contentProviderProcessor = new ContentProviderProcessor(processorContext);
         queryProcessor = new QueryProcessor(processorContext);
         interceptorPointcutProcessor = new InterceptorPointcutProcessor(processorContext);

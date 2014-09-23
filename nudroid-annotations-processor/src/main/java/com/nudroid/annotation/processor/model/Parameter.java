@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
@@ -37,8 +38,6 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * Contains metadata of a parameter from a delegate method.
@@ -290,12 +289,17 @@ public class Parameter {
                 ", isSortOrder=" + isSortOrder +
                 ", isContentValues=" + isContentValues +
                 ", isContentUri=" + isContentUri +
-                ", getRequiresConversion=" + requiresConversion +
+                ", requiresConversion=" + requiresConversion +
+                ", isPathParam=" + isPathParam +
+                ", isQueryParam=" + isQueryParam +
                 ", placeholderName='" + placeholderName + '\'' +
                 ", parameterType='" + parameterType + '\'' +
                 '}';
     }
 
+    /**
+     * Builder pattern.
+     */
     public static class Builder {
 
         public static final String ANDROID_CONTEXT_CLASS_NAME = "android.content.Context";
@@ -303,13 +307,28 @@ public class Parameter {
 
         private VariableElement variableElement;
 
-        public Builder variableElement(VariableElement variableElement) {
+        /**
+         * Initializes the builder.
+         *
+         * @param variableElement
+         *         the required variable element to get metadata from
+         */
+        public Builder(VariableElement variableElement) {
 
             this.variableElement = variableElement;
-            return this;
         }
 
-        public Parameter build(List<ValidationError> errorAccumulator, Types typeUtils, Elements elementUtils) {
+        /**
+         * Parses the metadata from the executable element into a Parameter object.
+         *
+         * @param processorUtils
+         *         a ProcessorUtils reference, required for parsing the metadata
+         * @param errorAccumulator
+         *         a list to store validation errors encountered while processing the metadata
+         *
+         * @return the parameter metadata
+         */
+        public Parameter build(ProcessorUtils processorUtils, List<ValidationError> errorAccumulator) {
 
             Parameter parameter = new Parameter();
 
@@ -317,8 +336,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(ContextRef.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(ANDROID_CONTEXT_CLASS_NAME)
-                        .asType())) {
+                if (processorUtils.isAndroidContext(parameterType)) {
 
                     parameter.setContext();
                 } else {
@@ -332,9 +350,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(Projection.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, typeUtils.getArrayType(
-                        elementUtils.getTypeElement(String.class.getName())
-                                .asType()))) {
+                if (processorUtils.isArrayOfStrings(parameterType)) {
 
                     parameter.setProjection();
                 } else {
@@ -348,8 +364,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(Selection.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(String.class.getName())
-                        .asType())) {
+                if (processorUtils.isString(parameterType)) {
 
                     parameter.setSelection();
                 } else {
@@ -363,9 +378,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(SelectionArgs.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, typeUtils.getArrayType(
-                        elementUtils.getTypeElement(String.class.getName())
-                                .asType()))) {
+                if (processorUtils.isArrayOfStrings(parameterType)) {
 
                     parameter.setSelectionArgs();
                 } else {
@@ -379,8 +392,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(SortOrder.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(String.class.getName())
-                        .asType())) {
+                if (processorUtils.isString(parameterType)) {
 
                     parameter.setSortOrder();
                 } else {
@@ -394,8 +406,7 @@ public class Parameter {
 
             if (variableElement.getAnnotation(ContentUri.class) != null) {
 
-                if (typeUtils.isSameType(parameterType, elementUtils.getTypeElement(ANDROID_URI_CLASS_NAME)
-                        .asType())) {
+                if (processorUtils.isAndroidUri(parameterType)) {
 
                     parameter.setContentUri();
                 } else {
@@ -414,8 +425,7 @@ public class Parameter {
                 parameter.setUriVariableName(pathParam.value());
                 parameter.setPathParam();
 
-                if (!typeUtils.isSameType(variableElement.asType(), elementUtils.getTypeElement(String.class.getName())
-                        .asType())) {
+                if (!processorUtils.isString(variableElement.asType())) {
 
                     parameter.setRequiresConversion();
                 }
@@ -428,8 +438,7 @@ public class Parameter {
                 parameter.setUriVariableName(queryParam.value());
                 parameter.setQueryParam();
 
-                if (!typeUtils.isSameType(variableElement.asType(), elementUtils.getTypeElement(String.class.getName())
-                        .asType())) {
+                if (!processorUtils.isString(variableElement.asType())) {
 
                     parameter.setRequiresConversion();
                 }

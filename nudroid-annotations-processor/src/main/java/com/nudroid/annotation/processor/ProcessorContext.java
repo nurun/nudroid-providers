@@ -23,8 +23,6 @@
 package com.nudroid.annotation.processor;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * Parameter object holding the context variables for a processor run.
@@ -39,14 +37,9 @@ class ProcessorContext {
     final ProcessingEnvironment processingEnv;
 
     /**
-     * The elements utility object being used by this processor.
+     * The processor utils object being used by this processor.
      */
-    final Elements elementUtils;
-
-    /**
-     * The types utility object being used by this processor.
-     */
-    final Types typeUtils;
+    final ProcessorUtils processorUtils;
 
     /**
      * The logger object being used by this processor.
@@ -57,20 +50,16 @@ class ProcessorContext {
      * Creates an instance of this parameter object.
      *
      * @param processingEnv
-     *         The processing environment instance.
-     * @param elementUtils
-     *         The elements utility instance.
-     * @param typeUtils
-     *         The type utilities instance.
+     *         the processing environment instance
+     * @param processorUtils
+     *         the processor utils instance
      * @param logger
-     *         The logger instance.
+     *         the logger instance
      */
-    public ProcessorContext(ProcessingEnvironment processingEnv, Elements elementUtils, Types typeUtils,
-                            LoggingUtils logger) {
+    public ProcessorContext(ProcessingEnvironment processingEnv, ProcessorUtils processorUtils, LoggingUtils logger) {
 
         this.processingEnv = processingEnv;
-        this.elementUtils = elementUtils;
-        this.typeUtils = typeUtils;
+        this.processorUtils = processorUtils;
         this.logger = logger;
     }
 }

@@ -23,6 +23,7 @@
 package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.processor.LoggingUtils;
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 
 import java.util.ArrayList;
@@ -43,8 +44,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * Represents a concrete annotation implementation that will be created by the source code generator.
@@ -169,18 +168,16 @@ public class InterceptorPointAnnotationBlueprint {
      * Creates the {@link InterceptorPoint}.
      *
      * @param annotationMirror
-     *         The {@link AnnotationMirror} for the interceptor annotation.
-     * @param elementUtils
-     *         An {@link Elements} instance.
-     * @param typeUtils
-     *         An {@link Types} instance.
+     *         the {@link AnnotationMirror} for the interceptor annotation
+     * @param processorUtils
+     *         a {@link com.nudroid.annotation.processor.ProcessorUtils} instance
      * @param logger
-     *         A {@link LoggingUtils} instance.
+     *         a {@link LoggingUtils} instance
      *
-     * @return A new interceptor point description.
+     * @return a new interceptor point description
      */
-    public InterceptorPoint createInterceptorPoint(AnnotationMirror annotationMirror, Elements elementUtils,
-                                                   Types typeUtils, LoggingUtils logger) {
+    public InterceptorPoint createInterceptorPoint(AnnotationMirror annotationMirror, ProcessorUtils processorUtils,
+                                                   LoggingUtils logger) {
 
         InterceptorPoint interceptor = new InterceptorPoint(this);
         interceptor.setHasCustomConstructor(hasCustomConstructor);
@@ -192,14 +189,14 @@ public class InterceptorPointAnnotationBlueprint {
                                 .toString()));
 
         Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues =
-                elementUtils.getElementValuesWithDefaults(annotationMirror);
+                processorUtils.getAnnotationValuesWithDefaults(annotationMirror);
         methodKeys.addAll(annotationValues.keySet());
 
         for (ExecutableElement keyEntry : methodKeys) {
 
             AnnotationValue attributeValue = annotationValues.get(keyEntry);
 
-            generateAnnotationLiteral(interceptor, keyEntry, attributeValue, elementUtils, typeUtils, logger);
+            generateAnnotationLiteral(interceptor, keyEntry, attributeValue, processorUtils, logger);
         }
 
         return interceptor;
@@ -234,7 +231,7 @@ public class InterceptorPointAnnotationBlueprint {
     }
 
     private void generateAnnotationLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
-                                           AnnotationValue attributeValue, Elements elementUtils, Types typeUtils,
+                                           AnnotationValue attributeValue, ProcessorUtils processorUtils,
                                            LoggingUtils logger) {
         final TypeKind kind = attribute.getReturnType()
                 .getKind();
@@ -242,7 +239,7 @@ public class InterceptorPointAnnotationBlueprint {
         switch (kind) {
             case ARRAY:
 
-                generateAnnotationArrayLiteral(interceptor, attribute, attributeValue, elementUtils, typeUtils, logger);
+                generateAnnotationArrayLiteral(interceptor, attribute, attributeValue, processorUtils, logger);
 
                 break;
             case CHAR:
@@ -283,34 +280,29 @@ public class InterceptorPointAnnotationBlueprint {
 
             case DECLARED:
 
-                TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
-
-                // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
-                // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (typeUtils.isSameType(stringType.asType(), attribute.getReturnType())) {
+                if (processorUtils.isString(attribute.getReturnType())) {
 
                     interceptor.addConcreteAnnotationConstructorLiteral(
                             new InterceptorAnnotationParameter(String.format("\"%s\"", attributeValue.getValue()),
                                     String.class));
-                } else if (Class.class.getName()
-                        .equals(typeUtils.asElement(attribute.getReturnType())
-                                .toString())) {
+                } else if (processorUtils.isClass(attribute.getReturnType())) {
 
                     interceptor.addConcreteAnnotationConstructorLiteral(
                             new InterceptorAnnotationParameter(String.format("%s.class", attributeValue.getValue()),
                                     Class.class));
                 } else {
 
-                    final Element asElement = typeUtils.asElement(attribute.getReturnType());
+                    if (processorUtils.isEnum(attribute.getReturnType())) {
 
-                    if (asElement.getKind() == ElementKind.ENUM) {
                         interceptor.addConcreteAnnotationConstructorLiteral(new InterceptorAnnotationParameter(
-                                String.format("%s.%s", asElement, attributeValue.getValue()), Object.class));
+                                String.format("%s.%s", attribute.getReturnType(), attributeValue.getValue()),
+                                Object.class));
                     } else {
 
-                        logger.error(String.format("Invalid type %s for the annotation attribute " +
-                                "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays" +
-                                " thereof.", asElement, attribute), attribute);
+                        logger.error(String.format(
+                                "Invalid type %s for the annotation attribute %s; only primitive types, Strings, " +
+                                        "Class, and enumerations are permitted or 1-dimensional arrays thereof.",
+                                attribute.getReturnType(), attribute), attribute);
                     }
                 }
 
@@ -324,7 +316,7 @@ public class InterceptorPointAnnotationBlueprint {
     }
 
     private void generateAnnotationArrayLiteral(InterceptorPoint interceptor, ExecutableElement attribute,
-                                                AnnotationValue attributeValue, Elements elementUtils, Types typeUtils,
+                                                AnnotationValue attributeValue, ProcessorUtils processorUtils,
                                                 LoggingUtils logger) {
 
         ArrayType arrayType = (ArrayType) attribute.getReturnType();
@@ -341,7 +333,7 @@ public class InterceptorPointAnnotationBlueprint {
 
         /*
          * On Eclipse, the toString() method of the AnnotationValues of an array is not proper. It does not print the
-         * fully qualified name of enum, does not surround characters and strings wiith ' and " and does not append 'f'
+         * fully qualified name of enum, does not surround characters and strings with ' and " and does not append 'f'
          * or 'l' for floats or longs. Thus the need to recreate the logic for proper source code generation.
          */
         switch (arrayType.getComponentType()
@@ -427,11 +419,7 @@ public class InterceptorPointAnnotationBlueprint {
 
             case DECLARED:
 
-                TypeElement stringType = elementUtils.getTypeElement(String.class.getName());
-
-                // Eclipse issue: Can't use Types.isSameType() as types will not match (even if they have the same qualified
-                // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-                if (typeUtils.isSameType(stringType.asType(), arrayType.getComponentType())) {
+                if (processorUtils.isString(arrayType.getComponentType())) {
 
                     arrayInitializer.append("new String[] { \"");
 
@@ -443,9 +431,7 @@ public class InterceptorPointAnnotationBlueprint {
 
                     arrayInitializer.append("\" }");
                     arrayClass = String[].class;
-                } else if (Class.class.getName()
-                        .equals(typeUtils.asElement(arrayType.getComponentType())
-                                .toString())) {
+                } else if (processorUtils.isClass(arrayType.getComponentType())) {
 
                     arrayInitializer.append("new Class[] { ");
 
@@ -459,15 +445,16 @@ public class InterceptorPointAnnotationBlueprint {
                     arrayClass = Class[].class;
                 } else {
 
-                    final Element arrayElementType = typeUtils.asElement(arrayType.getComponentType());
+                    //                    final Element arrayElementType = typeUtils.asElement(arrayType.getComponentType());
 
-                    if (arrayElementType.getKind() == ElementKind.ENUM) {
+                    if (processorUtils.isEnum(arrayType.getComponentType())) {
 
-                        arrayInitializer.append(String.format("new %s[] { %s.", arrayElementType, arrayElementType));
+                        arrayInitializer.append(String.format("new %s[] { %s.", arrayType.getComponentType(),
+                                arrayType.getComponentType()));
 
                         elements = arrayElements.stream()
                                 .map(Object::toString)
-                                .collect(Collectors.joining(String.format(", %s.", arrayElementType)));
+                                .collect(Collectors.joining(String.format(", %s.", arrayType.getComponentType())));
 
                         arrayInitializer.append(elements);
 
@@ -476,8 +463,9 @@ public class InterceptorPointAnnotationBlueprint {
                     } else {
 
                         logger.error(String.format("Invalid type %s for the annotation attribute " +
-                                "%s; only primitive type, String and enumeration are permitted or 1-dimensional arrays" +
-                                " thereof.", arrayElementType, attribute), attribute);
+                                "%s; only primitive types, Strings, Class and enumerations are permitted or " +
+                                "1-dimensional arrays" +
+                                " thereof.", arrayType.getComponentType(), attribute), attribute);
                     }
                 }
 

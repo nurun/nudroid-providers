@@ -191,6 +191,7 @@ project(':nudroid-annotations-processor') {
     dependencies {
         compile project(':nudroid-annotations')
         compile project(':nudroid-providers-core')
+        compileOnly 'com.google.android:android:2.2.1'
         compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.antlr:ST4:4.0.7'
     }

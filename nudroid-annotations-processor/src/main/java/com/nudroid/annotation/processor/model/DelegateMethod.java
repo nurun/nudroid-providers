@@ -22,18 +22,11 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
-import com.nudroid.annotation.provider.delegate.ContentUri;
-import com.nudroid.annotation.provider.delegate.ContextRef;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
-import com.nudroid.annotation.provider.delegate.PathParam;
-import com.nudroid.annotation.provider.delegate.Projection;
 import com.nudroid.annotation.provider.delegate.Query;
-import com.nudroid.annotation.provider.delegate.QueryParam;
-import com.nudroid.annotation.provider.delegate.Selection;
-import com.nudroid.annotation.provider.delegate.SelectionArgs;
-import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.annotation.provider.delegate.Update;
 
 import java.util.ArrayList;
@@ -45,8 +38,6 @@ import java.util.function.Consumer;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 
 /**
  * <p>Holds information about the delegate method for a content provider.</p> <p> <p>Delegate methods are methods
@@ -104,7 +95,7 @@ public class DelegateMethod {
     }
 
     /**
-     * Gets the name of the method (i.e. method name without return type nor oarameter).
+     * Gets the name of the method (i.e. method name without return type nor parameter).
      *
      * @return The method name.
      */
@@ -167,38 +158,25 @@ public class DelegateMethod {
         return pathParameters.get(placeholderName);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#hashCode()
-     */
+    @SuppressWarnings("RedundantIfStatement")
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + ((parameters == null) ? 0 : parameters.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DelegateMethod that = (DelegateMethod) o;
+
+        if (!name.equals(that.name)) return false;
+        if (!parameters.equals(that.parameters)) return false;
+
+        return true;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        DelegateMethod other = (DelegateMethod) obj;
-        if (name == null) {
-            if (other.name != null) return false;
-        } else if (!name.equals(other.name)) return false;
-        if (parameters == null) {
-            if (other.parameters != null) return false;
-        } else if (!parameters.equals(other.parameters)) return false;
-        return true;
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + parameters.hashCode();
+        return result;
     }
 
     @Override
@@ -232,7 +210,7 @@ public class DelegateMethod {
             this.executableElement = queryMethod;
         }
 
-        public DelegateMethod build(Elements elementUtils, Types typeUtils, Consumer<List<ValidationError>> error) {
+        public DelegateMethod build(ProcessorUtils processorUtils, Consumer<List<ValidationError>> error) {
 
             List<ValidationError> errorAccumulator = new ArrayList<>();
             DelegateMethod method = new DelegateMethod(this.executableElement);
@@ -241,8 +219,7 @@ public class DelegateMethod {
 
             for (VariableElement methodParameter : parameters) {
 
-                Parameter parameter = new Parameter.Builder().variableElement(methodParameter)
-                        .build(errorAccumulator, typeUtils, elementUtils);
+                Parameter parameter = new Parameter.Builder(methodParameter).build(processorUtils, errorAccumulator);
                 method.parameters.add(parameter);
 
                 if (parameter.isPathParameter()) {
