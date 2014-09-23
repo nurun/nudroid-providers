@@ -346,6 +346,8 @@ public class DelegateClass {
 
             newMatcherUri = new MatcherUri(authority, path);
             newMatcherUri.setId(++matcherUriIdCount);
+            matcherUris.add(newMatcherUri);
+            matcherUriRegistry.put(path, newMatcherUri);
         }
 
         return newMatcherUri;

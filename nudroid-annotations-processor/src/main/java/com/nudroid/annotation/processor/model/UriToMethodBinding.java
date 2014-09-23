@@ -25,6 +25,7 @@ package com.nudroid.annotation.processor.model;
 import com.google.common.base.Splitter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +47,7 @@ public class UriToMethodBinding {
 
     private DelegateMethod delegateMethod;
     private String path;
-    private Map<String, PathParamBinding> pathPlaceholders = new HashMap<>();
+    private Map<String, PathParamBinding> pathParameterBindings = new HashMap<>();
     private Set<String> queryStringParameters = new HashSet<>();
 
     private UriToMethodBinding() {
@@ -95,7 +96,7 @@ public class UriToMethodBinding {
      */
     public boolean containsPathPlaceholder(String placeholderName) {
 
-        return pathPlaceholders.containsKey(placeholderName);
+        return pathParameterBindings.containsKey(placeholderName);
     }
 
     /**
@@ -108,7 +109,7 @@ public class UriToMethodBinding {
      */
     public int findPathPlaceholderPosition(String name) {
 
-        PathParamBinding placeholder = pathPlaceholders.get(name);
+        PathParamBinding placeholder = pathParameterBindings.get(name);
         return placeholder != null ? placeholder.getPosition() : -1;
     }
 
@@ -122,8 +123,41 @@ public class UriToMethodBinding {
      */
     public UriMatcherPathPatternType findUriMatcherPathPatternType(String name) {
 
-        PathParamBinding placeholder = pathPlaceholders.get(name);
+        PathParamBinding placeholder = pathParameterBindings.get(name);
         return placeholder != null ? placeholder.getPatternType() : null;
+    }
+
+    /**
+     * Checks if this delegate method has path parameters.
+     *
+     * @return <tt>true</tt> if yes, <tt>false</tt> otherwise
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public boolean getHasUriPlaceholders() {
+
+        return pathParameterBindings.size() > 0;
+    }
+
+    /**
+     * Gets the path parameter bindings.
+     *
+     * @return the path parameters bindings
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public Collection<PathParamBinding> getPathParameterBindings() {
+
+        return pathParameterBindings.values();
+    }
+
+    /**
+     * Gets the query parameter bindings.
+     *
+     * @return the query parameters bindings
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    public Collection<String> getQueryStringParameterBindings() {
+
+        return queryStringParameters;
     }
 
     @SuppressWarnings("SimplifiableIfStatement")
@@ -153,7 +187,7 @@ public class UriToMethodBinding {
         return "UriToMethodBinding{" +
                 "delegateMethod=" + delegateMethod +
                 ", path='" + path + '\'' +
-                ", pathPlaceholders=" + pathPlaceholders +
+                ", pathParameterBindings=" + pathParameterBindings +
                 ", queryStringParameters=" + queryStringParameters +
                 '}';
     }
@@ -210,7 +244,6 @@ public class UriToMethodBinding {
             UriToMethodBinding binding = new UriToMethodBinding();
             parsePlaceholders(binding, path, errorAccumulator);
             binding.delegateMethod = delegateMethod;
-
             binding.queryStringParameters = new HashSet<>(delegateMethod.getQueryStringParameterNames());
 
             if (errorAccumulator.size() > 0) {
@@ -246,7 +279,7 @@ public class UriToMethodBinding {
                     if (parameter == null) {
 
                         ValidationError error = new ValidationError(
-                                String.format("Placeholder '%s' is not mapped by " + "any @PathParam parameters",
+                                String.format("Placeholder '%s' is not mapped by any @PathParam parameters",
                                         placeholderName), delegateMethod.getExecutableElement());
                         errorAccumulator.add(error);
                         continue;
@@ -256,8 +289,8 @@ public class UriToMethodBinding {
 
                     if (existingPlaceholder != null) {
                         ValidationError error = new ValidationError(String.format(
-                                "Placeholder '%s' appearing at position '%s' is already present at position '%s'",
-                                placeholderName, i, existingPlaceholder.getPosition()),
+                                "Placeholder '%s' appearing at position '%s' is already present at position '%s' in " +
+                                        "'%s'", placeholderName, i, existingPlaceholder.getPosition(), path),
                                 delegateMethod.getExecutableElement());
                         errorAccumulator.add(error);
                         continue;
@@ -272,7 +305,7 @@ public class UriToMethodBinding {
                 }
             }
 
-            binding.pathPlaceholders = pathPlaceholders;
+            binding.pathParameterBindings = pathPlaceholders;
             binding.path = normalizedPath;
         }
     }

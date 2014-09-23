@@ -13,13 +13,7 @@ query_generateDelegateMethodParameterList(parameter) ::= <%
         contentProviderContext.contentValues
     <elseif(parameter.contentUri)>
         contentProviderContext.uri
-    <elseif(parameter.pathParameter)>
-        <if(parameter.string)>
-            contentProviderContext.placeholders.get("<parameter.placeholderName>")
-        <else>
-            convert(contentProviderContext.placeholders.get("<parameter.placeholderName>"), <parameter.parameterType>.class)
-        <endif>
-    <elseif(parameter.queryParameter)>
+    <elseif(parameter.uriParameter)>
         <if(parameter.string)>
             contentProviderContext.placeholders.get("<parameter.placeholderName>")
         <else>
@@ -73,14 +67,14 @@ l<interceptor.simpleName>.beforeQuery(contentProviderContext);
 
 
 query_populateContextPathParameters(parameter) ::= <%
-    contentProviderContext.placeholders.put("<parameter.placeholderName>", pathSegments.get(<parameter.keyName>));
+    contentProviderContext.placeholders.put("<parameter.name>", pathSegments.get(<parameter.position>));
 %>
 
 
 
 
 query_populateContextQueryStringParameters(parameter) ::= <%
-    contentProviderContext.placeholders.put("<parameter.placeholderName>", contentProviderContext.uri.getQueryParameter("<parameter.keyName>"));
+    contentProviderContext.placeholders.put("<parameter>", uri.getQueryParameter("<parameter>"));
 %>
 
 
@@ -102,12 +96,12 @@ contentProviderContext = new ContentProviderContext(context, uri, projection,
 if (<binding.delegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
 
 <endif>
-    <if(binding.delegateMethod.hasUriPlaceholders)>
+    <if(binding.hasUriPlaceholders)>
     java.util.List\<String> pathSegments = uri.getPathSegments();
     <endif>
 
-    <binding.delegateMethod.queryStringParameters:query_populateContextQueryStringParameters(); separator="\n">
-    <binding.delegateMethod.pathParameters:query_populateContextPathParameters(); separator="\n">
+    <binding.queryStringParameterBindings:query_populateContextQueryStringParameters(); separator="\n">
+    <binding.pathParameterBindings:query_populateContextPathParameters(); separator="\n">
 
     <binding.delegateMethod.beforeInterceptorList:query_generateBeforeMethodInterceptorInvocations(); separator="\n">
     <\\>

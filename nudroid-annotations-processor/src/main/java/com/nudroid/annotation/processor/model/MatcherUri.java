@@ -45,7 +45,7 @@ public class MatcherUri {
     private boolean hasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
-    private final NavigableSet<UriToMethodBinding> mQueryBindings =
+    private final NavigableSet<UriToMethodBinding> queryBindings =
             new TreeSet<>((UriToMethodBinding uri1, UriToMethodBinding uri2) -> {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
@@ -58,7 +58,7 @@ public class MatcherUri {
             });
 
     /* Delegate URIs are sorted by query parameter count */
-    private final NavigableSet<UriToMethodBinding> mUpdateBindings =
+    private final NavigableSet<UriToMethodBinding> updateBindings =
             new TreeSet<>((UriToMethodBinding uri1, UriToMethodBinding uri2) -> {
 
                 if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
@@ -122,7 +122,7 @@ public class MatcherUri {
     @SuppressWarnings("UnusedDeclaration")
     public NavigableSet<UriToMethodBinding> getQueryBindings() {
 
-        return mQueryBindings;
+        return queryBindings;
     }
 
     /**
@@ -133,7 +133,7 @@ public class MatcherUri {
     @SuppressWarnings("UnusedDeclaration")
     public NavigableSet<UriToMethodBinding> getUpdateBindings() {
 
-        return mUpdateBindings;
+        return updateBindings;
     }
 
     /**
@@ -159,7 +159,7 @@ public class MatcherUri {
             return;
         }
 
-        mQueryBindings.add(uriToMethodBinding);
+        queryBindings.add(uriToMethodBinding);
 
         if (uriToMethodBinding.getQueryStringParameterCount() == 0) {
 
@@ -194,7 +194,7 @@ public class MatcherUri {
 //                    .getExecutableElement());
 //        }
 //
-//        mUpdateBindings.add(candidateUriToMethodBinding);
+//        updateBindings.add(candidateUriToMethodBinding);
 //
 //        if (candidateUriToMethodBinding.getQueryStringParameterCount() == 0) {
 //
@@ -308,7 +308,7 @@ public class MatcherUri {
 
     private UriToMethodBinding findEquivalentQueryMethodBinding(final UriToMethodBinding candidateUriToMethodBinding) {
 
-        List<UriToMethodBinding> matchingUriToMethodBindings = mQueryBindings.stream()
+        List<UriToMethodBinding> matchingUriToMethodBindings = queryBindings.stream()
                 .filter(candidateUriToMethodBinding::equals)
                 .collect(Collectors.toList());
 
@@ -317,7 +317,7 @@ public class MatcherUri {
 
     private UriToMethodBinding findEquivalentUpdateMethodBinding(final UriToMethodBinding candidateUriToMethodBinding) {
 
-        List<UriToMethodBinding> matchingUriToMethodBindings = mUpdateBindings.stream()
+        List<UriToMethodBinding> matchingUriToMethodBindings = updateBindings.stream()
                 .filter(candidateUriToMethodBinding::equals)
                 .collect(Collectors.toList());
 

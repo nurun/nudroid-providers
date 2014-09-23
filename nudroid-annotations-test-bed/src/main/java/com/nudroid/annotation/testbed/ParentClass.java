@@ -28,6 +28,7 @@ import android.database.Cursor;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.PathParam;
+import com.nudroid.annotation.provider.delegate.QueryParam;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 public class ParentClass {
@@ -44,14 +45,14 @@ public class ParentClass {
 //            return null;
 //        }
 
-        @MyCacheInterceptor2.Interceptor(bValue = 1, bValues = {1, 2}, cValue = 'a', cValues = {'a', 'b'},
-                dValue = 1.0, dValues = {1.0, 2.0}, eValue = MyCacheInterceptor2.SampleEnum.ENUM_1,
-                eValues = {MyCacheInterceptor2.SampleEnum.ENUM_1, MyCacheInterceptor2.SampleEnum.ENUM_2},
-                fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
-                zValue = Object.class, zValues = {Object.class, String.class})
-        @MyCacheInterceptor.Interceptor("yahoo")
-        @Query("/terminals/cast/{obaba}/{obaba}")
-        public Cursor terminals(@PathParam("obaba") String theObaba) {
+//        @MyCacheInterceptor2.Interceptor(bValue = 1, bValues = {1, 2}, cValue = 'a', cValues = {'a', 'b'},
+//                dValue = 1.0, dValues = {1.0, 2.0}, eValue = MyCacheInterceptor2.SampleEnum.ENUM_1,
+//                eValues = {MyCacheInterceptor2.SampleEnum.ENUM_1, MyCacheInterceptor2.SampleEnum.ENUM_2},
+//                fValue = 1.0f, fValues = {1.0f, 2.0f}, iValue = 1, iValues = {1, 2}, lValue = 1, lValues = {1, 2},
+//                zValue = Object.class, zValues = {Object.class, String.class})
+//        @MyCacheInterceptor.Interceptor("yahoo")
+        @Query("/terminals/cast/{obaba}")
+        public Cursor terminals(@PathParam("obaba") long theObaba, @QueryParam("obaba2") String anotherObaba) {
 
             //... perform query
             return null;

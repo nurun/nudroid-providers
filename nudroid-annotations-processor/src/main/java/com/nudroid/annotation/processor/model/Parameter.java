@@ -145,12 +145,31 @@ public class Parameter {
         return isString;
     }
 
-    public boolean isPathParam() {
+    /**
+     * The parameter binds a path parameter.
+     *
+     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise.
+     */
+    public boolean isPathParameter() {
         return isPathParam;
     }
 
-    public boolean isQueryParam() {
+    /**
+     * The parameter binds a query parameter.
+     *
+     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise.
+     */
+    public boolean isQueryParameter() {
         return isQueryParam;
+    }
+
+    /**
+     * The parameter binds to a path or query parameter.
+     *
+     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise.
+     */
+    public boolean isUriParameter() {
+        return isPathParam || isQueryParam;
     }
 
     /**

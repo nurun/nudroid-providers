@@ -56,9 +56,19 @@ class PathParamBinding {
      *
      * @return the position
      */
-    int getPosition() {
+    public int getPosition() {
 
         return position;
+    }
+
+    /**
+     * Gets the name of this placeholder in the URI path.
+     *
+     * @return the name
+     */
+    public String getName() {
+
+        return name;
     }
 
     /**

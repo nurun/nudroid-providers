@@ -246,10 +246,10 @@ public class DelegateMethod {
                         .build(errorAccumulator, typeUtils, elementUtils);
                 method.parameters.add(parameter);
 
-                if (parameter.isPathParam()) {
+                if (parameter.isPathParameter()) {
 
                     method.pathParameters.put(parameter.getPlaceholderName(), parameter);
-                } else if (parameter.isQueryParam()) {
+                } else if (parameter.isQueryParameter()) {
 
                     method.queryStringParameterNames.add(parameter.getPlaceholderName());
                 }
