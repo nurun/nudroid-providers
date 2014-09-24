@@ -22,6 +22,15 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.google.common.base.Strings;
+import com.nudroid.annotation.processor.LoggingUtils;
+import com.nudroid.annotation.processor.ProcessorUtils;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
+
+import java.util.function.Consumer;
+
+import javax.lang.model.element.TypeElement;
+
 /**
  * A content provider authority.
  *
@@ -75,19 +84,23 @@ public class Authority {
     /**
      * Builder for Authority.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<Authority> {
 
         private String authorityName;
+        private final TypeElement typeElement;
 
         /**
          * Initializes the builder.
          *
          * @param authorityName
          *         the authority name
+         * @param typeElement
+         *         the element the authority annotation is applied to
          */
-        public Builder(String authorityName) {
+        public Builder(String authorityName, TypeElement typeElement) {
 
             this.authorityName = authorityName;
+            this.typeElement = typeElement;
         }
 
         /**
@@ -95,8 +108,18 @@ public class Authority {
          *
          * @return a new instance of Authority
          */
-        public Authority build() {
-            return new Authority(authorityName);
+        public Authority build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
+
+            ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
+
+            if (Strings.isNullOrEmpty(this.authorityName)) {
+
+                gatherer.gatherError("Authority name can't be empty.", this.typeElement, LoggingUtils.LogLevel.ERROR);
+            }
+
+            gatherer.emmitErrorsIfApplicable(errorCallback);
+
+            return new Authority(this.authorityName);
         }
     }
 }

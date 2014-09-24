@@ -156,11 +156,8 @@ class ContentProviderProcessor {
                 String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
         final DelegateClass delegateClass =
-                new DelegateClass.Builder(authorityName, delegateClassType).build(processorUtils, errors -> {
-                    for (ValidationError error : errors) {
-                        logger.error(error.getMessage(), error.getElement());
-                    }
-                });
+                new DelegateClass.Builder(authorityName, delegateClassType).build(processorUtils,
+                        gatherer -> gatherer.logErrors(logger));
 
         metadata.registerNewDelegateClass(delegateClass);
     }
@@ -191,10 +188,5 @@ class ContentProviderProcessor {
         }
 
         return false;
-    }
-
-    private boolean validateClassIsNotInDefaultPackage(DelegateClass delegateClass) {
-
-        return !Strings.isNullOrEmpty(delegateClass.getBasePackageName());
     }
 }

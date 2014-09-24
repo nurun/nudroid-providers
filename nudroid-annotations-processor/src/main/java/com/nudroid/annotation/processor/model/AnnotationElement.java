@@ -22,7 +22,11 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
+
+import java.util.function.Consumer;
 
 import javax.lang.model.element.ExecutableElement;
 
@@ -80,7 +84,7 @@ public class AnnotationElement {
     /**
      * Builder for AnnotationElements.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<AnnotationElement> {
 
         private final String type;
         private final String name;
@@ -108,7 +112,7 @@ public class AnnotationElement {
          *
          * @return a new instance of AnnotationElement
          */
-        public AnnotationElement build() {
+        public AnnotationElement build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
             return new AnnotationElement(this.type, this.name, this.capitalizedName);
         }

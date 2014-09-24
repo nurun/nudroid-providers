@@ -1,7 +1,5 @@
-ContentProviderTemplate(delegateClass) ::= <<
-<if(delegateClass.basePackageName)>
-package <delegateClass.basePackageName>;
-<endif>
+ContentProviderTemplate(delegateClass, packageName) ::= <<
+package <packageName>;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -15,11 +13,7 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
 /*
  * Here's a basic XML you can use to configure this content provider in AndroidManifest.xml
  \<provider<\\>
-<if(delegateClass.basePackageName)>    
-     android:name="<delegateClass.basePackageName>.<delegateClass.contentProviderSimpleName>"
-<else>
-     android:name="<delegateClass.contentProviderSimpleName>"
-<endif>
+     android:name="<packageName>.<delegateClass.contentProviderSimpleName>"
      android:authorities="<delegateClass.authority.name>"
      android:exported="\<true|false>"
      android:grantUriPermissions="\<true|false>"

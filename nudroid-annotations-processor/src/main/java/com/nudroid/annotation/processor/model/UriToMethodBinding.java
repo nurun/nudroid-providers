@@ -240,7 +240,7 @@ public class UriToMethodBinding {
 
                         ValidationError error = new ValidationError(
                                 String.format("Placeholder '%s' is not mapped by any @PathParam parameters",
-                                        placeholderName), delegateMethod.getExecutableElement());
+                                        placeholderName), delegateMethod.getExecutableElement(), null);
                         errorAccumulator.add(error);
                         continue;
                     }
@@ -251,7 +251,7 @@ public class UriToMethodBinding {
                         ValidationError error = new ValidationError(String.format(
                                 "Placeholder '%s' appearing at position '%s' is already present at position '%s' in " +
                                         "'%s'", placeholderName, i, existingPlaceholder.getPosition(), path),
-                                delegateMethod.getExecutableElement());
+                                delegateMethod.getExecutableElement(), null);
                         errorAccumulator.add(error);
                         continue;
                     }

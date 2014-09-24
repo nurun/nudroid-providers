@@ -57,6 +57,8 @@ class SourceCodeWriter {
             "com/nudroid/annotation/processor/ConcreteAnnotationTemplate.stg";
     private static final String CONCRETE_ANNOTATION_TEMPLATE_NAME = "ConcreteAnnotationTemplate";
 
+    private static final String GENERATED_SOURCE_PACKAGE_NAME = "com.nudroid.provider.generated_";
+
     /**
      * Creates an instance of this class.
      *
@@ -115,18 +117,13 @@ class SourceCodeWriter {
             STGroupFile g = new STGroupFile(CONTENT_PROVIDER_TEMPLATE_LOCATION);
             ST st = g.getInstanceOf(CONTENT_PROVIDER_TEMPLATE_NAME);
             st.add("delegateClass", delegateClass);
+            st.add("packageName", GENERATED_SOURCE_PACKAGE_NAME);
             String result = st.render();
 
             JavaFileObject javaFile;
 
-            if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
-
-                javaFile = filer.createSourceFile(delegateClass.getContentProviderSimpleName());
-            } else {
-
-                javaFile = filer.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
-                        delegateClass.getContentProviderSimpleName()));
-            }
+            javaFile = filer.createSourceFile(String.format("%s.%s", GENERATED_SOURCE_PACKAGE_NAME,
+                    delegateClass.getContentProviderSimpleName()));
 
             Writer writerContentUriRegistry = javaFile.openWriter();
             writerContentUriRegistry.write(result);
@@ -146,18 +143,13 @@ class SourceCodeWriter {
             STGroupFile g = new STGroupFile(CONTENT_PROVIDER_ROUTER_TEMPLATE_LOCATION);
             ST st = g.getInstanceOf(CONTENT_PROVIDER_ROUTER_TEMPLATE_NAME);
             st.add("delegateClass", delegateClass);
+            st.add("packageName", GENERATED_SOURCE_PACKAGE_NAME);
             String result = st.render();
 
             JavaFileObject javaFile;
 
-            if (Strings.isNullOrEmpty(delegateClass.getBasePackageName())) {
-
-                javaFile = filer.createSourceFile(delegateClass.getRouterSimpleName());
-            } else {
-
-                javaFile = filer.createSourceFile(String.format("%s.%s", delegateClass.getBasePackageName(),
-                        delegateClass.getRouterSimpleName()));
-            }
+            javaFile = filer.createSourceFile(
+                    String.format("%s.%s", GENERATED_SOURCE_PACKAGE_NAME, delegateClass.getRouterSimpleName()));
 
             Writer writerContentUriRegistry = javaFile.openWriter();
             writerContentUriRegistry.write(result);
@@ -177,18 +169,13 @@ class SourceCodeWriter {
             STGroupFile g = new STGroupFile(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
             ST st = g.getInstanceOf(CONCRETE_ANNOTATION_TEMPLATE_NAME);
             st.add("annotation", annotation);
+            st.add("packageName", GENERATED_SOURCE_PACKAGE_NAME);
             String result = st.render();
 
             JavaFileObject javaFile;
 
-            if (Strings.isNullOrEmpty(annotation.getConcretePackageName())) {
-
-                javaFile = filer.createSourceFile(annotation.getConcreteClassName());
-            } else {
-
-                javaFile = filer.createSourceFile(
-                        String.format("%s.%s", annotation.getConcretePackageName(), annotation.getConcreteClassName()));
-            }
+            javaFile = filer.createSourceFile(
+                    String.format("%s.%s", GENERATED_SOURCE_PACKAGE_NAME, annotation.getConcreteClassName()));
 
             Writer writerContentUriRegistry = javaFile.openWriter();
             writerContentUriRegistry.write(result);

@@ -34,10 +34,8 @@ public <attribute.type> <attribute.name>() {
 
 
 
-ConcreteAnnotationTemplate(annotation) ::= <<
-<if(annotation.concretePackageName)>
-package <annotation.concretePackageName>;
-<endif>
+ConcreteAnnotationTemplate(annotation, packageName) ::= <<
+package <packageName>;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;

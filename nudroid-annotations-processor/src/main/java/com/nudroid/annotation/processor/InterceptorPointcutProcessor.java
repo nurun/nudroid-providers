@@ -132,7 +132,8 @@ class InterceptorPointcutProcessor {
         annotationProperties.stream()
                 .filter(method -> method instanceof ExecutableElement)
                 .forEach(method -> annotationBlueprint.addAttribute(
-                        new AnnotationElement.Builder((ExecutableElement) method).build()));
+                        new AnnotationElement.Builder((ExecutableElement) method).build(processorUtils,
+                                gatherer -> gatherer.logErrors(logger))));
 
         metadata.registerAnnotationBlueprint(annotationBlueprint);
     }

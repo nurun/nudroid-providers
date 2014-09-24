@@ -23,8 +23,8 @@
 package com.nudroid.annotation.processor.model;
 
 import com.nudroid.annotation.processor.ProcessorUtils;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -53,5 +53,5 @@ public interface ModelBuilder<T> {
      *
      * @return a new instance of the model class, or <tt>null</tt> if one couldn't be created
      */
-    T build(ProcessorUtils processorUtils, Consumer<List<ValidationError>> errorCallback);
+    T build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback);
 }

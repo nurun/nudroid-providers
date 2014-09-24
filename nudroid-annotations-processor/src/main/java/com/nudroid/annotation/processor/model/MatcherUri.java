@@ -120,7 +120,7 @@ public class MatcherUri {
                     String.format("An equivalent path has already been registered by method '%s'",
                             registeredUriToMethodBinding.getDelegateMethod()
                                     .getExecutableElement()), uriToMethodBinding.getDelegateMethod()
-                    .getExecutableElement());
+                    .getExecutableElement(), null);
 
             errorAccumulator.add(error);
 

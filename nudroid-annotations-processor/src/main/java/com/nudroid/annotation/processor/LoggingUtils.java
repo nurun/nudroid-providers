@@ -27,11 +27,14 @@ import javax.lang.model.element.Element;
 import javax.tools.Diagnostic.Kind;
 
 /**
- * <p>Utility class for logging messages while processing the annotations. To be compatible with IDEs, messages are logged
+ * Utility class for logging messages while processing the annotations. To be compatible with IDEs, messages are logged
  * using the annotation processor's {@link Messager} object. This logging utility supports the standard logging levels,
- * TRACE, DEBUG, INFO, WARN and ERROR, which can be configured as it would be expected from any logging framework.</p>
- * <p> The TRACE, DEBUG and INFO levels are logged as a compiler {@link Kind#NOTE}. The WARN level is logged as a
- * {@link Kind#WARNING} and the ERROR level as a {@link Kind#ERROR}.</p>
+ * TRACE, DEBUG, INFO, WARN and ERROR, which can be configured as it would be expected from any logging framework.
+ * <p>
+ * The TRACE, DEBUG and INFO levels are logged as a compiler {@link Kind#NOTE}. The WARN level is logged as a {@link
+ * Kind#WARNING} and the ERROR level as a {@link Kind#ERROR}.
+ * <p>
+ * Only messages at a log level equal to or greater than the default log level will be issued.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
@@ -42,30 +45,35 @@ public class LoggingUtils {
     private final LogLevel logLevel;
 
     /**
+     * Creates an instance of this class with a WARN default level.
+     *
+     * @param messager
+     *         the {@link Messager} instance to use
+     */
+    LoggingUtils(Messager messager) {
+
+        this(messager, LogLevel.WARN.toString());
+    }
+
+    /**
      * Creates an instance of this class.
      *
      * @param messager
-     *         The {@link Messager} instance to use.
+     *         the {@link Messager} instance to use
      * @param defaultLogLevel
-     *         The default log level: one of "TRACE", "DEBUG", "INFO", "WARN" or "ERROR". Only messages at a log level
-     *         equal to or greater than the default log level will be issued.
+     *         the default log level: one of "TRACE", "DEBUG", "INFO", "WARN" or "ERROR"
      */
     LoggingUtils(Messager messager, String defaultLogLevel) {
 
         this.messager = messager;
-
-        if (defaultLogLevel == null) {
-            this.logLevel = LogLevel.WARN;
-        } else {
-            this.logLevel = LogLevel.valueOf(defaultLogLevel);
-        }
+        this.logLevel = LogLevel.valueOf(defaultLogLevel);
     }
 
     /**
      * Issues a log message at the TRACE level.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      */
     public void trace(String message) {
 
@@ -79,7 +87,7 @@ public class LoggingUtils {
      * Issues a log message at the DEBUG level.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      */
     public void debug(String message) {
 
@@ -93,7 +101,7 @@ public class LoggingUtils {
      * Issues a log message at the INFO level.
      *
      * @param message
-     *         The message to be logged.
+     *         he message to be logged
      */
     public void info(String message) {
 
@@ -107,7 +115,7 @@ public class LoggingUtils {
      * Issues a log message at the WARN level.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      */
     public void warn(String message) {
 
@@ -122,9 +130,9 @@ public class LoggingUtils {
      * the compiler and modern IDEs and displayed besides the offending elements.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      * @param element
-     *         The {@link Element} this message is associated with. Can be null.
+     *         the {@link Element} this message is associated with. Can be null
      */
     public void warn(String message, Element element) {
 
@@ -141,7 +149,7 @@ public class LoggingUtils {
      * Issues a log message at the ERROR level.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      */
     public void error(String message) {
 
@@ -156,9 +164,9 @@ public class LoggingUtils {
      * the compiler and modern IDEs and displayed besides the offending elements.
      *
      * @param message
-     *         The message to be logged.
+     *         the message to be logged
      * @param element
-     *         The {@link Element} this message is associated with. Can be null.
+     *         the {@link Element} this message is associated with. Can be null
      */
     public void error(String message, Element element) {
 
@@ -171,7 +179,42 @@ public class LoggingUtils {
         }
     }
 
-    private static enum LogLevel {
+    /**
+     * Generic log function.
+     *
+     * @param message
+     *         the message to log
+     * @param element
+     *         the element to attach the message to
+     * @param severity
+     *         the severity of the message
+     */
+    public void log(String message, Element element, LogLevel severity) {
+
+        switch (severity) {
+
+            case TRACE:
+                trace(message);
+                break;
+            case DEBUG:
+                debug(message);
+                break;
+            case INFO:
+                info(message);
+                break;
+            case WARN:
+                warn(message, element);
+                break;
+            case ERROR:
+                error(message, element);
+                break;
+        }
+    }
+
+    /**
+     * The available severity levels.
+     */
+    public static enum LogLevel {
         TRACE, DEBUG, INFO, WARN, ERROR;
 
         /**

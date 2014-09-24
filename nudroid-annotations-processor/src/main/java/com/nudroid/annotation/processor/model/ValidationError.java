@@ -22,6 +22,8 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.LoggingUtils;
+
 import javax.lang.model.element.Element;
 
 /**
@@ -32,6 +34,8 @@ public class ValidationError {
     private final String message;
     private final Element element;
 
+    private final LoggingUtils.LogLevel severity;
+
     /**
      * Creates a validation error.
      *
@@ -40,10 +44,11 @@ public class ValidationError {
      * @param element
      *         the element where the error was detected
      */
-    public ValidationError(String message, Element element) {
+    public ValidationError(String message, Element element, LoggingUtils.LogLevel severity) {
 
         this.message = message;
         this.element = element;
+        this.severity = severity;
     }
 
     /**
@@ -63,4 +68,11 @@ public class ValidationError {
     public Element getElement() {
         return element;
     }
+
+    /**
+     * Gets the error severity.
+     *
+     * @return the severity
+     */
+    public LoggingUtils.LogLevel getSeverity() { return severity; }
 }

@@ -343,7 +343,8 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type %s.",
-                                    ContextRef.class.getSimpleName(), ANDROID_CONTEXT_CLASS_NAME), variableElement);
+                                    ContextRef.class.getSimpleName(), ANDROID_CONTEXT_CLASS_NAME), variableElement,
+                            null);
                     errorAccumulator.add(error);
                 }
             }
@@ -357,7 +358,7 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type array of %s.",
-                                    Projection.class.getSimpleName(), String.class.getName()), variableElement);
+                                    Projection.class.getSimpleName(), String.class.getName()), variableElement, null);
                     errorAccumulator.add(error);
                 }
             }
@@ -371,7 +372,7 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type %s.",
-                                    Selection.class.getSimpleName(), String.class.getName()), variableElement);
+                                    Selection.class.getSimpleName(), String.class.getName()), variableElement, null);
                     errorAccumulator.add(error);
                 }
             }
@@ -385,7 +386,8 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type array of %s.",
-                                    SelectionArgs.class.getSimpleName(), String.class.getName()), variableElement);
+                                    SelectionArgs.class.getSimpleName(), String.class.getName()), variableElement,
+                            null);
                     errorAccumulator.add(error);
                 }
             }
@@ -399,7 +401,7 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type %s.",
-                                    SortOrder.class.getSimpleName(), String.class.getName()), variableElement);
+                                    SortOrder.class.getSimpleName(), String.class.getName()), variableElement, null);
                     errorAccumulator.add(error);
                 }
             }
@@ -413,7 +415,7 @@ public class Parameter {
 
                     ValidationError error = new ValidationError(
                             String.format("Parameters annotated with @%s must be of type %s.",
-                                    ContentUri.class.getSimpleName(), ANDROID_URI_CLASS_NAME), variableElement);
+                                    ContentUri.class.getSimpleName(), ANDROID_URI_CLASS_NAME), variableElement, null);
                     errorAccumulator.add(error);
                 }
             }

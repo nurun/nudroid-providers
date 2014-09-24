@@ -22,9 +22,9 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
@@ -38,7 +38,6 @@ import java.util.function.Consumer;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -52,7 +51,6 @@ public class DelegateClass {
 
     private String qualifiedName;
     private TypeElement typeElement;
-    private String basePackageName;
     private String contentProviderSimpleName;
     private String routerSimpleName;
     private Authority authority;
@@ -148,17 +146,6 @@ public class DelegateClass {
     }
 
     /**
-     * Sets if the delegate class implements the delegate interface.
-     *
-     * @param doesImplementDelegateInterface
-     *         <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     *         otherwise.
-     */
-    public void setImplementsDelegateInterface(boolean doesImplementDelegateInterface) {
-        this.implementsDelegateInterface = doesImplementDelegateInterface;
-    }
-
-    /**
      * Gets the {@link TypeElement} mapped by this class.
      *
      * @return The {@link TypeElement} mapped by this class.
@@ -207,16 +194,6 @@ public class DelegateClass {
     public String getContentProviderSimpleName() {
 
         return this.contentProviderSimpleName;
-    }
-
-    /**
-     * Gets the base package name for the generated class files.
-     *
-     * @return The base package name for the generated source files.
-     */
-    public String getBasePackageName() {
-
-        return basePackageName;
     }
 
     /**
@@ -299,9 +276,8 @@ public class DelegateClass {
     /**
      * Builder for this delegate class.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<DelegateClass> {
 
-        private static final String DEFAULT_PACKAGE_NAME = "com.nudroid.provider.generated_";
         private String authorityName;
         private TypeElement typeElement;
 
@@ -324,21 +300,21 @@ public class DelegateClass {
          *
          * @return a new DelegateClass
          */
-        public DelegateClass build(ProcessorUtils processorUtils, Consumer<List<ValidationError>> errors) {
+        public DelegateClass build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
-            List<ValidationError> errorList = new ArrayList<>();
+            ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
 
             Element parentElement = typeElement.getEnclosingElement();
 
-            String providerSimpleName = computeContentProviderName(parentElement);
-            String routerSimpleName = computeRouterName(parentElement);
+            String providerSimpleName = computeContentProviderSimpleName(parentElement);
+            String routerSimpleName = computeRouterSimpleName(parentElement);
 
             DelegateClass delegateClass = new DelegateClass();
 
-            delegateClass.authority = new Authority.Builder(authorityName).build();
+            delegateClass.authority =
+                    new Authority.Builder(authorityName, typeElement).build(processorUtils, gatherer::gatherErrors);
             delegateClass.typeElement = this.typeElement;
             delegateClass.qualifiedName = typeElement.toString();
-            delegateClass.basePackageName = DEFAULT_PACKAGE_NAME;
 
             if (processorUtils.implementsInterface(this.typeElement, ContentProviderDelegate.class)) {
                 delegateClass.implementsDelegateInterface = true;
@@ -347,15 +323,12 @@ public class DelegateClass {
             delegateClass.routerSimpleName = routerSimpleName;
             delegateClass.contentProviderSimpleName = providerSimpleName;
 
-            if (errorList.size() > 0) {
-
-                errors.accept(errorList);
-            }
+            gatherer.emmitErrorsIfApplicable(errorCallback);
 
             return delegateClass;
         }
 
-        private String computeContentProviderName(Element parentElement) {
+        private String computeContentProviderSimpleName(Element parentElement) {
 
             String contentProviderBaseName = typeElement.getSimpleName()
                     .toString();
@@ -379,7 +352,7 @@ public class DelegateClass {
             return stringBuilder.toString();
         }
 
-        private String computeRouterName(Element parentElement) {
+        private String computeRouterSimpleName(Element parentElement) {
 
             StringBuilder routerSimpleName = new StringBuilder(typeElement.getSimpleName()
                     .toString());

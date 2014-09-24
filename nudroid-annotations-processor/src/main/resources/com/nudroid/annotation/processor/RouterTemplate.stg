@@ -8,10 +8,8 @@ URI_MATCHER.addURI("<uri.authorityName>", "<uri.normalizedPath>", <uri.id>);
 
 
 
-RouterTemplate(delegateClass) ::= <<
-<if(delegateClass.basePackageName)>
-package <delegateClass.basePackageName>;
-<endif>
+RouterTemplate(delegateClass, packageName) ::= <<
+package <packageName>;
 
 import android.content.Context;
 import android.content.ContentValues;
