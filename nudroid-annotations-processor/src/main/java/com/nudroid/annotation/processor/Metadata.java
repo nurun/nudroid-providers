@@ -23,13 +23,14 @@
 package com.nudroid.annotation.processor;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.lang.model.element.TypeElement;
 
@@ -42,7 +43,7 @@ class Metadata {
 
     private final Map<String, DelegateClass> registeredAuthorities = new HashMap<>();
     private final Map<TypeElement, DelegateClass> registeredDelegateClasses = new HashMap<>();
-    private final Map<TypeElement, InterceptorPointAnnotationBlueprint> interceptorPointAnnotationBlueprints =
+    private final Map<TypeElement, InterceptorAnnotationBlueprints> interceptorPointAnnotationBlueprints =
             new HashMap<>();
 
     /*
@@ -53,15 +54,34 @@ class Metadata {
      * consider grouping classes by round number and the source code generator process classes for that round only.
      */
     private final Set<DelegateClass> mDelegateClassPile = new HashSet<>();
-    private final Set<InterceptorPointAnnotationBlueprint> mInterceptorPointAnnotationBlueprintPile = new HashSet<>();
+    private final Set<InterceptorAnnotationBlueprints> mInterceptorAnnotationBlueprintsPile = new HashSet<>();
 
     /**
      * Registers a new delegate class.
      *
      * @param delegateClass
      *         the delegate class to register
+     * @param errorCallback
+     *         the callback to be executed in case errors have been found
      */
-    void registerNewDelegateClass(DelegateClass delegateClass) {
+    void registerNewDelegateClass(DelegateClass delegateClass, Consumer<ValidationErrorGatherer> errorCallback) {
+
+        DelegateClass existingDelegateClass = getDelegateClassForAuthority(delegateClass.getAuthority()
+                .getName());
+
+        ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
+
+        if (existingDelegateClass != null) {
+
+            gatherer.gatherError(String.format("Authority '%s' has already been registered by class %s",
+                            delegateClass.getAuthority()
+                                    .getName(), existingDelegateClass.getQualifiedName()),
+                    existingDelegateClass.getTypeElement(), LoggingUtils.LogLevel.ERROR);
+
+            gatherer.emmitCallbackIfApplicable(errorCallback);
+
+            return;
+        }
 
         registeredAuthorities.put(delegateClass.getAuthority()
                 .getName(), delegateClass);
@@ -86,10 +106,10 @@ class Metadata {
      * @param annotation
      *         The concrete annotation bean to register.
      */
-    void registerAnnotationBlueprint(InterceptorPointAnnotationBlueprint annotation) {
+    void registerAnnotationBlueprint(InterceptorAnnotationBlueprints annotation) {
 
         this.interceptorPointAnnotationBlueprints.put(annotation.getTypeElement(), annotation);
-        this.mInterceptorPointAnnotationBlueprintPile.add(annotation);
+        this.mInterceptorAnnotationBlueprintsPile.add(annotation);
     }
 
     /**
@@ -98,9 +118,9 @@ class Metadata {
      * @param concreteAnnotation
      *         The concrete annotation class to pop out.
      */
-    void popInterceptorBlueprint(InterceptorPointAnnotationBlueprint concreteAnnotation) {
+    void popInterceptorBlueprint(InterceptorAnnotationBlueprints concreteAnnotation) {
 
-        mInterceptorPointAnnotationBlueprintPile.remove(concreteAnnotation);
+        mInterceptorAnnotationBlueprintsPile.remove(concreteAnnotation);
     }
 
     /**
@@ -146,9 +166,9 @@ class Metadata {
      *
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Set<InterceptorPointAnnotationBlueprint> getInterceptorBlueprintsForRound() {
+    Set<InterceptorAnnotationBlueprints> getInterceptorBlueprintsForRound() {
 
-        return mInterceptorPointAnnotationBlueprintPile;
+        return mInterceptorAnnotationBlueprintsPile;
     }
 
     /**
@@ -156,7 +176,7 @@ class Metadata {
      *
      * @return The set of registered concrete annotations to generate source code for.
      */
-    Collection<InterceptorPointAnnotationBlueprint> getInterceptorBlueprints() {
+    Collection<InterceptorAnnotationBlueprints> getInterceptorBlueprints() {
 
         return interceptorPointAnnotationBlueprints.values();
     }
@@ -170,7 +190,7 @@ class Metadata {
     public String toString() {
         return "Metadata [registeredAuthorities=" + registeredAuthorities + ", \nregisteredDelegateClasses=" +
                 registeredDelegateClasses + ", \nmConcreteAnnotations=" + interceptorPointAnnotationBlueprints +
-                ", \nmConcreteAnnotationValues=" + mInterceptorPointAnnotationBlueprintPile +
+                ", \nmConcreteAnnotationValues=" + mInterceptorAnnotationBlueprintsPile +
                 ", \nmDelegateClassValues=" +
                 mDelegateClassPile + "]";
     }

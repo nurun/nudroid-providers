@@ -43,12 +43,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 @SuppressWarnings({"serial", "ClassExplicitlyAnnotation"})
-public class <annotation.concreteClassName> implements Annotation, Serializable, <annotation.annotationQualifiedName> {
+public class <annotation.qualifiedClassName> implements Annotation, Serializable, <annotation.annotationQualifiedName> {
 
     <annotation.attributes:generateAttributesStatements(); separator="\n">
 
     @SuppressWarnings("UnusedDeclaration")
-    public <annotation.concreteClassName>(<annotation.attributes:generateConstructorParameters(); separator=", ">) {
+    public <annotation.qualifiedClassName>(<annotation.attributes:generateConstructorParameters(); separator=", ">) {
     
         <annotation.attributes:generateConstructorAssignments(); separator="\n">
     }

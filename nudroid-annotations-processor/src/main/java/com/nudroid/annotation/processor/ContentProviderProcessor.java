@@ -129,6 +129,7 @@ class ContentProviderProcessor {
                     ContentProvider.class.getSimpleName()), delegateClassType);
         }
 
+        // TODO Remove this check. Can never be null.
         ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
 
         if (contentProviderDelegateAnnotation == null) {
@@ -136,30 +137,11 @@ class ContentProviderProcessor {
             return;
         }
 
-        final String authorityName = contentProviderDelegateAnnotation.authority();
-        logger.trace(String.format("        Authority name ='%s'.", authorityName));
-
-        DelegateClass delegateClassForAuthority = metadata.getDelegateClassForAuthority(authorityName);
-
-        if (delegateClassForAuthority != null) {
-
-            logger.trace(
-                    String.format("        Authority is already registered by class %s. Signaling compilation error.",
-                            delegateClassForAuthority));
-            logger.error(String.format("Authority '%s' has already been registered by class %s", authorityName,
-                    delegateClassForAuthority.getQualifiedName()), delegateClassType);
-
-            return;
-        }
-
-        logger.trace(
-                String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
-
         final DelegateClass delegateClass =
-                new DelegateClass.Builder(authorityName, delegateClassType).build(processorUtils,
+                new DelegateClass.Builder(contentProviderDelegateAnnotation, delegateClassType).build(processorUtils,
                         gatherer -> gatherer.logErrors(logger));
 
-        metadata.registerNewDelegateClass(delegateClass);
+        metadata.registerNewDelegateClass(delegateClass, gatherer -> gatherer.logErrors(logger));
     }
 
     private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {

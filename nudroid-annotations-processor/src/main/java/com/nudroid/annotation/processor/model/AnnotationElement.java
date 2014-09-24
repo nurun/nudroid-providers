@@ -31,9 +31,16 @@ import java.util.function.Consumer;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * A Java annotation element.
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * An annotation element definition.
+ * <p>
+ * Take for example the following annotation
+ * <pre>
+ *     public @interface AnAnnotation {
+ *         String anElement() default "";
+ *     }
+ * </pre>
+ * <p>
+ * This class is the metadata for the anElement() element, i.e. it's name and return type.
  */
 public class AnnotationElement {
 
@@ -81,6 +88,15 @@ public class AnnotationElement {
         return capitalizedName;
     }
 
+    @Override
+    public String toString() {
+        return "AnnotationElement{" +
+                "type='" + type + '\'' +
+                ", name='" + name + '\'' +
+                ", capitalizedName='" + capitalizedName + '\'' +
+                '}';
+    }
+
     /**
      * Builder for AnnotationElements.
      */
@@ -108,9 +124,9 @@ public class AnnotationElement {
         }
 
         /**
-         * Creates the AnnotationAttribute instance.
-         *
-         * @return a new instance of AnnotationElement
+         * Creates the AnnotationElement instance.
+         * <p>
+         * {@inheritDoc}
          */
         public AnnotationElement build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 

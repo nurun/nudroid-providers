@@ -22,8 +22,10 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 import com.nudroid.annotation.provider.delegate.ContentUri;
 import com.nudroid.annotation.provider.delegate.ContentValuesRef;
 import com.nudroid.annotation.provider.delegate.ContextRef;
@@ -34,7 +36,7 @@ import com.nudroid.annotation.provider.delegate.Selection;
 import com.nudroid.annotation.provider.delegate.SelectionArgs;
 import com.nudroid.annotation.provider.delegate.SortOrder;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -64,6 +66,10 @@ public class Parameter {
     private boolean isQueryParam;
     private String placeholderName;
     private String parameterType;
+
+    private Parameter() {
+
+    }
 
     /**
      * The parameter is annotated with {@link ContextRef}.
@@ -300,7 +306,7 @@ public class Parameter {
     /**
      * Builder pattern.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<Parameter> {
 
         public static final String ANDROID_CONTEXT_CLASS_NAME = "android.content.Context";
         public static final String ANDROID_URI_CLASS_NAME = "android.net.Uri";
@@ -319,17 +325,13 @@ public class Parameter {
         }
 
         /**
+         * {@inheritDoc}
+         * <p>
          * Parses the metadata from the executable element into a Parameter object.
-         *
-         * @param processorUtils
-         *         a ProcessorUtils reference, required for parsing the metadata
-         * @param errorAccumulator
-         *         a list to store validation errors encountered while processing the metadata
-         *
-         * @return the parameter metadata
          */
-        public Parameter build(ProcessorUtils processorUtils, List<ValidationError> errorAccumulator) {
+        public Parameter build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
+            ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
             Parameter parameter = new Parameter();
 
             TypeMirror parameterType = variableElement.asType();
@@ -341,11 +343,9 @@ public class Parameter {
                     parameter.setContext();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type %s.",
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type %s.",
                                     ContextRef.class.getSimpleName(), ANDROID_CONTEXT_CLASS_NAME), variableElement,
-                            null);
-                    errorAccumulator.add(error);
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -356,10 +356,9 @@ public class Parameter {
                     parameter.setProjection();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type array of %s.",
-                                    Projection.class.getSimpleName(), String.class.getName()), variableElement, null);
-                    errorAccumulator.add(error);
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type array of %s.",
+                                    Projection.class.getSimpleName(), String.class.getName()), variableElement,
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -370,10 +369,9 @@ public class Parameter {
                     parameter.setSelection();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type %s.",
-                                    Selection.class.getSimpleName(), String.class.getName()), variableElement, null);
-                    errorAccumulator.add(error);
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type %s.",
+                                    Selection.class.getSimpleName(), String.class.getName()), variableElement,
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -384,11 +382,9 @@ public class Parameter {
                     parameter.setSelectionArgs();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type array of %s.",
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type array of %s.",
                                     SelectionArgs.class.getSimpleName(), String.class.getName()), variableElement,
-                            null);
-                    errorAccumulator.add(error);
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -399,10 +395,9 @@ public class Parameter {
                     parameter.setSortOrder();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type %s.",
-                                    SortOrder.class.getSimpleName(), String.class.getName()), variableElement, null);
-                    errorAccumulator.add(error);
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type %s.",
+                                    SortOrder.class.getSimpleName(), String.class.getName()), variableElement,
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -413,10 +408,9 @@ public class Parameter {
                     parameter.setContentUri();
                 } else {
 
-                    ValidationError error = new ValidationError(
-                            String.format("Parameters annotated with @%s must be of type %s.",
-                                    ContentUri.class.getSimpleName(), ANDROID_URI_CLASS_NAME), variableElement, null);
-                    errorAccumulator.add(error);
+                    gatherer.gatherError(String.format("Parameters annotated with @%s must be of type %s.",
+                                    ContentUri.class.getSimpleName(), ANDROID_URI_CLASS_NAME), variableElement,
+                            LoggingUtils.LogLevel.ERROR);
                 }
             }
 
@@ -448,6 +442,8 @@ public class Parameter {
 
             parameter.setParameterType(variableElement.asType()
                     .toString());
+
+            gatherer.emmitCallbackIfApplicable(errorCallback);
 
             return parameter;
         }

@@ -22,8 +22,10 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -40,28 +42,23 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 
 /**
- * <p>Holds information about the delegate method for a content provider.</p> <p> <p>Delegate methods are methods
- * annotated with one of the delegate annotations: {@link Query}, {@link Update}, {@link Insert}, or {@link
- * Delete}.</p>
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * Metadata for the delegate methods of a content provider delegate class.
+ * <p>
+ * Delegate methods are methods annotated with one of the delegate annotations (i.e {@link Query}, {@link Update},
+ * {@link Insert}, {@link Delete} etc.
  */
 public class DelegateMethod {
 
     private final String name;
+
+    private String uriPath;
     private final List<Parameter> parameters = new ArrayList<>();
     private final Map<String, Parameter> pathParameters = new HashMap<>();
     private final List<String> queryStringParameterNames = new ArrayList<>();
     private final ExecutableElement executableElement;
-    private final List<InterceptorPoint> interceptorElements = new ArrayList<>();
-    private List<InterceptorPoint> inverseInterceptorElements = null;
+    private final List<Interceptor> interceptorElements = new ArrayList<>();
+    private List<Interceptor> inverseInterceptorElements = null;
 
-    /**
-     * Creates an instance of this class.
-     *
-     * @param element
-     *         The {@link javax.lang.model.element.ExecutableElement} representing this delegate method.
-     */
     private DelegateMethod(ExecutableElement element) {
 
         this.name = element.getSimpleName()
@@ -69,6 +66,12 @@ public class DelegateMethod {
         this.executableElement = element;
     }
 
+    /**
+     * Gets the query string parameters that should be injected when calling this method. These are the parameters
+     * registered with the @QueryParam annotation.
+     *
+     * @return the list of query string parameters excepted
+     */
     public List<String> getQueryStringParameterNames() {
         return queryStringParameterNames;
     }
@@ -77,64 +80,56 @@ public class DelegateMethod {
      * Adds an interceptor point to this method. Interceptors work as an around advice around the delegate method.
      *
      * @param interceptor
-     *         The interceptor type to add.
+     *         the interceptor to be applied on this method
      */
-    public void addInterceptor(InterceptorPoint interceptor) {
-
-        this.interceptorElements.add(interceptor);
-    }
+    public void addInterceptor(Interceptor interceptor) { this.interceptorElements.add(interceptor); }
 
     /**
-     * Gets the {@link ExecutableElement} of the method represented by this class.
+     * Gets the {@link ExecutableElement} of the delegate method.
      *
-     * @return The {@link ExecutableElement} of the method represented by this class.
+     * @return the {@link ExecutableElement} of this method
      */
-    public ExecutableElement getExecutableElement() {
-
-        return executableElement;
-    }
+    public ExecutableElement getExecutableElement() { return executableElement; }
 
     /**
      * Gets the name of the method (i.e. method name without return type nor parameter).
      *
-     * @return The method name.
+     * @return the method name
      */
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
-    public String getName() {
-
-        return name;
-    }
+    public String getName() { return name; }
 
     /**
      * Gets the list of parameters this method accepts.
      *
-     * @return List of parameters this method accepts.
+     * @return the list of parameters
      */
-    public List<Parameter> getParameters() {
-
-        return parameters;
-    }
+    public List<Parameter> getParameters() { return parameters; }
 
     /**
-     * Gets the list of interceptors for this delegate method, in the order they are executed before the delegate
+     * Gets the list of interceptors applied to this delegate method, in the order they are executed before the delegate
      * invocation.
      *
-     * @return The list of interceptors for this delegate method.
+     * @return the list of interceptors
      */
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
-    public List<InterceptorPoint> getBeforeInterceptorList() {
-
-        return interceptorElements;
-    }
+    public List<Interceptor> getBeforeInterceptorList() { return interceptorElements; }
 
     /**
-     * Gets the list of interceptors for this delegate method, in the order they are executed after the delegate
-     * Invocation.
+     * Gets the path this method has been annotated with.
      *
-     * @return The list of interceptors for this delegate method.
+     * @return the uri path
+     */
+    public String getUriPath() { return uriPath; }
+
+    /**
+     * Gets the list of interceptors applied to this delegate method, in the order they are executed after the delegate
+     * invocation.
+     *
+     * @return the list of interceptors, in reverse order
      */
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
-    public List<InterceptorPoint> getAfterInterceptorList() {
+    public List<Interceptor> getAfterInterceptorList() {
 
         if (inverseInterceptorElements == null) {
 
@@ -146,17 +141,15 @@ public class DelegateMethod {
     }
 
     /**
-     * Given a name, searches the parameter list for a parameter annotated with PathParam matching the given name.
+     * Given a name, searches the parameter list for a parameter annotated with a @PathParam annotation matching the
+     * given name.
      *
      * @param placeholderName
      *         the name to search for
      *
-     * @return The parameters matching the criteria, or null if the parameter can't be found
+     * @return the parameter matching the criteria, or null if the parameter can't be found
      */
-    Parameter findPathParameter(String placeholderName) {
-
-        return pathParameters.get(placeholderName);
-    }
+    Parameter findPathParameter(String placeholderName) { return pathParameters.get(placeholderName); }
 
     @SuppressWarnings("RedundantIfStatement")
     @Override
@@ -183,43 +176,61 @@ public class DelegateMethod {
     public String toString() {
         return "DelegateMethod{" +
                 "name='" + name + '\'' +
-                ", parameters=" + parameters +
                 ", pathParameters=" + pathParameters +
                 ", queryStringParameterNames=" + queryStringParameterNames +
                 ", executableElement=" + executableElement +
                 ", interceptorElements=" + interceptorElements +
-                ", inverseInterceptorElements=" + inverseInterceptorElements +
                 '}';
     }
 
     /**
-     * Builder pattern.
+     * Builder for a DelegateMethod.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<DelegateMethod> {
 
+        private static final String PATH_AND_QUERY_STRING_REGEXP = "[^\\?]*\\?.*";
         private final ExecutableElement executableElement;
 
         /**
-         * Sets the executable element this delegate method represents.
+         * Initializes the builder.
          *
-         * @param queryMethod
-         *         the method annotated with @Query
+         * @param annotatedMethod
+         *         the Element for the method annotated with a delegate annotation
          */
-        public Builder(ExecutableElement queryMethod) {
+        public Builder(ExecutableElement annotatedMethod) {
 
-            this.executableElement = queryMethod;
+            this.executableElement = annotatedMethod;
         }
 
-        public DelegateMethod build(ProcessorUtils processorUtils, Consumer<List<ValidationError>> error) {
+        /**
+         * Creates the DelegateMethod instance.
+         * <p>
+         * {@inheritDoc}
+         */
+        public DelegateMethod build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
-            List<ValidationError> errorAccumulator = new ArrayList<>();
+            ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
+
+            Query query = executableElement.getAnnotation(Query.class);
+            String path = query.value();
+
+            if (path.matches(PATH_AND_QUERY_STRING_REGEXP)) {
+
+                gatherer.gatherError("Query strings are not allowed in path expressions", executableElement,
+                        LoggingUtils.LogLevel.ERROR);
+                errorCallback.accept(gatherer);
+                return null;
+            }
+
             DelegateMethod method = new DelegateMethod(this.executableElement);
+            method.uriPath = path;
 
             List<? extends VariableElement> parameters = executableElement.getParameters();
 
             for (VariableElement methodParameter : parameters) {
 
-                Parameter parameter = new Parameter.Builder(methodParameter).build(processorUtils, errorAccumulator);
+                Parameter parameter =
+                        new Parameter.Builder(methodParameter).build(processorUtils, gatherer::gatherErrors);
                 method.parameters.add(parameter);
 
                 if (parameter.isPathParameter()) {
@@ -231,9 +242,7 @@ public class DelegateMethod {
                 }
             }
 
-            if (errorAccumulator.size() > 0) {
-                error.accept(errorAccumulator);
-            }
+            gatherer.emmitCallbackIfApplicable(errorCallback);
 
             return method;
         }

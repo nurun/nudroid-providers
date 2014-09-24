@@ -68,7 +68,7 @@ public enum UriMatcherPathPatternType {
      * Checks whether the provided string is either a STRING or NUMBER pattern (i.e. the string equals "*" or "#").
      *
      * @param value
-     *         The string to test.
+     *         the string to test
      *
      * @return <tt>true</tt> if the value represents a STRING or NUMBER pattern.
      */

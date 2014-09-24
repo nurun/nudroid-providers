@@ -44,8 +44,6 @@ import javax.lang.model.util.Types;
  * <tt>com.nudroid.annotation.processor.log.level</tt>.</p> <p> <p>The logging level can either be configured through a
  * processor property (with the -A option) or a system property (with a -D option). Processor property configuration
  * takes precedence over the system property.</p>
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 @SupportedAnnotationTypes(
         {"com.nudroid.annotation.provider.delegate.ContentProvider", "com.nudroid.annotation.provider.delegate.Delete",
@@ -54,6 +52,8 @@ import javax.lang.model.util.Types;
                 "com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({"com.nudroid.annotation.processor.log.level"})
+// TODO To avoid class name conflicts, use the annotated classes package and append .generated_ instead of creating
+// all classes on same package
 public class ProviderAnnotationProcessor extends AbstractProcessor {
 
     private static final String LOG_LEVEL_PROPERTY_NAME = "com.nudroid.annotation.processor.log.level";

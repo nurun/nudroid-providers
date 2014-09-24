@@ -38,12 +38,12 @@ public class ParentClass {
     @ContentProvider(authority = "com.nudroid.samples")
     public static class SampleContentProviderDelegate implements ContentProviderDelegate {
 
-        //        @Query("/channels/test")
-        //        public Cursor channels() {
-        //
-        //            //... perform query
-        //            return null;
-        //        }
+        @Query("/channels/test")
+        public Cursor channels() {
+
+            //... perform query
+            return null;
+        }
 
         @MyCacheInterceptor2.Interceptor
         //        @MyCacheInterceptor.Interceptor("yahoo")

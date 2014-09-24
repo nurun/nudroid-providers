@@ -71,6 +71,15 @@ public class ValidationErrorGatherer {
     }
 
     /**
+     * Whether or not this gathered has logged any errors.
+     *
+     * @return <tt>true</tt> if it has, <tt>false</tt> otherwise
+     */
+    public boolean hasErrors() {
+        return gatheredErrors.size() > 0;
+    }
+
+    /**
      * Gets an unmodifiable copy of the list of gathered errors. This method returns a new list instance so be conscious
      * on for loops.
      *
@@ -101,7 +110,7 @@ public class ValidationErrorGatherer {
      * @param errorCallback
      *         the callback error to be notified of errors
      */
-    public void emmitErrorsIfApplicable(Consumer<ValidationErrorGatherer> errorCallback) {
+    public void emmitCallbackIfApplicable(Consumer<ValidationErrorGatherer> errorCallback) {
 
         if (gatheredErrors.size() > 0) {
 

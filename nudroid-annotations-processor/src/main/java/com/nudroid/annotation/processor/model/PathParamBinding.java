@@ -22,7 +22,11 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
+
+import java.util.function.Consumer;
 
 /**
  * A placeholder in a delegate method annotation URI.
@@ -35,19 +39,8 @@ class PathParamBinding {
     private final String name;
     private final UriMatcherPathPatternType patternType;
 
-    /**
-     * Creates an instance of this class for a path placeholder.
-     *
-     * @param name
-     *         the name of the placeholder
-     * @param position
-     *         the position it appears on the URI path
-     * @param patternType
-     *         the type of the pattern
-     */
-    PathParamBinding(String name, int position, UriMatcherPathPatternType patternType) {
+    private PathParamBinding(String name, int position, UriMatcherPathPatternType patternType) {
 
-        super();
         this.name = name;
         this.position = position;
         this.patternType = patternType;
@@ -122,5 +115,42 @@ class PathParamBinding {
                 ", name='" + name + '\'' +
                 ", patternType=" + patternType +
                 '}';
+    }
+
+    /**
+     * Builder for PathParamBinding.
+     */
+    public static class Builder implements ModelBuilder<PathParamBinding> {
+
+        private final int position;
+        private final String name;
+        private final UriMatcherPathPatternType patternType;
+
+        /**
+         * Initializes the builder.
+         *
+         * @param name
+         *         the name of the placeholder
+         * @param position
+         *         the position in the URI path
+         * @param patternType
+         *         the pattern type ('*' or '#')
+         */
+        public Builder(String name, int position, UriMatcherPathPatternType patternType) {
+
+            this.name = name;
+            this.position = position;
+            this.patternType = patternType;
+        }
+
+        /**
+         * Builds a new PathParamBinding.
+         * <p>
+         * {@inheritDoc}
+         */
+        public PathParamBinding build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
+
+            return new PathParamBinding(this.name, this.position, this.patternType);
+        }
     }
 }

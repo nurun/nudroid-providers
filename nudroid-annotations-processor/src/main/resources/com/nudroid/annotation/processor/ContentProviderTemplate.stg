@@ -12,7 +12,7 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 /*
  * Here's a basic XML you can use to configure this content provider in AndroidManifest.xml
- \<provider<\\>
+ \<provider
      android:name="<packageName>.<delegateClass.contentProviderSimpleName>"
      android:authorities="<delegateClass.authority.name>"
      android:exported="\<true|false>"

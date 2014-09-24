@@ -23,10 +23,9 @@
 package com.nudroid.annotation.processor;
 
 import com.nudroid.annotation.processor.model.AnnotationElement;
-import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
-import com.nudroid.provider.delegate.ContentProviderDelegate;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 
 import java.util.ArrayList;
@@ -124,8 +123,9 @@ class InterceptorPointcutProcessor {
 
     private void createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
-        InterceptorPointAnnotationBlueprint annotationBlueprint =
-                new InterceptorPointAnnotationBlueprint((TypeElement) interceptorAnnotation);
+        InterceptorAnnotationBlueprints annotationBlueprint =
+                new InterceptorAnnotationBlueprints.Builder((TypeElement) interceptorAnnotation).build
+                        (processorUtils, gatherer -> gatherer.logErrors(logger));
 
         final List<? extends Element> annotationProperties = getSortedAnnotationProperties(interceptorAnnotation);
 

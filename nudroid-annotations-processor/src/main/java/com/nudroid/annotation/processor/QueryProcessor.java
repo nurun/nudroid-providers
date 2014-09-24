@@ -24,14 +24,15 @@ package com.nudroid.annotation.processor;
 
 import com.nudroid.annotation.processor.model.DelegateClass;
 import com.nudroid.annotation.processor.model.DelegateMethod;
-import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
+import com.nudroid.annotation.processor.model.MatcherUri;
 import com.nudroid.annotation.processor.model.UriToMethodBinding;
-import com.nudroid.annotation.processor.model.ValidationError;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.Query;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
@@ -46,8 +47,6 @@ import javax.lang.model.element.TypeElement;
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
 class QueryProcessor {
-
-    private static final String PATH_AND_QUERY_STRING_REGEXP = "[^\\?]*\\?.*";
 
     private final ProcessorUtils processorUtils;
     private final LoggingUtils logger;
@@ -122,37 +121,32 @@ class QueryProcessor {
 
     private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass) {
 
-        Query query = queryMethod.getAnnotation(Query.class);
-        String path = query.value();
+        Consumer<ValidationErrorGatherer> errorCallback = gatherer -> gatherer.logErrors(logger);
 
-        if (path.matches(PATH_AND_QUERY_STRING_REGEXP)) {
+        DelegateMethod delegateMethod =
+                new DelegateMethod.Builder(queryMethod).build(this.processorUtils, errorCallback);
 
-            logger.error("Query strings are not allowed in path expressions", queryMethod);
-            return null;
+        if (delegateMethod != null) {
+
+            UriToMethodBinding uriToMethodBinding = new UriToMethodBinding.Builder(delegateMethod).build(processorUtils,
+                    gatherer -> gatherer.logErrors(logger));
+
+
+            MatcherUri matcherUri = delegateClass.findMatcherUri(uriToMethodBinding.getPath());
+
+            if (matcherUri == null) {
+
+                matcherUri = new MatcherUri.Builder(delegateClass.getAuthority(), uriToMethodBinding.getPath()).build(
+                        processorUtils, errorCallback);
+                delegateClass.registerMatcherUri(uriToMethodBinding.getPath(), matcherUri);
+            }
+
+            matcherUri.registerBindingForQuery(uriToMethodBinding, errorCallback);
+
+            return delegateMethod;
         }
 
-        DelegateMethod delegateMethod = new DelegateMethod.Builder(queryMethod).build(this.processorUtils, errors -> {
-            for (ValidationError error : errors) {
-                logger.error(error.getMessage(), error.getElement());
-            }
-        });
-
-        UriToMethodBinding uriToMethodBinding = new UriToMethodBinding.Builder().path(path)
-                .delegateMethod(delegateMethod)
-                .build(errors -> {
-
-                    for (ValidationError error : errors) {
-                        logger.error(error.getMessage(), error.getElement());
-                    }
-                });
-
-        delegateClass.registerBindingForQuery(uriToMethodBinding, errors -> {
-            for (ValidationError error : errors) {
-                logger.error(error.getMessage(), error.getElement());
-            }
-        });
-
-        return delegateMethod;
+        return null;
     }
 
     private void processInterceptorsOnMethod(DelegateMethod delegateMethod, Metadata metadata) {
@@ -167,7 +161,7 @@ class QueryProcessor {
 
         for (AnnotationMirror mirror : annotationsMirrors) {
 
-            for (InterceptorPointAnnotationBlueprint concreteAnnotation : metadata.getInterceptorBlueprints()) {
+            for (InterceptorAnnotationBlueprints concreteAnnotation : metadata.getInterceptorBlueprints()) {
 
                 logger.trace(
                         String.format("        Checking for interceptor %s.", concreteAnnotation.getTypeElement()));
@@ -181,8 +175,7 @@ class QueryProcessor {
                         .equals(annotationTypeElement.asType()
                                 .toString())) {
 
-                    delegateMethod.addInterceptor(
-                            concreteAnnotation.createInterceptorPoint(mirror, processorUtils, logger));
+                    delegateMethod.addInterceptor(concreteAnnotation.createInterceptor(mirror, processorUtils, logger));
                     logger.trace(String.format("        Interceptor %s added to method.",
                             concreteAnnotation.getInterceptorTypeElement()));
                 }

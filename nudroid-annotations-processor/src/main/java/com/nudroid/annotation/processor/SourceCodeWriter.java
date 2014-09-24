@@ -22,9 +22,8 @@
 
 package com.nudroid.annotation.processor;
 
-import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
+import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
 
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupFile;
@@ -94,10 +93,10 @@ class SourceCodeWriter {
             logger.trace("Done generating source code for class " + delegateClass.getTypeElement());
         }
 
-        Set<InterceptorPointAnnotationBlueprint> concreteAnnotations =
+        Set<InterceptorAnnotationBlueprints> concreteAnnotations =
                 new HashSet<>(metadata.getInterceptorBlueprintsForRound());
 
-        for (InterceptorPointAnnotationBlueprint annotation : concreteAnnotations) {
+        for (InterceptorAnnotationBlueprints annotation : concreteAnnotations) {
 
             logger.trace(
                     String.format("Generating concrete annotation class %s.", annotation.getAnnotationQualifiedName()));
@@ -163,7 +162,7 @@ class SourceCodeWriter {
         logger.trace(String.format("    Generated Router for class %s.", delegateClass.getTypeElement()));
     }
 
-    private void generateConcreteAnnotationSourceCode(InterceptorPointAnnotationBlueprint annotation) {
+    private void generateConcreteAnnotationSourceCode(InterceptorAnnotationBlueprints annotation) {
 
         try {
             STGroupFile g = new STGroupFile(CONCRETE_ANNOTATION_TEMPLATE_LOCATION);
@@ -175,7 +174,7 @@ class SourceCodeWriter {
             JavaFileObject javaFile;
 
             javaFile = filer.createSourceFile(
-                    String.format("%s.%s", GENERATED_SOURCE_PACKAGE_NAME, annotation.getConcreteClassName()));
+                    String.format("%s.%s", GENERATED_SOURCE_PACKAGE_NAME, annotation.getQualifiedClassName()));
 
             Writer writerContentUriRegistry = javaFile.openWriter();
             writerContentUriRegistry.write(result);
@@ -186,6 +185,6 @@ class SourceCodeWriter {
                             e));
         }
 
-        logger.trace("    Generated concrete annotation " + annotation.getConcreteClassName());
+        logger.trace("    Generated concrete annotation " + annotation.getQualifiedClassName());
     }
 }

@@ -28,24 +28,18 @@ import com.nudroid.annotation.processor.ValidationErrorGatherer;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 
 /**
- * A delegate class handles ContentResolver requests on behalf of a ContentProvider. Each delegate class maps to a
- * content provider and vice versa. The content provider matches a content URI with a particular method in the delegate
- * class and forwards (delegates) the call to the target method.
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * Metadata for content provider delegate classes. A delegate class handles ContentResolver requests on behalf of a
+ * ContentProvider. Each delegate class maps to a content provider and vice versa. The content provider matches a
+ * content URI with a particular method in the delegate class and forwards (delegates) the call to the target method.
  */
 public class DelegateClass {
 
@@ -128,27 +122,9 @@ public class DelegateClass {
     }
 
     /**
-     * Registers a uri binding for a query operation.
-     *
-     * @param uriToMethodBinding
-     *         the binding to register
-     */
-    public void registerBindingForQuery(UriToMethodBinding uriToMethodBinding, Consumer<List<ValidationError>> error) {
-
-        MatcherUri matcherUri = getMatcherUriFor(uriToMethodBinding.getPath());
-        List<ValidationError> errors = new ArrayList<>();
-        matcherUri.registerBindingForQuery(uriToMethodBinding, errors);
-
-        if (errors.size() > 0) {
-
-            error.accept(errors);
-        }
-    }
-
-    /**
      * Gets the {@link TypeElement} mapped by this class.
      *
-     * @return The {@link TypeElement} mapped by this class.
+     * @return the {@link TypeElement} mapped by this class
      */
     public TypeElement getTypeElement() {
         return typeElement;
@@ -157,67 +133,49 @@ public class DelegateClass {
     /**
      * Gets the fully qualified name of the delegate class.
      *
-     * @return The fully qualified name of the delegate class.
+     * @return the fully qualified name of the delegate class
      */
-    public String getQualifiedName() {
-
-        return qualifiedName;
-    }
+    public String getQualifiedName() { return qualifiedName; }
 
     /**
-     * Gets the authority associated with this class.
+     * Gets the content provider authority handled by this class.
      *
-     * @return The authority associated with this class.
+     * @return the authority associated with this class
      */
     @UsedBy("ContentProviderTemplate.stg")
-    public Authority getAuthority() {
-
-        return authority;
-    }
+    public Authority getAuthority() { return authority; }
 
     /**
      * Gets the simple name of the router class which will be created to route calls to this delegate class (i.e.
      * without the package name).
      *
-     * @return The simple name of the router class which will be created to route calls to this delegate class.
+     * @return the simple name of the router class which will be created to route calls to this delegate class
      */
-    public String getRouterSimpleName() {
-
-        return routerSimpleName;
-    }
+    public String getRouterSimpleName() { return routerSimpleName; }
 
     /**
-     * Gets the simple name of this delegate's content provider (i.e. without the package name).
+     * Gets the simple name of the content provider delegating calls to this class (i.e. without the package name).
      *
-     * @return The simple name of this delegate's content provider.
+     * @return the simple name of content provider.
      */
-    public String getContentProviderSimpleName() {
-
-        return this.contentProviderSimpleName;
-    }
+    public String getContentProviderSimpleName() { return this.contentProviderSimpleName; }
 
     /**
-     * Checks if the delegate class implements the {@link ContentProvider} interface.
+     * Checks if this delegate class implements the {@link ContentProvider} interface.
      *
-     * @return <tt>true</tt> if the delegate class implements the {@link ContentProvider} interface, <tt>false</tt>
-     * otherwise.
+     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise.
      */
     @UsedBy("ContentProviderTemplate.stg")
-    public boolean getImplementsContentProviderDelegateInterface() {
-
-        return implementsDelegateInterface;
-    }
+    public boolean getImplementsContentProviderDelegateInterface() { return implementsDelegateInterface; }
 
     /**
-     * Gets the URIs this delegate class handles.
+     * Gets the URIs this delegate class is responsible for handling. URIs are sorted to avoid conflicts when
+     * registering them with UriMatcher.
      *
-     * @return The {@link MatcherUri}s this delegate class handles.
+     * @return the {@link MatcherUri}s this delegate class handles
      */
     @UsedBy({"ContentProviderTemplate.stg", "RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
-    public NavigableSet<MatcherUri> getMatcherUris() {
-
-        return matcherUris;
-    }
+    public NavigableSet<MatcherUri> getMatcherUris() { return matcherUris; }
 
     /**
      * Checks if a {@link MatcherUri} has already been created for the provided path. If yes, returns that instance. If
@@ -228,49 +186,52 @@ public class DelegateClass {
      *
      * @return the {@link MatcherUri} for the path
      */
-    public MatcherUri getMatcherUriFor(String path) {
+    public MatcherUri findMatcherUri(String path) {
 
-        MatcherUri newMatcherUri = matcherUriRegistry.get(path);
-
-        if (newMatcherUri == null) {
-
-            newMatcherUri = new MatcherUri(authority, path);
-            newMatcherUri.setId(++matcherUriIdCount);
-            matcherUris.add(newMatcherUri);
-            matcherUriRegistry.put(path, newMatcherUri);
-        }
-
-        return newMatcherUri;
+        return matcherUriRegistry.get(path);
     }
 
     /**
-     * {@inheritDoc}
+     * Registers a path and corresponding MatcherUri on this delegate class.
      *
-     * @see java.lang.Object#hashCode()
+     * @param path
+     *         the path the MatcherUri binds to
+     * @param matcherUri
+     *         the MatcherUri
      */
+    public void registerMatcherUri(String path, MatcherUri matcherUri) {
+
+        matcherUris.add(matcherUri);
+        matcherUriRegistry.put(path, matcherUri);
+    }
+
+    @Override
+    public String toString() {
+        return "DelegateClass{" +
+                "qualifiedName='" + qualifiedName + '\'' +
+                ", typeElement=" + typeElement +
+                ", contentProviderSimpleName='" + contentProviderSimpleName + '\'' +
+                ", routerSimpleName='" + routerSimpleName + '\'' +
+                ", authority=" + authority +
+                ", implementsDelegateInterface=" + implementsDelegateInterface +
+                ", matcherUriIdCount=" + matcherUriIdCount +
+                ", matcherUris=" + matcherUris +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DelegateClass that = (DelegateClass) o;
+
+        return qualifiedName.equals(that.qualifiedName);
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((qualifiedName == null) ? 0 : qualifiedName.hashCode());
-        return result;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        DelegateClass other = (DelegateClass) obj;
-        if (qualifiedName == null) {
-            if (other.qualifiedName != null) return false;
-        } else if (!qualifiedName.equals(other.qualifiedName)) return false;
-        return true;
+        return qualifiedName.hashCode();
     }
 
     /**
@@ -278,41 +239,43 @@ public class DelegateClass {
      */
     public static class Builder implements ModelBuilder<DelegateClass> {
 
-        private String authorityName;
+        private ContentProvider contentProviderAnnotation;
         private TypeElement typeElement;
 
         /**
-         * Initializes the buider.
+         * Initializes the builder.
          *
-         * @param authorityName
-         *         the authority this delegate class will handle
+         * @param contentProviderAnnotation
+         *         the @ContentProvider annotation applied on the target delegate class
          * @param typeElement
-         *         the java model element for the target class
+         *         the java model element of the class annotated with @ContentProvider
          */
-        public Builder(String authorityName, TypeElement typeElement) {
+        public Builder(ContentProvider contentProviderAnnotation, TypeElement typeElement) {
 
-            this.authorityName = authorityName;
+            this.contentProviderAnnotation = contentProviderAnnotation;
             this.typeElement = typeElement;
         }
 
         /**
          * Creates a new DelegateClass.
-         *
-         * @return a new DelegateClass
+         * <p>
+         * {@inheritDoc}
          */
         public DelegateClass build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
             ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
 
-            Element parentElement = typeElement.getEnclosingElement();
+            String providerSimpleName = processorUtils.generateCompositeElementName(typeElement)
+                    .replaceAll("(?i)Delegate", "")
+                    .replaceAll("(?i)ContentProvider", "") + "ContentProvider_";
 
-            String providerSimpleName = computeContentProviderSimpleName(parentElement);
-            String routerSimpleName = computeRouterSimpleName(parentElement);
+            String routerSimpleName = processorUtils.generateCompositeElementName(typeElement) + "Router_";
 
             DelegateClass delegateClass = new DelegateClass();
 
             delegateClass.authority =
-                    new Authority.Builder(authorityName, typeElement).build(processorUtils, gatherer::gatherErrors);
+                    new Authority.Builder(this.contentProviderAnnotation, typeElement).build(processorUtils,
+                            gatherer::gatherErrors);
             delegateClass.typeElement = this.typeElement;
             delegateClass.qualifiedName = typeElement.toString();
 
@@ -323,53 +286,10 @@ public class DelegateClass {
             delegateClass.routerSimpleName = routerSimpleName;
             delegateClass.contentProviderSimpleName = providerSimpleName;
 
-            gatherer.emmitErrorsIfApplicable(errorCallback);
+            gatherer.emmitCallbackIfApplicable(errorCallback);
 
             return delegateClass;
         }
 
-        private String computeContentProviderSimpleName(Element parentElement) {
-
-            String contentProviderBaseName = typeElement.getSimpleName()
-                    .toString();
-            contentProviderBaseName = contentProviderBaseName.replaceAll("(?i)Delegate", "")
-                    .replaceAll("(?i)ContentProvider", "");
-
-            StringBuilder stringBuilder = new StringBuilder(contentProviderBaseName);
-
-            /* If the enclosing element is not a package, the delegate class is an inner class. Suffix the name with the
-            names of the parent classes. */
-            while (parentElement != null && !parentElement.getKind()
-                    .equals(ElementKind.PACKAGE)) {
-
-                stringBuilder.insert(0, "$")
-                        .insert(0, parentElement.getSimpleName());
-                parentElement = parentElement.getEnclosingElement();
-            }
-
-            stringBuilder.append("ContentProvider_");
-
-            return stringBuilder.toString();
-        }
-
-        private String computeRouterSimpleName(Element parentElement) {
-
-            StringBuilder routerSimpleName = new StringBuilder(typeElement.getSimpleName()
-                    .toString());
-
-            /* If the enclosing element is not a package, the delegate class is an inner class. Suffix the name with the
-            names of the parent classes. */
-            while (parentElement != null && !parentElement.getKind()
-                    .equals(ElementKind.PACKAGE)) {
-
-                routerSimpleName.insert(0, "$")
-                        .insert(0, parentElement.getSimpleName());
-                parentElement = parentElement.getEnclosingElement();
-            }
-
-            routerSimpleName.append("Router_");
-
-            return routerSimpleName.toString();
-        }
     }
 }

@@ -215,7 +215,7 @@ The library does more than simplifying the coding and maintanence of content pro
 to be intercepted and have code to be executed before and after the database is accessed. The interceptors
 can inspect and change the arguments and the result of a content provider call.
 
-The library comes with an interceptor ready for caching, updating and paginating content from a remote server into the
+The library comes with an interceptorTypeElement ready for caching, updating and paginating content from a remote server into the
 database, allowing apps to work seamlessly in offline mode as long as a cache is present. The cache can be customized by
 plugging strategies for cache expiration and synchronization. All configuration done by Java Annotations.
 

@@ -23,7 +23,10 @@
 package com.nudroid.annotation.processor.model;
 
 import com.google.common.base.Splitter;
+import com.nudroid.annotation.processor.LoggingUtils;
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -155,67 +158,43 @@ public class UriToMethodBinding {
     /**
      * Builder pattern.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<UriToMethodBinding> {
 
-        private String path;
         private DelegateMethod delegateMethod;
 
         /**
-         * Sets the path it binds from. The path must contain the PathParam placeholders, if applicable.
-         *
-         * @param path
-         *         the path to bind from
-         *
-         * @return this builder
-         */
-        public Builder path(String path) {
-
-            this.path = path;
-            return this;
-        }
-
-        /**
-         * Sets the delegate method the path binds to.
+         * Initializes the builder.
          *
          * @param delegateMethod
-         *         the delegate method the path binds to
-         *
-         * @return this builder
+         *         the delegate method the binding is for
          */
-        public Builder delegateMethod(DelegateMethod delegateMethod) {
-
+        public Builder(DelegateMethod delegateMethod) {
             this.delegateMethod = delegateMethod;
-            return this;
         }
 
         /**
-         * Builds the binding between the path and delegate method
-         *
-         * @param errorValidationCallback
-         *         the callback to be notified of validation errors
-         *
-         * @return the binding between the path and method
+         * Creates the UriToMethodBinding instance.
+         * <p>
+         * {@inheritDoc}
          */
-        public UriToMethodBinding build(Consumer<List<ValidationError>> errorValidationCallback) {
+        @Override
+        public UriToMethodBinding build(ProcessorUtils processorUtils,
+                                        Consumer<ValidationErrorGatherer> errorCallback) {
 
-            List<ValidationError> errorAccumulator = new ArrayList<>(delegateMethod.getParameters()
-                    .size());
+            ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
 
             UriToMethodBinding binding = new UriToMethodBinding();
-            parsePlaceholders(binding, path, errorAccumulator);
+            parsePlaceholders(binding, delegateMethod.getUriPath(), processorUtils, gatherer);
             binding.delegateMethod = delegateMethod;
             binding.queryStringParameters = new HashSet<>(delegateMethod.getQueryStringParameterNames());
 
-            if (errorAccumulator.size() > 0) {
-
-                errorValidationCallback.accept(errorAccumulator);
-            }
+            gatherer.emmitCallbackIfApplicable(errorCallback);
 
             return binding;
         }
 
-        private void parsePlaceholders(UriToMethodBinding binding, String path,
-                                       List<ValidationError> errorAccumulator) {
+        private void parsePlaceholders(UriToMethodBinding binding, String path, ProcessorUtils processorUtils,
+                                       ValidationErrorGatherer gatherer) {
 
             Map<String, PathParamBinding> pathPlaceholders = new HashMap<>();
             String normalizedPath = path;
@@ -238,26 +217,26 @@ public class UriToMethodBinding {
 
                     if (parameter == null) {
 
-                        ValidationError error = new ValidationError(
+                        gatherer.gatherError(
                                 String.format("Placeholder '%s' is not mapped by any @PathParam parameters",
-                                        placeholderName), delegateMethod.getExecutableElement(), null);
-                        errorAccumulator.add(error);
+                                        placeholderName), delegateMethod.getExecutableElement(),
+                                LoggingUtils.LogLevel.ERROR);
                         continue;
                     }
 
                     PathParamBinding existingPlaceholder = pathPlaceholders.get(placeholderName);
 
                     if (existingPlaceholder != null) {
-                        ValidationError error = new ValidationError(String.format(
-                                "Placeholder '%s' appearing at position '%s' is already present at position '%s' in " +
-                                        "'%s'", placeholderName, i, existingPlaceholder.getPosition(), path),
-                                delegateMethod.getExecutableElement(), null);
-                        errorAccumulator.add(error);
+                        gatherer.gatherError(String.format(
+                                        "Placeholder '%s' appearing at position '%s' is already present at position '%s' in " +
+                                                "'%s'", placeholderName, i, existingPlaceholder.getPosition(), path),
+                                delegateMethod.getExecutableElement(), LoggingUtils.LogLevel.ERROR);
                         continue;
                     }
 
-                    PathParamBinding placeholder = new PathParamBinding(placeholderName, i,
-                            UriMatcherPathPatternType.fromClass(parameter.getParameterType()));
+                    PathParamBinding placeholder = new PathParamBinding.Builder(placeholderName, i,
+                            UriMatcherPathPatternType.fromClass(parameter.getParameterType())).build(processorUtils,
+                            gatherer::gatherErrors);
                     pathPlaceholders.put(placeholderName, placeholder);
 
                     normalizedPath = normalizedPath.replaceAll(PLACEHOLDER_REGEXP, placeholder.getPatternType()

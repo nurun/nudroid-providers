@@ -22,11 +22,15 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.LoggingUtils;
+import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
+import com.nudroid.annotation.processor.ValidationErrorGatherer;
 
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -37,8 +41,8 @@ import java.util.stream.Collectors;
 public class MatcherUri {
 
     private int id;
-    private final Authority authority;
-    private final String path;
+    private Authority authority;
+    private String path;
     private boolean hasQueryStringMatchersOnly = true;
 
     /* Delegate URIs are sorted by query parameter count */
@@ -67,18 +71,8 @@ public class MatcherUri {
                 return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
             });
 
-    /**
-     * Creates an instance of this class.
-     *
-     * @param authority
-     *         the authority for this URI
-     * @param path
-     *         the uri path, with UriMatcher wildcards
-     */
-    public MatcherUri(Authority authority, String path) {
+    private MatcherUri() {
 
-        this.authority = authority;
-        this.path = path;
     }
 
     /**
@@ -110,20 +104,21 @@ public class MatcherUri {
      * @param uriToMethodBinding
      *         the binding to register
      */
-    public void registerBindingForQuery(UriToMethodBinding uriToMethodBinding, List<ValidationError> errorAccumulator) {
+    public void registerBindingForQuery(UriToMethodBinding uriToMethodBinding,
+                                        Consumer<ValidationErrorGatherer> errorCallback) {
+
+        ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
 
         UriToMethodBinding registeredUriToMethodBinding = findEquivalentQueryMethodBinding(uriToMethodBinding);
 
         if (registeredUriToMethodBinding != null) {
 
-            ValidationError error = new ValidationError(
-                    String.format("An equivalent path has already been registered by method '%s'",
-                            registeredUriToMethodBinding.getDelegateMethod()
-                                    .getExecutableElement()), uriToMethodBinding.getDelegateMethod()
-                    .getExecutableElement(), null);
+            gatherer.gatherError(String.format("An equivalent path has already been registered by method '%s'",
+                    registeredUriToMethodBinding.getDelegateMethod()
+                            .getExecutableElement()), uriToMethodBinding.getDelegateMethod()
+                    .getExecutableElement(), LoggingUtils.LogLevel.ERROR);
 
-            errorAccumulator.add(error);
-
+            errorCallback.accept(gatherer);
             return;
         }
 
@@ -225,18 +220,6 @@ public class MatcherUri {
         return "MatcherUri [id=" + id + ", authority=" + authority + ", path=" + path + "]";
     }
 
-    /**
-     * Sets the id of this URI to be mapped to a the id to be mapped to this URI in the <a
-     * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
-     *
-     * @param uriId
-     *         The URI id.
-     */
-    void setId(int uriId) {
-
-        this.id = uriId;
-    }
-
     private UriToMethodBinding findEquivalentQueryMethodBinding(final UriToMethodBinding candidateUriToMethodBinding) {
 
         List<UriToMethodBinding> matchingUriToMethodBindings = queryBindings.stream()
@@ -244,5 +227,45 @@ public class MatcherUri {
                 .collect(Collectors.toList());
 
         return matchingUriToMethodBindings.isEmpty() ? null : matchingUriToMethodBindings.get(0);
+    }
+
+    /**
+     * Builder for Interceptor.
+     */
+    public static class Builder implements ModelBuilder<MatcherUri> {
+
+        private final Authority authority;
+        private final String path;
+        private static int matcherUriIdCount = 0;
+
+        /**
+         * Initializes the builder.
+         *
+         * @param authority
+         *         the authority for this URI
+         * @param path
+         *         the uri path, with UriMatcher wildcards
+         */
+        public Builder(Authority authority, String path) {
+
+            this.authority = authority;
+            this.path = path;
+        }
+
+        /**
+         * Builds an instance of the InterceptorPoint class.
+         * <p>
+         * {@inheritDoc}
+         */
+        public MatcherUri build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
+
+            MatcherUri matcherUri = new MatcherUri();
+
+            matcherUri.authority = this.authority;
+            matcherUri.path = this.path;
+            matcherUri.id = ++matcherUriIdCount;
+
+            return matcherUri;
+        }
     }
 }

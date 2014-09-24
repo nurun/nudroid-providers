@@ -95,24 +95,39 @@ public class ProcessorUtils {
     }
 
     /**
-     * Gets the package for the provided element.
+     * Given a type element, construct a valid java identifier composed of every enclosing class.
+     * <p>
+     * For example, given:
+     * <pre>
+     *     class A {
+     *         static class B {
+     *             static class C {
      *
-     * @param element
-     *         the element to get the package for
+     *             }
+     *         }
+     *     }
+     * </pre>
+     * And requesting a composite name for TypeElement C yields "A$B$C".
      *
-     * @return the element's package
+     * @param typeElement
+     *         the type element to generate a name for
+     *
+     * @return the name for the type element
      */
-    public PackageElement getPackageForElement(TypeElement element) {
+    public String generateCompositeElementName(TypeElement typeElement) {
 
-        Element parentElement = element.getEnclosingElement();
+        Element parentElement = typeElement.getEnclosingElement();
+        StringBuilder concreteSimpleName = new StringBuilder(typeElement.getSimpleName());
 
         while (parentElement != null && !parentElement.getKind()
                 .equals(ElementKind.PACKAGE)) {
 
+            concreteSimpleName.insert(0, "$")
+                    .insert(0, parentElement.getSimpleName());
             parentElement = parentElement.getEnclosingElement();
         }
 
-        return (PackageElement) parentElement;
+        return concreteSimpleName.toString();
     }
 
     /**
@@ -208,6 +223,21 @@ public class ProcessorUtils {
     public boolean isAndroidUri(TypeMirror type) {
 
         return typeUtils.isSameType(type, ANDROID_URI_TYPE_MIRROR);
+    }
+
+    /**
+     * Checks if two types are the same.
+     *
+     * @param type1
+     *         the first type
+     * @param type2
+     *         the second type
+     *
+     * @return @return <tt>true</tt> if they are, <tt>false</tt> otherwise
+     */
+    public boolean isSame(TypeMirror type1, TypeMirror type2) {
+
+        return typeUtils.isSameType(type1, type2);
     }
 
     /**

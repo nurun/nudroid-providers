@@ -26,15 +26,14 @@ import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.ValidationErrorGatherer;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
 
 import java.util.function.Consumer;
 
 import javax.lang.model.element.TypeElement;
 
 /**
- * A content provider authority.
- *
- * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
+ * A content provider authority, as denoted by the @ContentProvider annotation.
  */
 public class Authority {
 
@@ -55,14 +54,11 @@ public class Authority {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "Authority '" + name + "'";
+        return "Authority{" +
+                "name='" + name + '\'' +
+                '}';
     }
 
     @Override
@@ -92,21 +88,21 @@ public class Authority {
         /**
          * Initializes the builder.
          *
-         * @param authorityName
-         *         the authority name
+         * @param providerAnnotation
+         *         the @ContentProvider defining the authority
          * @param typeElement
-         *         the element the authority annotation is applied to
+         *         the element the @ContentProvider annotation is applied to
          */
-        public Builder(String authorityName, TypeElement typeElement) {
+        public Builder(ContentProvider providerAnnotation, TypeElement typeElement) {
 
-            this.authorityName = authorityName;
+            this.authorityName = providerAnnotation.authority();
             this.typeElement = typeElement;
         }
 
         /**
          * Builds an instance of the Authority class.
-         *
-         * @return a new instance of Authority
+         * <p>
+         * {@inheritDoc}
          */
         public Authority build(ProcessorUtils processorUtils, Consumer<ValidationErrorGatherer> errorCallback) {
 
@@ -115,9 +111,8 @@ public class Authority {
             if (Strings.isNullOrEmpty(this.authorityName)) {
 
                 gatherer.gatherError("Authority name can't be empty.", this.typeElement, LoggingUtils.LogLevel.ERROR);
+                errorCallback.accept(gatherer);
             }
-
-            gatherer.emmitErrorsIfApplicable(errorCallback);
 
             return new Authority(this.authorityName);
         }
