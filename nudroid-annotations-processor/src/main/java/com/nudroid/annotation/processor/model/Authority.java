@@ -31,13 +31,7 @@ public class Authority {
 
     private final String name;
 
-    /**
-     * Creates an authority representation.
-     *
-     * @param authorityName
-     *         The authority name.
-     */
-    public Authority(String authorityName) {
+    private Authority(String authorityName) {
 
         this.name = authorityName;
     }
@@ -45,7 +39,7 @@ public class Authority {
     /**
      * Gets the authority name.
      *
-     * @return The authority name.
+     * @return the authority name
      */
     public String getName() {
 
@@ -76,5 +70,33 @@ public class Authority {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    /**
+     * Builder for Authority.
+     */
+    public static class Builder {
+
+        private String authorityName;
+
+        /**
+         * Initializes the builder.
+         *
+         * @param authorityName
+         *         the authority name
+         */
+        public Builder(String authorityName) {
+
+            this.authorityName = authorityName;
+        }
+
+        /**
+         * Builds an instance of the Authority class.
+         *
+         * @return a new instance of Authority
+         */
+        public Authority build() {
+            return new Authority(authorityName);
+        }
     }
 }

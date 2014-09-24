@@ -21,7 +21,16 @@
  */
 
 /**
- * This package contains the entities required by Nudroid's annotation processor.
+ * <p>This package contains the entities required by Nudroid's annotation processor.</p>
+ *
+ * <p>These entities hold information used by the various templates to generate the necessary source code.</p>
+ *
+ * <p>Every model in this package provider a Builder class as a public static inner class that must be used to
+ * construct instances of the entities in this package. The concept of the builder is extended to include any
+ * required validation of the configuration passed to it.</p>
+ *
+ * See <a href="http://www.informit.com/articles/article.aspx?p=1216151&seqNum=2">the builder pattern</a> for more
+ * reference.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */

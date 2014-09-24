@@ -35,6 +35,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.TypeMirror;
@@ -75,16 +76,43 @@ public class ProcessorUtils {
     }
 
     /**
-     * Checks if the type element implements interface {@link com.nudroid.provider.interceptor.ContentProviderInterceptor}
+     * Checks if the type element implements the given interface.
      *
      * @param element
      *         the element to check
+     * @param interfaceClass
+     *         the Class of the interface to check
      *
-     * @return <tt>true</tt> if it does, <tt>false</tt> otherwise
+     * @return <tt>true</tt> if it does and the provided class is an interface, <tt>false</tt> otherwise
      */
-    public boolean implementsContentProviderInterceptor(TypeElement element) {
+    public boolean implementsInterface(TypeElement element, Class<?> interfaceClass) {
 
-        return typeUtils.isAssignable(element.asType(), CONTENT_PROVIDER_INTERCEPTOR_TYPE_MIRROR);
+        TypeElement contentProviderInterceptorType = elementUtils.getTypeElement(interfaceClass.getName());
+
+        return contentProviderInterceptorType.getKind() == ElementKind.INTERFACE &&
+                typeUtils.isAssignable(element.asType(), elementUtils.getTypeElement(interfaceClass.getName())
+                        .asType());
+    }
+
+    /**
+     * Gets the package for the provided element.
+     *
+     * @param element
+     *         the element to get the package for
+     *
+     * @return the element's package
+     */
+    public PackageElement getPackageForElement(TypeElement element) {
+
+        Element parentElement = element.getEnclosingElement();
+
+        while (parentElement != null && !parentElement.getKind()
+                .equals(ElementKind.PACKAGE)) {
+
+            parentElement = parentElement.getEnclosingElement();
+        }
+
+        return (PackageElement) parentElement;
     }
 
     /**

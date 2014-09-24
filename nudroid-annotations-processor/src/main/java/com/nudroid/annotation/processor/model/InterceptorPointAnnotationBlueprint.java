@@ -55,7 +55,7 @@ public class InterceptorPointAnnotationBlueprint {
     private final String interceptorAnnotationQualifiedName;
     private final TypeElement interceptorAnnotationTypeElement;
     private final TypeElement interceptorImplementationTypeElement;
-    private final List<AnnotationAttribute> attributes = new ArrayList<>();
+    private final List<AnnotationElement> attributes = new ArrayList<>();
     private boolean hasCustomConstructor;
     private String concreteClassName;
     private String concretePackageName;
@@ -101,7 +101,7 @@ public class InterceptorPointAnnotationBlueprint {
      * @param attribute
      *         The attribute to add.
      */
-    public void addAttribute(AnnotationAttribute attribute) {
+    public void addAttribute(AnnotationElement attribute) {
 
         this.attributes.add(attribute);
     }
@@ -112,7 +112,7 @@ public class InterceptorPointAnnotationBlueprint {
      * @return The attributes of this concrete annotation.
      */
     @UsedBy({"ConcreteAnnotationTemplate.stg"})
-    public List<AnnotationAttribute> getAttributes() {
+    public List<AnnotationElement> getAttributes() {
 
         return attributes;
     }

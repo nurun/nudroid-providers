@@ -22,10 +22,11 @@
 
 package com.nudroid.annotation.processor;
 
-import com.nudroid.annotation.processor.model.AnnotationAttribute;
+import com.nudroid.annotation.processor.model.AnnotationElement;
 import com.nudroid.annotation.processor.model.InterceptorPointAnnotationBlueprint;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
+import com.nudroid.provider.delegate.ContentProviderDelegate;
 import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 
 import java.util.ArrayList;
@@ -97,12 +98,13 @@ class InterceptorPointcutProcessor {
                 if (!processorUtils.isClass(interceptorClass)) {
 
                     logger.error(String.format(
-                                    "Interceptor annotations must be static elements of an enclosing %s implementation",
-                                    ContentProviderInterceptor.class.getName()), interceptorAnnotation);
+                            "Interceptor annotations must be static elements of an enclosing %s implementation",
+                            ContentProviderInterceptor.class.getName()), interceptorAnnotation);
                     continue;
                 }
 
-                if (!processorUtils.implementsContentProviderInterceptor((TypeElement) interceptorClass)) {
+                if (!processorUtils.implementsInterface((TypeElement) interceptorClass,
+                        ContentProviderInterceptor.class)) {
 
                     logger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
                                     com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
@@ -130,7 +132,7 @@ class InterceptorPointcutProcessor {
         annotationProperties.stream()
                 .filter(method -> method instanceof ExecutableElement)
                 .forEach(method -> annotationBlueprint.addAttribute(
-                        new AnnotationAttribute((ExecutableElement) method)));
+                        new AnnotationElement.Builder((ExecutableElement) method).build()));
 
         metadata.registerAnnotationBlueprint(annotationBlueprint);
     }

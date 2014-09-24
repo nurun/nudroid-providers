@@ -24,6 +24,7 @@ package com.nudroid.annotation.processor;
 
 import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
+import com.nudroid.annotation.processor.model.ValidationError;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
@@ -154,32 +155,14 @@ class ContentProviderProcessor {
         logger.trace(
                 String.format("        Added delegate class %s to authority '%s'.", delegateClassType, authorityName));
 
-        delegateClassForAuthority = metadata.registerNewDelegateClass(authorityName, delegateClassType);
+        final DelegateClass delegateClass =
+                new DelegateClass.Builder(authorityName, delegateClassType).build(processorUtils, errors -> {
+                    for (ValidationError error : errors) {
+                        logger.error(error.getMessage(), error.getElement());
+                    }
+                });
 
-        if (!validateClassIsNotInDefaultPackage(delegateClassForAuthority)) {
-
-            logger.trace("            Class is in the default package. Signaling compilation error.");
-            logger.error(String.format("Content providers can not be created in the default package."),
-                    delegateClassType);
-        }
-
-        // Eclipse issue: Can't use TypeMirror.equals as types will not match (even if they have the same qualified
-        // name) when Eclipse is doing incremental builds. Use qualified name for comparison instead.
-        Set<String> interfaceNames = delegateClassType.getInterfaces()
-                .stream()
-                .map(TypeMirror::toString)
-                .collect(Collectors.toSet());
-
-        if (interfaceNames.contains(contentProviderDelegateInterfaceName)) {
-
-            logger.trace(String.format("            Class implements %s.", contentProviderDelegateInterfaceName));
-            delegateClassForAuthority.setImplementsDelegateInterface(true);
-        } else {
-
-            logger.trace(
-                    String.format("            Class does not implement %s.", contentProviderDelegateInterfaceName));
-            delegateClassForAuthority.setImplementsDelegateInterface(false);
-        }
+        metadata.registerNewDelegateClass(delegateClass);
     }
 
     private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {

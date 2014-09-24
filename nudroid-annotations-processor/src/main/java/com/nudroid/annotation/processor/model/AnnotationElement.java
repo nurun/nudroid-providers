@@ -27,35 +27,25 @@ import com.nudroid.annotation.processor.UsedBy;
 import javax.lang.model.element.ExecutableElement;
 
 /**
- * An annotation attribute (method) member of a {@link InterceptorPointAnnotationBlueprint}.
+ * A Java annotation element.
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-public class AnnotationAttribute {
+public class AnnotationElement {
 
-    private final String type;
-    private final String name;
-    private final String capitalizedName;
+    private String type;
+    private String name;
+    private String capitalizedName;
 
-    /**
-     * Creates an instance of this class.
-     *
-     * @param method
-     *         The {@link ExecutableElement} for the attribute (method) of the annotation interceptor.
-     */
-    public AnnotationAttribute(ExecutableElement method) {
+    private AnnotationElement(String type, String name, String capitalizedName) {
 
-        this.type = method.getReturnType()
-                .toString();
-
-        final String methodName = method.getSimpleName()
-                .toString();
-        this.name = methodName;
-        this.capitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
+        this.type = type;
+        this.name = name;
+        this.capitalizedName = capitalizedName;
     }
 
     /**
-     * Gets the type of this annotation attribute.
+     * Gets the return type of this annotation element.
      *
      * @return the type of this annotation attribute
      */
@@ -66,9 +56,9 @@ public class AnnotationAttribute {
     }
 
     /**
-     * Gets the name of this attribute.
+     * Gets the name of this element.
      *
-     * @return The name of this attribute.
+     * @return the name of the element
      */
     @UsedBy("ConcreteAnnotationTemplate.stg")
     public String getName() {
@@ -77,13 +67,50 @@ public class AnnotationAttribute {
     }
 
     /**
-     * Gets the capitalized name of this attribute.
+     * Convenience method for returning the element name with its first character in upper case.
      *
-     * @return The capitalized name of this attribute.
+     * @return the name of this element with its first letter in upper case
      */
     @UsedBy("ConcreteAnnotationTemplate.stg")
     public String getCapitalizedName() {
 
         return capitalizedName;
+    }
+
+    /**
+     * Builder for AnnotationElements.
+     */
+    public static class Builder {
+
+        private final String type;
+        private final String name;
+        private final String capitalizedName;
+
+        /**
+         * Initializes the builder.
+         *
+         * @param annotationMethod
+         *         the annotation model's method to get the metadata from
+         */
+        public Builder(ExecutableElement annotationMethod) {
+
+            this.type = annotationMethod.getReturnType()
+                    .toString();
+
+            final String methodName = annotationMethod.getSimpleName()
+                    .toString();
+            this.name = methodName;
+            this.capitalizedName = Character.toUpperCase(methodName.charAt(0)) + methodName.substring(1);
+        }
+
+        /**
+         * Creates the AnnotationAttribute instance.
+         *
+         * @return a new instance of AnnotationElement
+         */
+        public AnnotationElement build() {
+
+            return new AnnotationElement(this.type, this.name, this.capitalizedName);
+        }
     }
 }

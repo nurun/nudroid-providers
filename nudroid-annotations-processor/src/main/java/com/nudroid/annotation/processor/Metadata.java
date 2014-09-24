@@ -56,22 +56,17 @@ class Metadata {
     private final Set<InterceptorPointAnnotationBlueprint> mInterceptorPointAnnotationBlueprintPile = new HashSet<>();
 
     /**
-     * Registers an authority and the corresponding annotated {@link TypeElement}.
+     * Registers a new delegate class.
      *
-     * @param authorityName
-     *         the authority name
-     * @param delegateClassType
-     *         the delegate class responsible for handling the authority
-     *
-     * @return the new delegate class
+     * @param delegateClass
+     *         the delegate class to register
      */
-    DelegateClass registerNewDelegateClass(String authorityName, TypeElement delegateClassType) {
+    void registerNewDelegateClass(DelegateClass delegateClass) {
 
-        final DelegateClass delegateClass = new DelegateClass(authorityName, delegateClassType);
-        registeredAuthorities.put(authorityName, delegateClass);
-        registeredDelegateClasses.put(delegateClassType, delegateClass);
+        registeredAuthorities.put(delegateClass.getAuthority()
+                .getName(), delegateClass);
+        registeredDelegateClasses.put(delegateClass.getTypeElement(), delegateClass);
         mDelegateClassPile.add(delegateClass);
-        return delegateClass;
     }
 
     /**
