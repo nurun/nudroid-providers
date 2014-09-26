@@ -184,25 +184,10 @@ public class InterceptorAnnotationBlueprints {
          * {@inheritDoc}
          */
         public InterceptorAnnotationBlueprints build(ProcessorUtils processorUtils,
-                                                         Consumer<ValidationErrorGatherer> errorCallback) {
+                                                     Consumer<ValidationErrorGatherer> errorCallback) {
 
             ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
-            Element interceptorClass = this.annotationTypeElement.getEnclosingElement();
-
-            /* Interceptor annotations must be inner classes of the actual interceptor implementation. */
-            if (!processorUtils.isClass(interceptorClass)) {
-
-                gatherer.gatherError(String.format(
-                                "Interceptor annotations must be static elements of an enclosing %s implementation",
-                                ContentProviderInterceptor.class.getName()), this.annotationTypeElement,
-                        LoggingUtils.LogLevel.ERROR);
-            } else if (!processorUtils.implementsInterface((TypeElement) interceptorClass,
-                    ContentProviderInterceptor.class)) {
-
-                gatherer.gatherError(String.format("Interceptor class %s must implement interface %s", interceptorClass,
-                                com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
-                        interceptorClass, LoggingUtils.LogLevel.ERROR);
-            }
+            validateInterceptorClass(processorUtils, gatherer);
 
             InterceptorAnnotationBlueprints blueprints = new InterceptorAnnotationBlueprints();
             blueprints.interceptorAnnotationTypeElement = this.annotationTypeElement;
@@ -221,6 +206,26 @@ public class InterceptorAnnotationBlueprints {
             } else {
 
                 return blueprints;
+            }
+        }
+
+        private void validateInterceptorClass(ProcessorUtils processorUtils, ValidationErrorGatherer gatherer) {
+
+            Element interceptorClass = this.annotationTypeElement.getEnclosingElement();
+
+            /* Interceptor annotations must be inner classes of the actual interceptor implementation. */
+            if (!processorUtils.isClass(interceptorClass)) {
+
+                gatherer.gatherError(String.format(
+                                "Interceptor annotations must be static elements of an enclosing %s implementation",
+                                ContentProviderInterceptor.class.getName()), this.annotationTypeElement,
+                        LoggingUtils.LogLevel.ERROR);
+            } else if (!processorUtils.implementsInterface((TypeElement) interceptorClass,
+                    ContentProviderInterceptor.class)) {
+
+                gatherer.gatherError(String.format("Interceptor class %s must implement interface %s", interceptorClass,
+                                ContentProviderInterceptor.class.getName()), interceptorClass,
+                        LoggingUtils.LogLevel.ERROR);
             }
         }
     }
