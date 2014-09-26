@@ -126,26 +126,6 @@ subprojects {
         archives sourceJar
         archives javadocJar
     }
-
-    /*
-     * =============================================================================================================
-     * Sets up Nurun's Artifactory upload.
-     * TODO Remove this before publishing to Open Source.
-     */
-    uploadArchives {
-        repositories.mavenDeployer {
-            repository(url: "http://artifactory.mtl.nurun.com/artifactory/android-release-local") {
-                authentication(userName: "pubandroid", password: "androidpub")
-                releases(updatePolicy: 'always')
-                snapshots(updatePolicy: 'never')
-            }
-            snapshotRepository(url: "http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local") {
-                authentication(userName: "pubandroid", password: "androidpub")
-                releases(updatePolicy: 'never')
-                snapshots(updatePolicy: 'always')
-            }
-        }
-    }
 }
 
 /*
