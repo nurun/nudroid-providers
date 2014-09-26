@@ -87,35 +87,7 @@ class InterceptorPointcutProcessor {
 
         for (Element interceptorAnnotation : interceptorAnnotations) {
 
-            /* This check is required. Compilation error might make the compiler think the annotation has been
-            applied on anther element, even if the target of the annotation is ANNOTATION_TYPE */
-            if (interceptorAnnotation instanceof TypeElement) {
-
-                Element interceptorClass = interceptorAnnotation.getEnclosingElement();
-
-                /* Interceptor annotations must be inner classes of the actual interceptor implementation. */
-                if (!processorUtils.isClass(interceptorClass)) {
-
-                    logger.error(String.format(
-                            "Interceptor annotations must be static elements of an enclosing %s implementation",
-                            ContentProviderInterceptor.class.getName()), interceptorAnnotation);
-                    continue;
-                }
-
-                if (!processorUtils.implementsInterface((TypeElement) interceptorClass,
-                        ContentProviderInterceptor.class)) {
-
-                    logger.error(String.format("Interceptor class %s must implement interface %s", interceptorClass,
-                                    com.nudroid.provider.interceptor.ContentProviderInterceptor.class.getName()),
-                            interceptorAnnotation);
-                    continue;
-                }
-
-                createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
-
-                logger.trace(
-                        String.format("    Interceptor class for %s: %s", interceptorAnnotation, interceptorClass));
-            }
+            createConcreteAnnotationMetadata(interceptorAnnotation, metadata);
         }
 
         logger.info(String.format("Done processing @%s annotations.", InterceptorPointcut.class.getSimpleName()));
@@ -124,18 +96,21 @@ class InterceptorPointcutProcessor {
     private void createConcreteAnnotationMetadata(Element interceptorAnnotation, Metadata metadata) {
 
         InterceptorAnnotationBlueprints annotationBlueprint =
-                new InterceptorAnnotationBlueprints.Builder((TypeElement) interceptorAnnotation).build
-                        (processorUtils, gatherer -> gatherer.logErrors(logger));
+                new InterceptorAnnotationBlueprints.Builder((TypeElement) interceptorAnnotation).build(processorUtils,
+                        gatherer -> gatherer.logErrors(logger));
 
-        final List<? extends Element> annotationProperties = getSortedAnnotationProperties(interceptorAnnotation);
+        if (annotationBlueprint != null) {
 
-        annotationProperties.stream()
-                .filter(method -> method instanceof ExecutableElement)
-                .forEach(method -> annotationBlueprint.addAttribute(
-                        new AnnotationElement.Builder((ExecutableElement) method).build(processorUtils,
-                                gatherer -> gatherer.logErrors(logger))));
+            final List<? extends Element> annotationProperties = getSortedAnnotationProperties(interceptorAnnotation);
 
-        metadata.registerAnnotationBlueprint(annotationBlueprint);
+            annotationProperties.stream()
+                    .filter(method -> method instanceof ExecutableElement)
+                    .forEach(method -> annotationBlueprint.addAttribute(
+                            new AnnotationElement.Builder((ExecutableElement) method).build(processorUtils,
+                                    gatherer -> gatherer.logErrors(logger))));
+
+            metadata.registerAnnotationBlueprint(annotationBlueprint);
+        }
     }
 
     private List<? extends Element> getSortedAnnotationProperties(Element interceptorAnnotation) {

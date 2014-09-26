@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.processor.ValidationErrorGatherer;
@@ -29,12 +30,18 @@ import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 
 /**
  * Metadata for content provider delegate classes. A delegate class handles ContentResolver requests on behalf of a
@@ -209,7 +216,7 @@ public class DelegateClass {
     public String toString() {
         return "DelegateClass{" +
                 "qualifiedName='" + qualifiedName + '\'' +
-                ", typeElement=" + typeElement +
+                ", delegateClassTypeElement=" + typeElement +
                 ", contentProviderSimpleName='" + contentProviderSimpleName + '\'' +
                 ", routerSimpleName='" + routerSimpleName + '\'' +
                 ", authority=" + authority +
@@ -240,20 +247,20 @@ public class DelegateClass {
     public static class Builder implements ModelBuilder<DelegateClass> {
 
         private ContentProvider contentProviderAnnotation;
-        private TypeElement typeElement;
+        private TypeElement delegateClassTypeElement;
 
         /**
          * Initializes the builder.
          *
          * @param contentProviderAnnotation
          *         the @ContentProvider annotation applied on the target delegate class
-         * @param typeElement
+         * @param delegateClassTypeElement
          *         the java model element of the class annotated with @ContentProvider
          */
-        public Builder(ContentProvider contentProviderAnnotation, TypeElement typeElement) {
+        public Builder(ContentProvider contentProviderAnnotation, TypeElement delegateClassTypeElement) {
 
             this.contentProviderAnnotation = contentProviderAnnotation;
-            this.typeElement = typeElement;
+            this.delegateClassTypeElement = delegateClassTypeElement;
         }
 
         /**
@@ -265,21 +272,24 @@ public class DelegateClass {
 
             ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
 
-            String providerSimpleName = processorUtils.generateCompositeElementName(typeElement)
+            validateDelegateClassStructure(processorUtils, gatherer);
+
+            String providerSimpleName = processorUtils.generateCompositeElementName(this.delegateClassTypeElement)
                     .replaceAll("(?i)Delegate", "")
                     .replaceAll("(?i)ContentProvider", "") + "ContentProvider_";
 
-            String routerSimpleName = processorUtils.generateCompositeElementName(typeElement) + "Router_";
+            String routerSimpleName =
+                    processorUtils.generateCompositeElementName(this.delegateClassTypeElement) + "Router_";
 
             DelegateClass delegateClass = new DelegateClass();
 
             delegateClass.authority =
-                    new Authority.Builder(this.contentProviderAnnotation, typeElement).build(processorUtils,
-                            gatherer::gatherErrors);
-            delegateClass.typeElement = this.typeElement;
-            delegateClass.qualifiedName = typeElement.toString();
+                    new Authority.Builder(this.contentProviderAnnotation, delegateClassTypeElement).build(
+                            processorUtils, gatherer::gatherErrors);
+            delegateClass.typeElement = this.delegateClassTypeElement;
+            delegateClass.qualifiedName = this.delegateClassTypeElement.toString();
 
-            if (processorUtils.implementsInterface(this.typeElement, ContentProviderDelegate.class)) {
+            if (processorUtils.implementsInterface(this.delegateClassTypeElement, ContentProviderDelegate.class)) {
                 delegateClass.implementsDelegateInterface = true;
             }
 
@@ -291,5 +301,59 @@ public class DelegateClass {
             return delegateClass;
         }
 
+        private void validateDelegateClassStructure(ProcessorUtils processorUtils, ValidationErrorGatherer gatherer) {
+
+            checkIsNotAbstract(processorUtils, gatherer);
+            checkIsTopLevelOrStatic(processorUtils, gatherer);
+            checkHasDefaultConstructor(gatherer);
+        }
+
+        private void checkIsNotAbstract(ProcessorUtils processorUtils, ValidationErrorGatherer gatherer) {
+            if (processorUtils.isAbstract(this.delegateClassTypeElement)) {
+
+                gatherer.gatherError(String.format("@%s annotations are only allowed on concrete classes",
+                                ContentProvider.class.getSimpleName()), this.delegateClassTypeElement,
+                        LoggingUtils.LogLevel.ERROR);
+            }
+        }
+
+        private void checkIsTopLevelOrStatic(ProcessorUtils processorUtils, ValidationErrorGatherer gatherer) {
+            Set<Modifier> delegateClassModifiers = this.delegateClassTypeElement.getModifiers();
+
+            Element enclosingDelegateClassElement = this.delegateClassTypeElement.getEnclosingElement();
+
+            if (processorUtils.isClassOrInterface(enclosingDelegateClassElement) &&
+                    !delegateClassModifiers.contains(Modifier.STATIC)) {
+
+                gatherer.gatherError(String.format("@%s annotations can only appear on top level or static classes",
+                        ContentProvider.class.getSimpleName()), delegateClassTypeElement, LoggingUtils.LogLevel.ERROR);
+            }
+        }
+
+        private void checkHasDefaultConstructor(ValidationErrorGatherer gatherer) {
+            List<? extends Element> enclosedElements = this.delegateClassTypeElement.getEnclosedElements();
+
+            boolean hasDefaultConstructor = false;
+            List<ExecutableElement> constructors = ElementFilter.constructorsIn(enclosedElements);
+
+            for (int i = 0; i < constructors.size() && !hasDefaultConstructor; i++) {
+
+                ExecutableElement constructor = constructors.get(i);
+
+                if (constructor.getParameters()
+                        .size() == 0 && constructor.getModifiers()
+                        .contains(Modifier.PUBLIC)) {
+
+                    hasDefaultConstructor = true;
+                }
+            }
+
+            if (!hasDefaultConstructor) {
+
+                gatherer.gatherError(String.format("Classes annotated with @%s must have a public default constructor",
+                                ContentProvider.class.getSimpleName()), this.delegateClassTypeElement,
+                        LoggingUtils.LogLevel.ERROR);
+            }
+        }
     }
 }

@@ -27,7 +27,6 @@ import com.nudroid.annotation.processor.model.DelegateMethod;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
 import com.nudroid.annotation.processor.model.MatcherUri;
 import com.nudroid.annotation.processor.model.UriToMethodBinding;
-import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.Query;
 
 import java.util.List;
@@ -88,33 +87,25 @@ class QueryProcessor {
                             .collect(Collectors.joining("\n        - "))));
         }
 
-        for (Element queryMethod : queryMethods) {
+        queryMethods.stream()
+                .filter(queryMethod -> queryMethod instanceof ExecutableElement)
+                .forEach(queryMethod -> {
 
-            if (queryMethod instanceof ExecutableElement) {
+                    TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
 
-                TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
-                ContentProvider contentProviderDelegateAnnotation = enclosingClass.getAnnotation(ContentProvider.class);
+                    logger.trace("    Processing " + queryMethod);
+                    DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
+                    DelegateMethod delegateMethod =
+                            processQueryOnMethod((ExecutableElement) queryMethod, delegateClass);
 
-                if (contentProviderDelegateAnnotation == null) {
+                    if (delegateMethod != null) {
 
-                    logger.error(String.format("Enclosing class must be annotated with @%s",
-                            ContentProvider.class.getName()), queryMethod);
-                    continue;
-                }
+                        logger.trace("    Checking for interceptors on method " + queryMethod);
+                        processInterceptorsOnMethod(delegateMethod, metadata);
+                    }
 
-                logger.trace("    Processing " + queryMethod);
-                DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, delegateClass);
-
-                if (delegateMethod != null) {
-
-                    logger.trace("    Checking for interceptors on method " + queryMethod);
-                    processInterceptorsOnMethod(delegateMethod, metadata);
-                }
-
-                logger.trace("    Done processing " + queryMethod);
-            }
-        }
+                    logger.trace("    Done processing " + queryMethod);
+                });
 
         logger.info("Done processing @Query annotations.");
     }

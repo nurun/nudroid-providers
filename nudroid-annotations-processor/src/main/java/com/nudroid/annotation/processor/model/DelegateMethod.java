@@ -26,6 +26,7 @@ import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.processor.ValidationErrorGatherer;
+import com.nudroid.annotation.provider.delegate.ContentProvider;
 import com.nudroid.annotation.provider.delegate.Delete;
 import com.nudroid.annotation.provider.delegate.Insert;
 import com.nudroid.annotation.provider.delegate.Query;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 
 /**
@@ -104,6 +106,7 @@ public class DelegateMethod {
      *
      * @return the list of parameters
      */
+    @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public List<Parameter> getParameters() { return parameters; }
 
     /**
@@ -214,11 +217,8 @@ public class DelegateMethod {
             Query query = executableElement.getAnnotation(Query.class);
             String path = query.value();
 
-            if (path.matches(PATH_AND_QUERY_STRING_REGEXP)) {
+            if (!validateMethodDeclaration(errorCallback, gatherer, path)) {
 
-                gatherer.gatherError("Query strings are not allowed in path expressions", executableElement,
-                        LoggingUtils.LogLevel.ERROR);
-                errorCallback.accept(gatherer);
                 return null;
             }
 
@@ -245,6 +245,31 @@ public class DelegateMethod {
             gatherer.emmitCallbackIfApplicable(errorCallback);
 
             return method;
+        }
+
+        private boolean validateMethodDeclaration(Consumer<ValidationErrorGatherer> errorCallback,
+                                                  ValidationErrorGatherer gatherer, String path) {
+            TypeElement enclosingClass = (TypeElement) this.executableElement.getEnclosingElement();
+            ContentProvider contentProviderDelegateAnnotation = enclosingClass.getAnnotation(ContentProvider.class);
+
+            if (contentProviderDelegateAnnotation == null) {
+
+                gatherer.gatherError(
+                        String.format("Enclosing class must be annotated with @%s", ContentProvider.class.getName()),
+                        this.executableElement, LoggingUtils.LogLevel.ERROR);
+
+                return false;
+            }
+
+            if (path.matches(PATH_AND_QUERY_STRING_REGEXP)) {
+
+                gatherer.gatherError("Query strings are not allowed in path expressions", executableElement,
+                        LoggingUtils.LogLevel.ERROR);
+                errorCallback.accept(gatherer);
+                return false;
+            }
+
+            return true;
         }
     }
 }

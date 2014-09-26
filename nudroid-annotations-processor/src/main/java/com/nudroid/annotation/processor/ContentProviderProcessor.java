@@ -22,23 +22,15 @@
 
 package com.nudroid.annotation.processor;
 
-import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.model.DelegateClass;
-import com.nudroid.annotation.processor.model.ValidationError;
 import com.nudroid.annotation.provider.delegate.ContentProvider;
-import com.nudroid.provider.delegate.ContentProviderDelegate;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 
 /**
  * Processes the {@link ContentProvider} annotation on a {@link TypeElement}.
@@ -48,7 +40,6 @@ import javax.lang.model.util.ElementFilter;
 class ContentProviderProcessor {
 
     private final LoggingUtils logger;
-    private final String contentProviderDelegateInterfaceName;
     private final ProcessorUtils processorUtils;
 
     /**
@@ -61,7 +52,6 @@ class ContentProviderProcessor {
 
         this.logger = processorContext.logger;
         this.processorUtils = processorContext.processorUtils;
-        this.contentProviderDelegateInterfaceName = ContentProviderDelegate.class.getName();
     }
 
     /**
@@ -108,67 +98,12 @@ class ContentProviderProcessor {
 
     private void processContentProviderDelegateAnnotation(TypeElement delegateClassType, Metadata metadata) {
 
-        if (processorUtils.isAbstract(delegateClassType)) {
-
-            logger.trace("        Class is abstract. Signaling compilation error.");
-            logger.error(String.format("@%s annotations are only allowed on concrete classes",
-                    ContentProvider.class.getSimpleName()), delegateClassType);
-        }
-
-        if (!validateClassIsTopLevelOrStatic(delegateClassType)) {
-
-            logger.trace("        Class is not top level nor static. Signaling compilation error.");
-            logger.error(String.format("@%s annotations can only appear on top level or static classes",
-                    ContentProvider.class.getSimpleName()), delegateClassType);
-        }
-
-        if (!validateClassHasPublicDefaultConstructor(delegateClassType)) {
-
-            logger.trace("        Class does not have a public default constructor. Signaling compilation error.");
-            logger.error(String.format("Classes annotated with @%s must have a public default constructor",
-                    ContentProvider.class.getSimpleName()), delegateClassType);
-        }
-
-        // TODO Remove this check. Can never be null.
         ContentProvider contentProviderDelegateAnnotation = delegateClassType.getAnnotation(ContentProvider.class);
-
-        if (contentProviderDelegateAnnotation == null) {
-
-            return;
-        }
 
         final DelegateClass delegateClass =
                 new DelegateClass.Builder(contentProviderDelegateAnnotation, delegateClassType).build(processorUtils,
                         gatherer -> gatherer.logErrors(logger));
 
         metadata.registerNewDelegateClass(delegateClass, gatherer -> gatherer.logErrors(logger));
-    }
-
-    private boolean validateClassIsTopLevelOrStatic(TypeElement delegateClassType) {
-
-        Set<Modifier> delegateClassModifiers = delegateClassType.getModifiers();
-
-        Element enclosingDelegateClassElement = delegateClassType.getEnclosingElement();
-
-        return !(processorUtils.isClassOrInterface(enclosingDelegateClassElement) &&
-                !delegateClassModifiers.contains(Modifier.STATIC));
-
-    }
-
-    private boolean validateClassHasPublicDefaultConstructor(TypeElement delegateClassType) {
-
-        List<? extends Element> enclosedElements = delegateClassType.getEnclosedElements();
-
-        for (ExecutableElement constructor : ElementFilter.constructorsIn(enclosedElements)) {
-
-            if (constructor.getParameters()
-                    .size() == 0 && constructor.getModifiers()
-                    .contains(Modifier.PUBLIC)) {
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }
