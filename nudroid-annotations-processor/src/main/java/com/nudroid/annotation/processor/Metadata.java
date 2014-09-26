@@ -52,6 +52,8 @@ class Metadata {
      *
      * TODO: Currently, the source code generator has to remove a processed class from the pile. Instead,
      * consider grouping classes by round number and the source code generator process classes for that round only.
+     * (the same metadata instance is used in multiple rounds, so if we do not pop items from the pile they will be
+     * processed on next rounds)
      */
     private final Set<DelegateClass> mDelegateClassPile = new HashSet<>();
     private final Set<InterceptorAnnotationBlueprints> mInterceptorAnnotationBlueprintsPile = new HashSet<>();

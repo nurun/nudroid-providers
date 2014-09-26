@@ -150,7 +150,7 @@ public class Interceptor {
 
             Interceptor interceptor = new Interceptor();
             interceptor.interceptorTypeElement = this.interceptorTypeElement;
-            interceptor.concreteAnnotationQualifiedName = this.annotationBlueprints.getQualifiedClassName();
+            interceptor.concreteAnnotationQualifiedName = this.annotationBlueprints.getConcreteClassSimpleName();
 
             List<ExecutableElement> constructors =
                     ElementFilter.constructorsIn(this.interceptorTypeElement.getEnclosedElements());

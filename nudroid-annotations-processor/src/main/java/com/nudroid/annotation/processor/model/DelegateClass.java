@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
@@ -40,6 +41,7 @@ import java.util.function.Consumer;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 
@@ -51,6 +53,7 @@ import javax.lang.model.util.ElementFilter;
 public class DelegateClass {
 
     private String qualifiedName;
+    private String packageName;
     private TypeElement typeElement;
     private String contentProviderSimpleName;
     private String routerSimpleName;
@@ -143,6 +146,13 @@ public class DelegateClass {
      * @return the fully qualified name of the delegate class
      */
     public String getQualifiedName() { return qualifiedName; }
+
+    /**
+     * Gets the name of the package.
+     *
+     * @return the package name
+     */
+    public String getPackageName() { return packageName; }
 
     /**
      * Gets the content provider authority handled by this class.
@@ -274,6 +284,14 @@ public class DelegateClass {
 
             validateDelegateClassStructure(processorUtils, gatherer);
 
+            PackageElement packageElement = processorUtils.findPackage(this.delegateClassTypeElement);
+
+            if (Strings.isNullOrEmpty(packageElement.getQualifiedName()
+                    .toString())) {
+                gatherer.gatherError("Delegate classes cannot be defined in the default package.",
+                        this.delegateClassTypeElement, LoggingUtils.LogLevel.ERROR);
+            }
+
             String providerSimpleName = processorUtils.generateCompositeElementName(this.delegateClassTypeElement)
                     .replaceAll("(?i)Delegate", "")
                     .replaceAll("(?i)ContentProvider", "") + "ContentProvider_";
@@ -288,6 +306,8 @@ public class DelegateClass {
                             processorUtils, gatherer::gatherErrors);
             delegateClass.typeElement = this.delegateClassTypeElement;
             delegateClass.qualifiedName = this.delegateClassTypeElement.toString();
+            delegateClass.packageName = packageElement.getQualifiedName()
+                    .toString();
 
             if (processorUtils.implementsInterface(this.delegateClassTypeElement, ContentProviderDelegate.class)) {
                 delegateClass.implementsDelegateInterface = true;

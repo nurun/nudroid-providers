@@ -146,6 +146,26 @@ public class ProcessorUtils {
     }
 
     /**
+     * Finds the package a type element is declared. Will traverse any enclosing elements until the package element is
+     * reached.
+     *
+     * @param typeElement
+     *         the type element
+     *
+     * @return the package of the type element
+     */
+    public PackageElement findPackage(TypeElement typeElement) {
+
+        Element element = typeElement;
+
+        do {
+            element = element.getEnclosingElement();
+        } while (element != null && element.getKind() != ElementKind.PACKAGE);
+
+        return (PackageElement) element;
+    }
+
+    /**
      * Checks if the provided type mirror is an Android Context class (android.content.Context).
      *
      * @param type

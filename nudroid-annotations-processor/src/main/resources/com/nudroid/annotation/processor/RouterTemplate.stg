@@ -75,19 +75,27 @@ public class <delegateClass.routerSimpleName> {
     @SuppressWarnings({ "unused", "unchecked" })
     private \<T> T convert(String queryParameter, Class\<T> clazz) {
 
-        if (clazz.equals(Integer.class)) {
+        if (clazz.equals(Character.class) || clazz.equals(char.class)) {
             return (T) Integer.valueOf(Integer.parseInt(queryParameter));
         }
 
-        if (clazz.equals(Long.class)) {
+        if (clazz.equals(Character.class) || clazz.equals(char.class)) {
+            return (T) Integer.valueOf(Integer.parseInt(queryParameter));
+        }
+
+        if (clazz.equals(Integer.class) || clazz.equals(int.class)) {
+            return (T) Integer.valueOf(Integer.parseInt(queryParameter));
+        }
+
+        if (clazz.equals(Long.class) || clazz.equals(long.class)) {
             return (T) Long.valueOf(Long.parseLong(queryParameter));
         }
 
-        if (clazz.equals(Float.class)) {
+        if (clazz.equals(Float.class) || clazz.equals(float.class)) {
             return (T) Float.valueOf(Float.parseFloat(queryParameter));
         }
 
-        if (clazz.equals(Double.class)) {
+        if (clazz.equals(Double.class) || clazz.equals(double.class)) {
             return (T) Double.valueOf(Double.parseDouble(queryParameter));
         }
         

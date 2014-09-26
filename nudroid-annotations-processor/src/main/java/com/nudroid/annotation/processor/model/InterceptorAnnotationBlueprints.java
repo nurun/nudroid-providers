@@ -22,6 +22,7 @@
 
 package com.nudroid.annotation.processor.model;
 
+import com.google.common.base.Strings;
 import com.nudroid.annotation.processor.LoggingUtils;
 import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
@@ -39,6 +40,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -52,7 +54,8 @@ public class InterceptorAnnotationBlueprints {
     private TypeElement interceptorAnnotationTypeElement;
     private TypeElement interceptorImplementationTypeElement;
     private List<AnnotationElement> attributes = new ArrayList<>();
-    private String qualifiedClassName;
+    private String concreteClassSimpleName;
+    private String packageName;
 
     private InterceptorAnnotationBlueprints() {
 
@@ -62,7 +65,7 @@ public class InterceptorAnnotationBlueprints {
      * Adds an attribute to this annotation representation.
      *
      * @param attribute
-     *         The attribute to add.
+     *         the attribute to add
      */
     public void addAttribute(AnnotationElement attribute) {
 
@@ -72,7 +75,7 @@ public class InterceptorAnnotationBlueprints {
     /**
      * Gets the attributes of this concrete annotation.
      *
-     * @return The attributes of this concrete annotation.
+     * @return the attributes of this concrete annotation
      */
     @UsedBy({"ConcreteAnnotationTemplate.stg"})
     public List<AnnotationElement> getAttributes() {
@@ -93,7 +96,7 @@ public class InterceptorAnnotationBlueprints {
     /**
      * Gets the interceptor's {@link TypeElement} this annotation is for.
      *
-     * @return The {@link TypeElement} of the interceptor implementation.
+     * @return the {@link TypeElement} of the interceptor implementation
      */
     public TypeElement getInterceptorTypeElement() {
 
@@ -103,19 +106,26 @@ public class InterceptorAnnotationBlueprints {
     /**
      * Gets the qualified name of the annotation class.
      *
-     * @return The qualified name of the annotation class.
+     * @return the qualified name of the annotation class
      */
     public String getAnnotationQualifiedName() {
         return interceptorAnnotationQualifiedName;
     }
 
     /**
+     * Gets the name of the package.
+     *
+     * @return the package name
+     */
+    public String getPackageName() { return packageName; }
+
+    /**
      * Gets the name of the concrete annotation implementation class.
      *
-     * @return The name of the concrete annotation implementation class.
+     * @return the name of the concrete annotation implementation class
      */
-    public String getQualifiedClassName() {
-        return qualifiedClassName;
+    public String getConcreteClassSimpleName() {
+        return concreteClassSimpleName;
     }
 
     /**
@@ -189,6 +199,14 @@ public class InterceptorAnnotationBlueprints {
             ValidationErrorGatherer gatherer = new ValidationErrorGatherer();
             validateInterceptorClass(processorUtils, gatherer);
 
+            PackageElement packageElement = processorUtils.findPackage(this.annotationTypeElement);
+
+            if (Strings.isNullOrEmpty(packageElement.getQualifiedName()
+                    .toString())) {
+                gatherer.gatherError("Delegate classes cannot be defined in the default package.",
+                        this.annotationTypeElement, LoggingUtils.LogLevel.ERROR);
+            }
+
             InterceptorAnnotationBlueprints blueprints = new InterceptorAnnotationBlueprints();
             blueprints.interceptorAnnotationTypeElement = this.annotationTypeElement;
 
@@ -201,8 +219,10 @@ public class InterceptorAnnotationBlueprints {
             blueprints.interceptorAnnotationQualifiedName = this.annotationTypeElement.getQualifiedName()
                     .toString();
 
-            blueprints.qualifiedClassName =
+            blueprints.concreteClassSimpleName =
                     processorUtils.generateCompositeElementName(this.annotationTypeElement) + "$ConcreteAnnotation_";
+            blueprints.packageName = packageElement.getQualifiedName()
+                    .toString();
 
             if (gatherer.hasErrors()) {
 

@@ -58,7 +58,7 @@ public class InterceptorAnnotationParameter {
     /**
      * Gets the literal representation of this parameter (as it appears in the source code).
      *
-     * @return The literal representation of this parameter (as it appears in the source code).
+     * @return the literal representation of this parameter (as it appears in the source code)
      */
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getLiteralValue() {

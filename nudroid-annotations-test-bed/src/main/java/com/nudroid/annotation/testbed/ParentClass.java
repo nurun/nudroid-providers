@@ -1,4 +1,4 @@
-/*
+package com.nudroid.annotation.testbed;/*
  * Copyright (c) 2014 Nurun Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,22 +20,13 @@
  * THE SOFTWARE.
  */
 
-package com.nudroid.annotation.testbed;
-
 import android.content.Context;
 import android.database.Cursor;
-import android.net.Uri;
 
 import com.nudroid.annotation.provider.delegate.ContentProvider;
-import com.nudroid.annotation.provider.delegate.ContentUri;
-import com.nudroid.annotation.provider.delegate.ContextRef;
-import com.nudroid.annotation.provider.delegate.Projection;
-import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.PathParam;
+import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.QueryParam;
-import com.nudroid.annotation.provider.delegate.Selection;
-import com.nudroid.annotation.provider.delegate.SelectionArgs;
-import com.nudroid.annotation.provider.delegate.SortOrder;
 import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 public class ParentClass {
@@ -46,52 +37,59 @@ public class ParentClass {
     public static class SampleContentProviderDelegate implements ContentProviderDelegate {
 
         @Query("/channels/test/{1}/{2}")
-        public Cursor channels1(@PathParam("1")String variable1, @PathParam("2")int variable2,
-                                @PathParam("3")String variable3) {
+        public Cursor channels1(@PathParam("1") String variable1, @PathParam("2") int variable2,
+                                @PathParam("3") String variable3) {
 
             //... perform query
             return null;
         }
 
-//        @MyCacheInterceptor2.Interceptor
-//        @Query("/channels/test")
-//        public Cursor channels2(@QueryParam("test2") String test) {
-//
-//            //... perform query
-//            return null;
-//        }
-//
-//        @Query("/channels/test")
-//        public Cursor channels3() {
-//
-//            //... perform query
-//            return null;
-//        }
-//
-//        @Query("/channels/test1")
-//        public Cursor channels4(@QueryParam("test1") String test) {
-//
-//            //... perform query
-//            return null;
-//        }
-//
-//        @MyCacheInterceptor2.Interceptor
-//        @Query("/channels/test1")
-//        public Cursor channels5(@QueryParam("test2") String test) {
-//
-//            //... perform query
-//            return null;
-//        }
-//
-//        @MyCacheInterceptor2.Interceptor
-//        @Query("/channels/test1")
-//        public Cursor channels6(@ContextRef Context context, @SelectionArgs String[] selectionArgs, @ContentUri Uri uri,
-//                                @Projection String[] projection, @Selection String selection,
-//                                @SortOrder String sortOrder) {
-//
-//            //... perform query
-//            return null;
-//        }
+        @Query("/channels/test/{1}/{2}")
+        public Cursor channels2(@PathParam("1") String variable1, @PathParam("2") int variable2,
+                                @PathParam("3") String variable3, @QueryParam("query") String queryParam) {
+
+            return null;
+        }
+
+        @MyCacheInterceptor2.Interceptor
+        @Query("/channels/test")
+        public Cursor channels2(@QueryParam("test2") String test) {
+
+            //... perform query
+            return null;
+        }
+        //
+        //        @Query("/channels/test")
+        //        public Cursor channels3() {
+        //
+        //            //... perform query
+        //            return null;
+        //        }
+        //
+        //        @Query("/channels/test1")
+        //        public Cursor channels4(@QueryParam("test1") String test) {
+        //
+        //            //... perform query
+        //            return null;
+        //        }
+        //
+        //        @MyCacheInterceptor2.Interceptor
+        //        @Query("/channels/test1")
+        //        public Cursor channels5(@QueryParam("test2") String test) {
+        //
+        //            //... perform query
+        //            return null;
+        //        }
+        //
+        //        @MyCacheInterceptor2.Interceptor
+        //        @Query("/channels/test1")
+        //        public Cursor channels6(@ContextRef Context context, @SelectionArgs String[] selectionArgs, @ContentUri Uri uri,
+        //                                @Projection String[] projection, @Selection String selection,
+        //                                @SortOrder String sortOrder) {
+        //
+        //            //... perform query
+        //            return null;
+        //        }
 
         @Override
         public boolean onCreate(Context context) {

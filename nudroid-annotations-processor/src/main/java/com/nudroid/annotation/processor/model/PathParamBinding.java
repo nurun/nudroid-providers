@@ -49,7 +49,7 @@ class PathParamBinding {
     /**
      * Gets the position of this placeholder in the URI path.
      *
-     * @return the position
+     * @return the placeholder's position in the URI path
      */
     public int getPosition() {
 
@@ -59,7 +59,7 @@ class PathParamBinding {
     /**
      * Gets the name of this placeholder in the URI path.
      *
-     * @return the name
+     * @return the name of the placeholder
      */
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public String getName() {

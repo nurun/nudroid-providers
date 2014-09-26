@@ -71,7 +71,6 @@ class QueryProcessor {
      *         the Metadata model to gather the results of the processing
      */
     //TODO Bug on nudroid annotations: If a parameter is added to the method signature but it is not present in the queryString (and also check path) it throws a NullPointerException.
-    // TODO If using primitive type, (like long) app crashes when converting placeholders. See convert() on router for
     // details (it only Checks Long not long).
     void process(RoundEnvironment roundEnv, Metadata metadata) {
 

@@ -62,7 +62,7 @@ public class UriToMethodBinding {
      * href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a> (i.e. placeholder
      * names will be replaced by '*' or ''#).
      *
-     * @return The normalized path for this URI.
+     * @return the normalized path for this URI
      */
     public String getPath() {
 

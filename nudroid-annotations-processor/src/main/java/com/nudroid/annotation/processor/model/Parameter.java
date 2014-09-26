@@ -183,7 +183,7 @@ public class Parameter {
     /**
      * Returns the placeholder name for this parameter.
      *
-     * @return The placeholder name.
+     * @return the placeholder name
      */
     public String getPlaceholderName() {
         return placeholderName;

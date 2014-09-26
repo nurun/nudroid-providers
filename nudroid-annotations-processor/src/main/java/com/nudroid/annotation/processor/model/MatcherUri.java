@@ -73,7 +73,7 @@ public class MatcherUri {
      * Gets the set of delegate uris which handles @Query methods. Methods will be ordered by number of query
      * parameters, descending.
      *
-     * @return The set of delegate uris which handles @Query methods
+     * @return the set of delegate uris which handles @Query methods
      */
     @UsedBy({"RouterTemplateQuery.stg"})
     public NavigableSet<UriToMethodBinding> getQueryBindings() {
@@ -84,7 +84,7 @@ public class MatcherUri {
     /**
      * Gets the set of delegate uris which handles @Update methods.
      *
-     * @return The set of delegate uris which handles @Update methods
+     * @return he set of delegate uris which handles @Update methods
      */
     @UsedBy({"RouterTemplateQuery.stg"})
     public NavigableSet<UriToMethodBinding> getUpdateBindings() {
@@ -127,7 +127,8 @@ public class MatcherUri {
     /**
      * Gets the id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>.
      *
-     * @return The id to be mapped to this URI in the <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
+     * @return the id to be mapped to this URI in the <a href="http://developer.android
+     * .com/reference/android/content/UriMatcher.html">UriMatcher</a>
      */
     @UsedBy({"RouterTemplate.stg", "RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public int getId() {
@@ -138,7 +139,7 @@ public class MatcherUri {
     /**
      * Gets the authority name of this URI.
      *
-     * @return The authority name of this URI.
+     * @return the authority name of this URI
      */
     @UsedBy("RouterTemplate.stg")
     public String getAuthorityName() {
@@ -150,7 +151,7 @@ public class MatcherUri {
      * Gets the path of this URI. The path will already be normalized for a <a href="http://developer.android.com/reference/android/content/UriMatcher.html">UriMatcher</a>
      * (i.e. placeholder names will be replaced by '*').
      *
-     * @return The normalized path for this URI.
+     * @return the normalized path for this URI
      */
     public String getNormalizedPath() {
 
@@ -162,8 +163,7 @@ public class MatcherUri {
      *
      * @return <tt>true</tt> if matching only paths with query string, <tt>false</tt> otherwise.
      */
-    //TODO review the approach for binding uris to methods using query strings
-    //TODO see if this method is required. it' name bother me a lot
+    //TODO see if this method is required. it's name bother me a lot
     @UsedBy({"RouterTemplateQuery.stg", "RouterTemplateUpdate.stg"})
     public boolean hasQueryStringMatchersOnly() {
 
