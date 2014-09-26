@@ -257,6 +257,7 @@ public class DelegateMethod {
                 gatherer.gatherError(
                         String.format("Enclosing class must be annotated with @%s", ContentProvider.class.getName()),
                         this.executableElement, LoggingUtils.LogLevel.ERROR);
+                errorCallback.accept(gatherer);
 
                 return false;
             }
@@ -268,6 +269,7 @@ public class DelegateMethod {
                 errorCallback.accept(gatherer);
                 return false;
             }
+
 
             return true;
         }

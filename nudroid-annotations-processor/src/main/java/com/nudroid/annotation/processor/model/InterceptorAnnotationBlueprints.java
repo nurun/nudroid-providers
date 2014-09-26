@@ -191,8 +191,13 @@ public class InterceptorAnnotationBlueprints {
 
             InterceptorAnnotationBlueprints blueprints = new InterceptorAnnotationBlueprints();
             blueprints.interceptorAnnotationTypeElement = this.annotationTypeElement;
-            blueprints.interceptorImplementationTypeElement =
-                    (TypeElement) this.annotationTypeElement.getEnclosingElement();
+
+            if (this.annotationTypeElement.getEnclosingElement() instanceof TypeElement) {
+
+                blueprints.interceptorImplementationTypeElement =
+                        (TypeElement) this.annotationTypeElement.getEnclosingElement();
+            }
+
             blueprints.interceptorAnnotationQualifiedName = this.annotationTypeElement.getQualifiedName()
                     .toString();
 

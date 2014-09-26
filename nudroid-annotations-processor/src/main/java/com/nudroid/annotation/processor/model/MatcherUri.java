@@ -27,6 +27,7 @@ import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.processor.ValidationErrorGatherer;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -45,31 +46,24 @@ public class MatcherUri {
     private String path;
     private boolean hasQueryStringMatchersOnly = true;
 
-    /* Delegate URIs are sorted by query parameter count */
-    private final NavigableSet<UriToMethodBinding> queryBindings =
-            new TreeSet<>((UriToMethodBinding uri1, UriToMethodBinding uri2) -> {
+    /* Bindings are sorted by query parameter count */
+    private Comparator<UriToMethodBinding> bindingComparator = new Comparator<UriToMethodBinding>() {
+        @Override
+        public int compare(UriToMethodBinding binding1, UriToMethodBinding binding2) {
 
-                if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
+            /* If same number of query parameters, order is unimportant since equivalent bindings (i.e. same path and
+             same query string declarations) are flagged as errors */
+            if (binding1.getQueryStringParameterCount() == binding2.getQueryStringParameterCount()) {
 
-                    return uri1.getPath()
-                            .compareTo(uri2.getPath());
-                }
+                return -1;
+            }
 
-                return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
-            });
+            return binding2.getQueryStringParameterCount() - binding1.getQueryStringParameterCount();
+        }
+    };
 
-    /* Delegate URIs are sorted by query parameter count */
-    private final NavigableSet<UriToMethodBinding> updateBindings =
-            new TreeSet<>((UriToMethodBinding uri1, UriToMethodBinding uri2) -> {
-
-                if (uri1.getQueryStringParameterCount() == uri2.getQueryStringParameterCount()) {
-
-                    return uri1.getPath()
-                            .compareTo(uri2.getPath());
-                }
-
-                return uri2.getQueryStringParameterCount() - uri1.getQueryStringParameterCount();
-            });
+    private final NavigableSet<UriToMethodBinding> queryBindings = new TreeSet<>(bindingComparator);
+    private final NavigableSet<UriToMethodBinding> updateBindings = new TreeSet<>(bindingComparator);
 
     private MatcherUri() {
 
@@ -113,7 +107,7 @@ public class MatcherUri {
 
         if (registeredUriToMethodBinding != null) {
 
-            gatherer.gatherError(String.format("An equivalent path has already been registered by method '%s'",
+            gatherer.gatherError(String.format("An equivalent binding has already been registered by method '%s'",
                     registeredUriToMethodBinding.getDelegateMethod()
                             .getExecutableElement()), uriToMethodBinding.getDelegateMethod()
                     .getExecutableElement(), LoggingUtils.LogLevel.ERROR);

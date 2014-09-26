@@ -48,7 +48,7 @@ public class ValidationErrorGatherer {
      * @param severity
      *         the severity of the error
      *
-     * @return itself, so cals can be chained
+     * @return itself, so calls can be chained
      */
     public ValidationErrorGatherer gatherError(String message, Element offendingElement,
                                                LoggingUtils.LogLevel severity) {

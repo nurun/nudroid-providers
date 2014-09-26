@@ -20,37 +20,12 @@
  * THE SOFTWARE.
  */
 
-apply plugin: 'java'
+package com.nudroid.annotation.testbed;
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-version = '1.0'
+import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
 
-repositories {
-    mavenCentral()
-}
+//@InterceptorPointcut
+public @interface InvalidInterceptorAnnotation {
 
-def aptOutputDir = project.file("${project.projectDir}/generated/src")
 
-idea {
-    module {
-        sourceDirs += aptOutputDir
-    }
-}
-
-dependencies {
-    compile project(':nudroid-annotations-processor-all')
-}
-
-compileJava.doFirst {
-    println "Creating " + aptOutputDir.getPath()
-    aptOutputDir.mkdirs()
-}
-
-compileJava {
-    options.compilerArgs = ['-s',  aptOutputDir.getPath(), "-Acom.nudroid.annotation.processor.log.level=INFO",
-                            "-proc:only"]
-}
-
-clean{
-    delete aptOutputDir
 }

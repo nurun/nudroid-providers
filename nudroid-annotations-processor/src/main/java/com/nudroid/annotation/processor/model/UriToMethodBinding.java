@@ -28,7 +28,6 @@ import com.nudroid.annotation.processor.ProcessorUtils;
 import com.nudroid.annotation.processor.UsedBy;
 import com.nudroid.annotation.processor.ValidationErrorGatherer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,8 +45,8 @@ import java.util.regex.Pattern;
  */
 public class UriToMethodBinding {
 
-    private static final String PLACEHOLDER_REGEXP = "\\{([^\\}]+)\\}";
-    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(PLACEHOLDER_REGEXP);
+    private static final String PLACEHOLDER_REGEXP_TEMPLATE = "\\{%s\\}";
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([^\\}]+)\\}");
 
     private DelegateMethod delegateMethod;
     private String path;
@@ -123,25 +122,24 @@ public class UriToMethodBinding {
         return queryStringParameters;
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
+    @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object o) {
-
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         UriToMethodBinding that = (UriToMethodBinding) o;
 
         if (!path.equals(that.path)) return false;
-        return queryStringParameters.equals(that.queryStringParameters);
+        if (!queryStringParameters.equals(that.queryStringParameters)) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-
         int result = path.hashCode();
         result = 31 * result + queryStringParameters.hashCode();
-
         return result;
     }
 
@@ -239,8 +237,9 @@ public class UriToMethodBinding {
                             gatherer::gatherErrors);
                     pathPlaceholders.put(placeholderName, placeholder);
 
-                    normalizedPath = normalizedPath.replaceAll(PLACEHOLDER_REGEXP, placeholder.getPatternType()
-                            .getPattern());
+                    normalizedPath = normalizedPath.replaceAll(String.format(PLACEHOLDER_REGEXP_TEMPLATE, placeholderName),
+                            placeholder.getPatternType()
+                                    .getPattern());
                 }
             }
 

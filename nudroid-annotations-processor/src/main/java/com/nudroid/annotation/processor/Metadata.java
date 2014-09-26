@@ -76,9 +76,9 @@ class Metadata {
             gatherer.gatherError(String.format("Authority '%s' has already been registered by class %s",
                             delegateClass.getAuthority()
                                     .getName(), existingDelegateClass.getQualifiedName()),
-                    existingDelegateClass.getTypeElement(), LoggingUtils.LogLevel.ERROR);
+                    delegateClass.getTypeElement(), LoggingUtils.LogLevel.ERROR);
 
-            gatherer.emmitCallbackIfApplicable(errorCallback);
+            errorCallback.accept(gatherer);
 
             return;
         }

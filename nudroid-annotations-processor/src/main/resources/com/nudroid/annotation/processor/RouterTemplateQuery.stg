@@ -81,16 +81,13 @@ query_populateContextQueryStringParameters(parameter) ::= <%
 
 
 query_generateQueryParameterIfStatement(queryParameterName) ::= <%
-    contentProviderContext.uri.getQueryParameter("<queryParameterName>") != null
+    uri.getQueryParameter("<queryParameterName>") != null
 %>
 
 
 
 
 query_generateDelegateMethodCode(binding) ::= <<
-
-contentProviderContext = new ContentProviderContext(context, uri, projection,
-            selection, selectionArgs, sortOrder, null);
 
 <if(!binding.delegateMethod.queryStringParameterNames.empty)>
 if (<binding.delegateMethod.queryStringParameterNames:query_generateQueryParameterIfStatement(); separator=" && ">) {
@@ -121,6 +118,9 @@ if (<binding.delegateMethod.queryStringParameterNames:query_generateQueryParamet
 query_createCaseStatements(matcherUri) ::= <<
 <if(matcherUri.queryBindings)>
 case <matcherUri.id>: {
+
+    contentProviderContext = new ContentProviderContext(context, uri, projection,
+                selection, selectionArgs, sortOrder, null);
 
     <matcherUri.queryBindings:query_generateDelegateMethodCode(); separator="\n">
 <if(matcherUri.queryStringMatchersOnly)>

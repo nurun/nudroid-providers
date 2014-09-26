@@ -55,6 +55,10 @@ public class MyCacheInterceptor2 extends ContentProviderInterceptorAdapter {
     @InterceptorPointcut
     public @interface Interceptor {
 
+        boolean error() default false;
+
+        boolean[] errors() default {true, true, false};
+
         /**
          * The remote url to call to fetch up to date data.
          */

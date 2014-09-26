@@ -91,12 +91,9 @@ class QueryProcessor {
                 .filter(queryMethod -> queryMethod instanceof ExecutableElement)
                 .forEach(queryMethod -> {
 
-                    TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
-
                     logger.trace("    Processing " + queryMethod);
-                    DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
-                    DelegateMethod delegateMethod =
-                            processQueryOnMethod((ExecutableElement) queryMethod, delegateClass);
+
+                    DelegateMethod delegateMethod = processQueryOnMethod((ExecutableElement) queryMethod, metadata);
 
                     if (delegateMethod != null) {
 
@@ -110,18 +107,24 @@ class QueryProcessor {
         logger.info("Done processing @Query annotations.");
     }
 
-    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, DelegateClass delegateClass) {
+    private DelegateMethod processQueryOnMethod(ExecutableElement queryMethod, Metadata metadata) {
 
         Consumer<ValidationErrorGatherer> errorCallback = gatherer -> gatherer.logErrors(logger);
 
         DelegateMethod delegateMethod =
                 new DelegateMethod.Builder(queryMethod).build(this.processorUtils, errorCallback);
+        TypeElement enclosingClass = (TypeElement) queryMethod.getEnclosingElement();
+        DelegateClass delegateClass = metadata.getDelegateClassForTypeElement(enclosingClass);
 
         if (delegateMethod != null) {
 
+            if (delegateClass == null) {
+
+                return delegateMethod;
+            }
+
             UriToMethodBinding uriToMethodBinding = new UriToMethodBinding.Builder(delegateMethod).build(processorUtils,
                     gatherer -> gatherer.logErrors(logger));
-
 
             MatcherUri matcherUri = delegateClass.findMatcherUri(uriToMethodBinding.getPath());
 

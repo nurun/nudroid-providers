@@ -117,6 +117,10 @@ public class InterceptorAnnotationParameter {
                 case ARRAY:
 
                     return generateAnnotationArrayLiteral(processorUtils, errorCallback, parameter, gatherer);
+                case BOOLEAN:
+
+                    parameter.literalValue = String.format("%s", annotationElementValue.getValue());
+                    break;
                 case CHAR:
 
                     parameter.literalValue = String.format("'%s'", annotationElementValue.getValue());
@@ -203,11 +207,23 @@ public class InterceptorAnnotationParameter {
 
             switch (arrayType.getComponentType()
                     .getKind()) {
+                case BOOLEAN:
+
+                    arrayInitializer.append("new boolean[] { ");
+
+                    String elements = arrayElements.stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", "));
+
+                    arrayInitializer.append(elements);
+
+                    arrayInitializer.append(" }");
+                    break;
                 case CHAR:
 
                     arrayInitializer.append("new char[] { '");
 
-                    String elements = arrayElements.stream()
+                    elements = arrayElements.stream()
                             .map(Object::toString)
                             .collect(Collectors.joining("', '"));
 
