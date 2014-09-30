@@ -204,12 +204,7 @@ project(':nudroid-annotations-processor') {
         compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.antlr:ST4:4.0.7'
 
-        testCompile('com.google.testing.compile:compile-testing:0.5') {
-            exclude group: 'org.truth0'
-        }
-
-        testCompile 'com.google.truth:truth:0.23'
-
+        testCompile 'com.google.testing.compile:compile-testing:0.5'
         testCompile 'com.google.android:android:2.2.1'
         testCompile 'com.google.guava:guava:15.0'
         testCompile 'org.antlr:ST4:4.0.7'

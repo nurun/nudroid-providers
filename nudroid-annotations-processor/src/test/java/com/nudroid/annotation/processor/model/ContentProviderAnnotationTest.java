@@ -22,12 +22,12 @@
 
 package com.nudroid.annotation.processor.model;
 
-import com.google.common.truth.Truth;
 import com.google.testing.compile.JavaFileObjects;
 import com.nudroid.annotation.processor.Metadata;
 import com.nudroid.annotation.processor.ProviderAnnotationProcessor;
 
 import org.testng.annotations.Test;
+import org.truth0.Truth;
 
 import javax.tools.JavaFileObject;
 
@@ -40,7 +40,9 @@ public class ContentProviderAnnotationTest {
     public void testRespectsPackageNaming() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("testee/RespectsPackageNamingTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .compilesWithoutError()
                 .and()
@@ -52,7 +54,8 @@ public class ContentProviderAnnotationTest {
     public void testStripsContentProviderAndDelegateFromGeneratedClassName() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("testee/RedundantContentProviderDelegateSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .compilesWithoutError()
                 .and()
@@ -64,7 +67,8 @@ public class ContentProviderAnnotationTest {
     public void testFailsIfDuplicateAuthority() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("testee/DuplicateAuthorityTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .failsToCompile()
                 .withErrorContaining("Authority 'DuplicateAuthorityTestSubject' has already been registered");
@@ -74,7 +78,8 @@ public class ContentProviderAnnotationTest {
     public void testDefaultPackageNotAllowed() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("DefaultPackageNotAllowedTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .failsToCompile()
                 .withErrorContaining("Delegate classes cannot be defined in the default package");
@@ -84,7 +89,8 @@ public class ContentProviderAnnotationTest {
     public void testAbstractClassesNotAllowed() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("testee/AbstractClassesNotAllowedTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .failsToCompile()
                 .withErrorContaining("@ContentProvider annotations are only allowed on concrete classes");
@@ -94,7 +100,8 @@ public class ContentProviderAnnotationTest {
     public void testInnerClassesMustBeStatic() {
 
         JavaFileObject fileObject = JavaFileObjects.forResource("testee/InnerClassesMustBeStaticTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .failsToCompile()
                 .withErrorContaining("@ContentProvider annotations can only appear on top level or static classes");
@@ -105,7 +112,8 @@ public class ContentProviderAnnotationTest {
 
         JavaFileObject fileObject =
                 JavaFileObjects.forResource("testee/ClassMustHavePublicDefaultConstructorTestSubject.java");
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(new ProviderAnnotationProcessor())
                 .failsToCompile()
                 .withErrorContaining("Classes annotated with @ContentProvider must have a public default constructor");
@@ -117,15 +125,15 @@ public class ContentProviderAnnotationTest {
         JavaFileObject fileObject =
                 JavaFileObjects.forResource("testee/DetectsClassImplementesDelegateInterfaceTestSubject.java");
         ProviderAnnotationProcessor processor = new ProviderAnnotationProcessor();
-        javaSource().getSubject(null, fileObject)
+        Truth.ASSERT.about(javaSource())
+                .that(fileObject)
                 .processedWith(processor)
                 .compilesWithoutError();
 
         Metadata metadata = processor.getMetadata();
 
-        Truth.assert_()
-                .that(metadata.getDelegateClassForAuthority("DetectsClassImplementesDelegateInterfaceTestSubject")
-                        .getImplementsContentProviderDelegateInterface())
+        Truth.ASSERT.that(metadata.getDelegateClassForAuthority("DetectsClassImplementesDelegateInterfaceTestSubject")
+                .getImplementsContentProviderDelegateInterface())
                 .isTrue();
     }
 }
