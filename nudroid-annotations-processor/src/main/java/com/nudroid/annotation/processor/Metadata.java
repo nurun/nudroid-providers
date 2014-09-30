@@ -39,7 +39,7 @@ import javax.lang.model.element.TypeElement;
  *
  * @author <a href="mailto:daniel.mfreitas@gmail.com">Daniel Freitas</a>
  */
-class Metadata {
+public class Metadata {
 
     private final Map<String, DelegateClass> registeredAuthorities = new HashMap<>();
     private final Map<TypeElement, DelegateClass> registeredDelegateClasses = new HashMap<>();
@@ -144,7 +144,7 @@ class Metadata {
      * @return The {@link DelegateClass} responsible for handling the given authority. <tt>null</tt> if the authority
      * name has not yet been registered.
      */
-    DelegateClass getDelegateClassForAuthority(String authorityName) {
+    public DelegateClass getDelegateClassForAuthority(String authorityName) {
 
         return registeredAuthorities.get(authorityName);
     }

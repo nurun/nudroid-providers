@@ -26,7 +26,6 @@ import com.nudroid.annotation.processor.model.AnnotationElement;
 import com.nudroid.annotation.processor.model.InterceptorAnnotationBlueprints;
 import com.nudroid.annotation.provider.delegate.Query;
 import com.nudroid.annotation.provider.delegate.intercept.InterceptorPointcut;
-import com.nudroid.provider.interceptor.ContentProviderInterceptor;
 
 import java.util.ArrayList;
 import java.util.Collections;

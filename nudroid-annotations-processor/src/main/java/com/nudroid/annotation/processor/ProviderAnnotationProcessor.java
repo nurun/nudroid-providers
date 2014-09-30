@@ -89,6 +89,10 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
             logLevel = System.getProperty(LOG_LEVEL_PROPERTY_NAME);
         }
 
+        if (logLevel == null) {
+            logLevel = LoggingUtils.LogLevel.INFO.name();
+        }
+
         logger = new LoggingUtils(env.getMessager(), logLevel);
 
         logger.debug("Initializing Nudroid persistence annotation processor.");
@@ -132,5 +136,14 @@ public class ProviderAnnotationProcessor extends AbstractProcessor {
         sourceCodeWriter.generateCompanionSourceCode(metadata);
 
         return true;
+    }
+
+    /**
+     * Gets the metadata gathered by the annotation processor.
+     *
+     * @return the metadata, or null if the processor hasn't run yet
+     */
+    public Metadata getMetadata() {
+        return metadata;
     }
 }

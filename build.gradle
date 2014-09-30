@@ -56,7 +56,7 @@ subprojects {
 
     apply plugin: "java"
     apply plugin: 'maven'
-    apply from: '../emma.gradle'
+    apply plugin: "jacoco"
 
     version = '2.0-MILESTONE-2-SNAPSHOT'
     group = 'com.nudroid'
@@ -71,8 +71,7 @@ subprojects {
         mavenCentral()
         maven { url 'http://repo.springsource.org/libs-release' }
         maven { url 'http://repo.springsource.org/libs-milestone' }
-        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-snapshot-local' }
-        maven { url 'http://artifactory.mtl.nurun.com/artifactory/android-release-local' }
+        maven { url 'https://repository.jboss.org' }
     }
 
     dependencies {
@@ -80,11 +79,40 @@ subprojects {
         testCompile 'org.mockito:mockito-all:1.9.5'
     }
 
-    test { useTestNG() }
+    test {
+        useTestNG() {
+            suiteXmlBuilder().suite(name: 'model-suite', parallel: 'tests') {
+                test(name: 'all-tests') {
+                    packages {
+                        'package'(name: 'com.nudroid.annotation.processor.model')
+                    }
+                }
+            }
+        }
+    }
+
+    test.doLast {
+        tasks.jacocoTestReport.execute()
+    }
+
+    jacoco {
+        toolVersion = "0.7.0.201403182114"
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled false
+            csv.enabled false
+            html {
+                enabled true
+                destination "${buildDir}/reports/jacoco/html"
+            }
+        }
+    }
 
     /*
      * =============================================================================================================
-     * Adds the compileOnly dependencies to the compile, test and javadoc classpaths and eclipse and idea project files.
+     * Adds the compileOnly dependencies to the compile, model and javadoc classpaths and eclipse and idea project files.
      * Sets-up idea to download sources and javadoc.
      */
     sourceSets.main.compileClasspath += configurations.compileOnly
@@ -171,9 +199,21 @@ project(':nudroid-annotations-processor') {
     dependencies {
         compile project(':nudroid-annotations')
         compile project(':nudroid-providers-core')
+
         compileOnly 'com.google.android:android:2.2.1'
         compileOnly 'com.google.guava:guava:15.0'
         compileOnly 'org.antlr:ST4:4.0.7'
+
+        testCompile('com.google.testing.compile:compile-testing:0.5') {
+            exclude group: 'org.truth0'
+        }
+
+        testCompile 'com.google.truth:truth:0.23'
+
+        testCompile 'com.google.android:android:2.2.1'
+        testCompile 'com.google.guava:guava:15.0'
+        testCompile 'org.antlr:ST4:4.0.7'
+        testCompile files("${System.properties['java.home']}/../lib/tools.jar")
     }
 }
 

@@ -31,12 +31,12 @@ import com.nudroid.provider.delegate.ContentProviderDelegate;
 
 public class ParentClass {
     /**
-     * A sample delegate to test the annotation processor.
+     * A sample delegate to model the annotation processor.
      */
     @ContentProvider(authority = "com.nudroid.samples")
     public static class SampleContentProviderDelegate implements ContentProviderDelegate {
 
-        @Query("/channels/test/{1}/{2}")
+        @Query("/channels/model/{1}/{2}")
         public Cursor channels1(@PathParam("1") String variable1, @PathParam("2") int variable2,
                                 @PathParam("3") String variable3) {
 
@@ -44,7 +44,7 @@ public class ParentClass {
             return null;
         }
 
-        @Query("/channels/test/{1}/{2}")
+        @Query("/channels/model/{1}/{2}")
         public Cursor channels2(@PathParam("1") String variable1, @PathParam("2") int variable2,
                                 @PathParam("3") String variable3, @QueryParam("query") String queryParam) {
 
@@ -52,14 +52,14 @@ public class ParentClass {
         }
 
         @MyCacheInterceptor2.Interceptor
-        @Query("/channels/test")
+        @Query("/channels/model")
         public Cursor channels2(@QueryParam("test2") String test) {
 
             //... perform query
             return null;
         }
         //
-        //        @Query("/channels/test")
+        //        @Query("/channels/model")
         //        public Cursor channels3() {
         //
         //            //... perform query
@@ -67,7 +67,7 @@ public class ParentClass {
         //        }
         //
         //        @Query("/channels/test1")
-        //        public Cursor channels4(@QueryParam("test1") String test) {
+        //        public Cursor channels4(@QueryParam("test1") String model) {
         //
         //            //... perform query
         //            return null;
@@ -75,7 +75,7 @@ public class ParentClass {
         //
         //        @MyCacheInterceptor2.Interceptor
         //        @Query("/channels/test1")
-        //        public Cursor channels5(@QueryParam("test2") String test) {
+        //        public Cursor channels5(@QueryParam("test2") String model) {
         //
         //            //... perform query
         //            return null;
