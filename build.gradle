@@ -163,7 +163,7 @@ subprojects {
  */
 project(':nudroid-providers-core') {
 
-    sourceCompatibility = JavaVersion.VERSION_1_6
+    sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_6
 
     dependencies {
@@ -178,7 +178,7 @@ project(':nudroid-providers-core') {
  */
 project(':nudroid-annotations') {
 
-    sourceCompatibility = JavaVersion.VERSION_1_6
+    sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_6
 
     dependencies {
